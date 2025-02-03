@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            background-color: white;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            padding: 50px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 128, 0, 0.3);
+            border: 2px solid #008000;
+        }
+        h1 {
+            font-size: 80px;
+            color: #008000;
+            margin: 0;
+        }
+        p {
+            font-size: 22px;
+            color: #333;
+            margin: 10px 0 20px;
+        }
+        a {
+            text-decoration: none;
+            color: white;
+            background: #008000;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            display: inline-block;
+            transition: 0.3s ease;
+        }
+        a:hover {
+            background: #006400;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>404</h1>
+        <p><%= typeof message !== "undefined" ? message : "Oops! The page you’re looking for isn’t available." %></p>
+        <a href="/">Return to Home</a>
+    </div>
+</body>
+</html>
