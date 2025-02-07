@@ -54,8 +54,8 @@ app.use("/",userRouter);
 
 
 const PORT=process.env.PORT || 4488;
-app.listen(3000,()=>{
-  console.log("server running");
+app.listen(3001,()=>{
+  console.log("server running on port 3001 or 4488");
 })
 
 
