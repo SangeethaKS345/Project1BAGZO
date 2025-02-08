@@ -18,10 +18,6 @@ const userSchema = new Schema({
         sparse : true,
         default : null
     },
-    googleId: {
-        type : String,
-        unique: true
-    },
     password: {
         type : String,
         require : false
@@ -41,7 +37,7 @@ const userSchema = new Schema({
     wallet : {
         type : Number,
         default : 0,
-    },
+    }, 
     wishlist : [{
         type : Schema.Types.ObjectId,
         ref: "Wishlist"

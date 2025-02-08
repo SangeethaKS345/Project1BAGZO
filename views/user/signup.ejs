@@ -1,352 +1,356 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up / Sign In</title>
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,800" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Sign Up / Sign In</title>
+        <link href="https://fonts.googleapis.com/css?family=Montserrat:400,800" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+        <style>
+            * {
+                box-sizing: border-box;
+            }
 
-        body {
-            background: #f6f5f7;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            font-family: 'Montserrat', sans-serif;
-            height: 100vh;
-            margin: -20px 0 50px;
-        }
+            body {
+                background: #f6f5f7;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+                font-family: 'Montserrat', sans-serif;
+                height: 100vh;
+                margin: -20px 0 50px;
+            }
 
-        h1 {
-            font-weight: bold;
-            margin: 0;
-        }
+            h1 {
+                font-weight: bold;
+                margin: 0;
+            }
 
-        p {
-            font-size: 14px;
-            font-weight: 100;
-            line-height: 20px;
-            letter-spacing: 0.5px;
-            margin: 20px 0 30px;
-        }
+            p {
+                font-size: 14px;
+                font-weight: 100;
+                line-height: 20px;
+                letter-spacing: 0.5px;
+                margin: 20px 0 30px;
+            }
 
-        a {
-            color: #333;
-            font-size: 14px;
-            text-decoration: none;
-            margin: 15px 0;
-        }
+            a {
+                color: #333;
+                font-size: 14px;
+                text-decoration: none;
+                margin: 15px 0;
+            }
 
-        button {
-            border-radius: 20px;
-            border: 1px solid #FF4B2B;
-            background-color: #FF4B2B;
-            color: #FFFFFF;
-            font-size: 12px;
-            font-weight: bold;
-            padding: 12px 45px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            transition: transform 80ms ease-in;
-        }
+            button {
+                border-radius: 20px;
+                border: 1px solid #FF4B2B;
+                background-color: #FF4B2B;
+                color: #FFFFFF;
+                font-size: 12px;
+                font-weight: bold;
+                padding: 12px 45px;
+                letter-spacing: 1px;
+                text-transform: uppercase;
+                transition: transform 80ms ease-in;
+            }
 
-        button:active {
-            transform: scale(0.95);
-        }
+            button:active {
+                transform: scale(0.95);
+            }
 
-        button.ghost {
-            background-color: transparent;
-            border-color: #FFFFFF;
-        }
+            button.ghost {
+                background-color: transparent;
+                border-color: #FFFFFF;
+            }
 
-        form {
-            background-color: #FFFFFF;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            padding: 0 50px;
-            height: 100%;
-            width: 400px;
-            min-height: 650px; /* Increased min-height of the form container */
-            text-align: center;
-        }
+            form {
+                background-color: #FFFFFF;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+                padding: 0 50px;
+                height: 100%;
+                width: 400px;
+                min-height: 650px; /* Increased min-height of the form container */
+                text-align: center;
+            }
 
-        .input-container {
-            width: 100%; 
-            margin: 8px 0;
-        }
+            .input-container {
+                width: 100%; 
+                margin: 8px 0;
+            }
 
-        .input-container input {
-            background-color: #eee;
-            border: none;
-            padding: 12px 15px;
-            width: 100%;
-            border-radius: 5px; /* Rounded corners */
-        }
+            .input-container input {
+                background-color: #eee;
+                border: none;
+                padding: 12px 15px;
+                width: 100%;
+                border-radius: 5px; /* Rounded corners */
+            }
 
-        .error-message {
-            color: red;
-            font-size: 12px;
-            margin-top: 5px;
-        }
+            .error-message {
+                color: red;
+                font-size: 12px;
+                margin-top: 5px;
+            }
 
-        .container {
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
-            position: relative;
-            overflow: hidden;
-            width: 768px;
-            max-width: 100%;
-            min-height: 600px; /* Increased min-height of the entire container */
-        }
+            .container {
+                background-color: #fff;
+                border-radius: 10px;
+                box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+                position: relative;
+                overflow: hidden;
+                width: 768px;
+                max-width: 100%;
+                min-height: 600px; /* Increased min-height of the entire container */
+            }
 
-        .form-container {
-            position: absolute;
-            top: 0;
-            height: 100%;
-            transition: all 0.6s ease-in-out;
-        }
+            .form-container {
+                position: absolute;
+                top: 0;
+                height: 100%;
+                transition: all 0.6s ease-in-out;
+            }
 
-        .sign-in-container {
-            left: 0;
-            width: 50%;
-            z-index: 2;
-        }
+            .sign-in-container {
+                left: 0;
+                width: 50%;
+                z-index: 2;
+            }
 
-        .container.right-panel-active .sign-in-container {
-            transform: translateX(100%);
-        }
+            .container.right-panel-active .sign-in-container {
+                transform: translateX(100%);
+            }
 
-        .sign-up-container {
-            left: 0;
-            width: 50%;
-            opacity: 0;
-            z-index: 1;
-        }
-
-        .container.right-panel-active .sign-up-container {
-            transform: translateX(100%);
-            opacity: 1;
-            z-index: 5;
-            animation: show 0.6s;
-        }
-
-        @keyframes show {
-            0%, 49.99% {
+            .sign-up-container {
+                left: 0;
+                width: 50%;
                 opacity: 0;
                 z-index: 1;
             }
-            50%, 100% {
+
+            .container.right-panel-active .sign-up-container {
+                transform: translateX(100%);
                 opacity: 1;
                 z-index: 5;
+                animation: show 0.6s;
             }
+
+            @keyframes show {
+                0%, 49.99% {
+                    opacity: 0;
+                    z-index: 1;
+                }
+                50%, 100% {
+                    opacity: 1;
+                    z-index: 5;
+                }
+            }
+
+            .overlay-container {
+                position: absolute;
+                top: 0;
+                left: 50%;
+                width: 50%;
+                height: 100%;
+                overflow: hidden;
+                transition: transform 0.6s ease-in-out;
+                z-index: 100;
+            }
+
+            .container.right-panel-active .overlay-container {
+                transform: translateX(-100%);
+            }
+
+            .overlay {
+                background: linear-gradient(to right, #FF4B2B, #FF416C);
+                background-size: cover;
+                background-position: 0 0;
+                color: #FFFFFF;
+                position: relative;
+                left: -100%;
+                height: 100%;
+                width: 200%;
+                transform: translateX(0);
+                transition: transform 0.6s ease-in-out;
+            }
+
+            .container.right-panel-active .overlay {
+                transform: translateX(50%);
+            }
+
+            .overlay-panel {
+                position: absolute;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+                padding: 0 40px;
+                text-align: center;
+                top: 0;
+                height: 100%;
+                width: 50%;
+                transition: transform 0.6s ease-in-out;
+            }
+
+            .overlay-left {
+                transform: translateX(-20%);
+            }
+
+            .container.right-panel-active .overlay-left {
+                transform: translateX(0);
+            }
+
+            .overlay-right {
+                right: 0;
+                transform: translateX(0);
+            }
+
+            .container.right-panel-active .overlay-right {
+                transform: translateX(20%);
+            }
+
+            .gmail-btn {
+                background-color: #DB4437;
+                color: white;
+                font-size: 14px;
+                border-radius: 20px;
+                padding: 12px 45px;
+                border: none;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-top: 10px;
+                cursor: pointer;
+                width: 100%;
+            }
+
+            .gmail-btn i {
+                margin-right: 8px;
+            }
+
+        </style>
+    </head>
+    <body>
+
+        <div class="container" id="container">
+            <div class="form-container sign-up-container">
+                <form action="/signin" method="post" novalidate>
+                    <h1>Sign in</h1>
+                    <span>or use your account</span>
+                    <div class="input-container">
+                        <input type="email" placeholder="Email" name="email" />
+                    </div>
+                    <div class="input-container">
+                        <input type="password" placeholder="Password" name="password" />
+                    </div>
+                    <a href="#">Forgot your password?</a>
+                    <button>Sign In</button>
+                    <button class="gmail-btn"><i class="fab fa-google"></i> Sign in with Gmail</button>
+                </form>
+            </div>
+            <div class="form-container sign-in-container">
+                <form id="signUpForm" onsubmit="return validateSignUpForm()" method="post" novalidate>
+                    <h1>Create Account</h1>
+                    <span>or use your email for registration</span>
+                    <div class="input-container">
+                        <input type="text" id="fullName" placeholder="Full Name" name="name" />
+                        <div id="error1" class="error-message"></div>
+                    </div>
+                    <div class="input-container">
+                        <input type="email" id="email" placeholder="Email" name="email"/>
+                        <div id="error2" class="error-message"></div>
+                    </div>
+                    <div class="input-container">
+                        <input type="text" id="phone" placeholder="Phone Number" name="phone" />
+                        <div id="error3" class="error-message"></div>
+                    </div>
+                    <div class="input-container">
+                        <input type="password" id="password" placeholder="Password" name="password"/>
+                        <div id="error4" class="error-message"></div>
+                    </div>
+                    <div class="input-container">
+                        <input type="password" id="cPassword" placeholder="Confirm Password" name="cPassword" />
+                        <div id="error5" class="error-message"></div>
+                    </div>
+                    <button type="submit">Sign Up</button>
+                    <button class="gmail-btn"><i class="fab fa-google"></i> Sign up with Gmail</button>
+                </form>
+            </div>
+            <div class="overlay-container">
+                <div class="overlay">
+                    <div class="overlay-panel overlay-left">
+                        <h1>Hello, Friend!</h1>
+                        <p>Enter your details and start your journey with us</p>
+                        <button class="ghost" id="signUp">Sign Up</button>
+                    </div>
+                    <div class="overlay-panel overlay-right">
+                        <h1>Welcome Back!</h1>
+                        <p>To keep connected, please log in with your details</p>
+                        <button class="ghost" id="signIn">Sign In</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+
+    <script>
+        document.getElementById('signIn').addEventListener('click', () => {
+            document.getElementById('container').classList.add("right-panel-active");
+        });
+
+        document.getElementById('signUp').addEventListener('click', () => {
+            document.getElementById('container').classList.remove("right-panel-active");
+        });
+
+        function validateSignUpForm() {
+            let isValid = true;
+
+            // Clear previous errors
+            document.querySelectorAll('.error-message').forEach(msg => msg.innerHTML = '');
+
+            // Name validation
+            const name = document.getElementById('fullName').value;
+            if (name.trim() === '') {
+                document.getElementById('error1').textContent = 'Full Name is required.';
+                isValid = false;
+            }
+
+            // Email validation
+            const email = document.getElementById('email').value;
+            if (!/\S+@\S+\.\S+/.test(email)) {
+                document.getElementById('error2').textContent = 'Please enter a valid email.';
+                isValid = false;
+            }
+
+            // Phone number validation
+            const phone = document.getElementById('phone').value;
+            if (!/^\d{10}$/.test(phone)) {
+                document.getElementById('error3').textContent = 'Please enter a valid 10-digit phone number.';
+                isValid = false;
+            }
+
+            // Password validation
+            const password = document.getElementById('password').value;
+    const passwordPattern = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+
+    if (!passwordPattern.test(password)) {
+        document.getElementById('error4').textContent = 'Password must be at least 8 characters and include one uppercase letter, one number, and one special character (!@#$%^&*).';
+        isValid = false;
+    }
+
+
+            // Confirm password validation
+            const cPassword = document.getElementById('cPassword').value;
+            if (cPassword !== password) {
+                document.getElementById('error5').textContent = 'Passwords do not match.';
+                isValid = false;
+            }
+
+            return isValid;
         }
-
-        .overlay-container {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            width: 50%;
-            height: 100%;
-            overflow: hidden;
-            transition: transform 0.6s ease-in-out;
-            z-index: 100;
-        }
-
-        .container.right-panel-active .overlay-container {
-            transform: translateX(-100%);
-        }
-
-        .overlay {
-            background: linear-gradient(to right, #FF4B2B, #FF416C);
-            background-size: cover;
-            background-position: 0 0;
-            color: #FFFFFF;
-            position: relative;
-            left: -100%;
-            height: 100%;
-            width: 200%;
-            transform: translateX(0);
-            transition: transform 0.6s ease-in-out;
-        }
-
-        .container.right-panel-active .overlay {
-            transform: translateX(50%);
-        }
-
-        .overlay-panel {
-            position: absolute;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            padding: 0 40px;
-            text-align: center;
-            top: 0;
-            height: 100%;
-            width: 50%;
-            transition: transform 0.6s ease-in-out;
-        }
-
-        .overlay-left {
-            transform: translateX(-20%);
-        }
-
-        .container.right-panel-active .overlay-left {
-            transform: translateX(0);
-        }
-
-        .overlay-right {
-            right: 0;
-            transform: translateX(0);
-        }
-
-        .container.right-panel-active .overlay-right {
-            transform: translateX(20%);
-        }
-
-        .gmail-btn {
-            background-color: #DB4437;
-            color: white;
-            font-size: 14px;
-            border-radius: 20px;
-            padding: 12px 45px;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: 10px;
-            cursor: pointer;
-            width: 100%;
-        }
-
-        .gmail-btn i {
-            margin-right: 8px;
-        }
-
-    </style>
-</head>
-<body>
-
-  <div class="container" id="container">
-      <div class="form-container sign-up-container">
-          <form id="signUpForm" onsubmit="return validateSignUpForm()" method="post" novalidate>
-              <h1>Create Account</h1>
-              <span>or use your email for registration</span>
-              <div class="input-container">
-                  <input type="text" id="fullName" placeholder="Full Name" name="name" />
-                  <div id="error1" class="error-message"></div>
-              </div>
-              <div class="input-container">
-                  <input type="email" id="email" placeholder="Email" name="email"/>
-                  <div id="error2" class="error-message"></div>
-              </div>
-              <div class="input-container">
-                  <input type="text" id="phone" placeholder="Phone Number" name="phone" />
-                  <div id="error3" class="error-message"></div>
-              </div>
-              <div class="input-container">
-                  <input type="password" id="password" placeholder="Password" name="password"/>
-                  <div id="error4" class="error-message"></div>
-              </div>
-              <div class="input-container">
-                  <input type="password" id="cPassword" placeholder="Confirm Password" name="cPassword" />
-                  <div id="error5" class="error-message"></div>
-              </div>
-              <button type="submit">Sign Up</button>
-              <button class="gmail-btn"><i class="fab fa-google"></i> Sign up with Gmail</button>
-          </form>
-      </div>
-      <div class="form-container sign-in-container">
-          <form action="/signin" method="post" novalidate>
-              <h1>Sign in</h1>
-              <span>or use your account</span>
-              <div class="input-container">
-                  <input type="email" placeholder="Email" name="email" />
-              </div>
-              <div class="input-container">
-                  <input type="password" placeholder="Password" name="password" />
-              </div>
-              <a href="#">Forgot your password?</a>
-              <button>Sign In</button>
-              <button class="gmail-btn"><i class="fab fa-google"></i> Sign in with Gmail</button>
-          </form>
-      </div>
-      <div class="overlay-container">
-          <div class="overlay">
-              <div class="overlay-panel overlay-left">
-                  <h1>Welcome Back!</h1>
-                  <p>To keep connected, please log in with your details</p>
-                  <button class="ghost" id="signIn">Sign In</button>
-              </div>
-              <div class="overlay-panel overlay-right">
-                  <h1>Hello, Friend!</h1>
-                  <p>Enter your details and start your journey with us</p>
-                  <button class="ghost" id="signUp">Sign Up</button>
-              </div>
-          </div>
-      </div>
-  </div>
-
-  <script>
-      document.getElementById('signUp').addEventListener('click', () => {
-          document.getElementById('container').classList.add("right-panel-active");
-      });
-
-      document.getElementById('signIn').addEventListener('click', () => {
-          document.getElementById('container').classList.remove("right-panel-active");
-      });
-
-      function validateSignUpForm() {
-          let isValid = true;
-
-          // Clear previous errors
-          document.querySelectorAll('.error-message').forEach(msg => msg.innerHTML = '');
-
-          // Name validation
-          const name = document.getElementById('fullName').value;
-          if (name.trim() === '') {
-              document.getElementById('error1').textContent = 'Full Name is required.';
-              isValid = false;
-          }
-
-          // Email validation
-          const email = document.getElementById('email').value;
-          if (!/\S+@\S+\.\S+/.test(email)) {
-              document.getElementById('error2').textContent = 'Please enter a valid email.';
-              isValid = false;
-          }
-
-          // Phone number validation
-          const phone = document.getElementById('phone').value;
-          if (!/^\d{10}$/.test(phone)) {
-              document.getElementById('error3').textContent = 'Please enter a valid 10-digit phone number.';
-              isValid = false;
-          }
-
-          // Password validation
-          const password = document.getElementById('password').value;
-          if (password.length < 6) {
-              document.getElementById('error4').textContent = 'Password must be at least 6 characters.';
-              isValid = false;
-          }
-
-          // Confirm password validation
-          const cPassword = document.getElementById('cPassword').value;
-          if (cPassword !== password) {
-              document.getElementById('error5').textContent = 'Passwords do not match.';
-              isValid = false;
-          }
-
-          return isValid;
-      }
-  </script>
-</body>
-</html>
+    </script>
+    </body>
+    </html>
