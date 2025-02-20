@@ -1,8 +1,8 @@
-const mongoose = required ("mongoose");
+const mongoose = require ("mongoose");
 const {Schema} = mongoose;
 
 const categorySchema = new mongoose.Schema({
-    neme : {
+    name : {
         type : String,
         required : true,
         unique : true

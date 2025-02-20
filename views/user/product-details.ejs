@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details</title>
+    
+    <!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Fancybox -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+
+<!-- Elevate Zoom -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevatezoom.min.js"></script>
+
+
+    
+
+
+
+
+    <style>
+        /* General Styles */
+        body {
+            background-color: #f4f4f4; /* Light grey background */
+            color: #333; /* Dark text color */
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        /* Breadcrumbs */
+        .breadcrumbs {
+            color: #333; /* Changed breadcrumb text to dark grey */
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        .breadcrumbs a {
+            color: #000; /* Changed red to black */
+            text-decoration: none;
+        }
+
+        /* Product Details */
+        .product-details {
+            display: flex;
+            gap: 20px;
+            background: #fff; /* White background for product details */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-image img {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .product-info h1 {
+            color: #000; /* Changed red to black for product name */
+            font-size: 24px;
+        }
+
+        .product-info p {
+            color: #555; /* Dark grey text for description */
+        }
+
+        .price {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ff4d00; /* You can adjust this to black if you wish */
+        }
+
+        .discount {
+            font-size: 14px;
+            color: #ffcc00;
+        }
+
+        .stock {
+            font-size: 16px;
+            font-weight: bold;
+            color: #000; /* Changed red to black for stock status */
+        }
+
+        .rating {
+            color: #ffcc00;
+            font-size: 18px;
+        }
+
+        /* Buttons */
+        .btn {
+            background-color: #000; /* Changed red to black for button background */
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .btn:hover {
+            background-color: #333; /* Changed hover color to dark grey */
+        }
+
+        /* Related Products - Horizontal Layout */
+        .related-products-list {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+            flex-wrap: wrap; /* To ensure responsiveness */
+        }
+
+        .related-product {
+            background: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            width: 200px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .related-product img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .related-product h4 {
+            font-size: 14px;
+            color: #000; /* Changed red to black for related product name */
+            margin: 5px 0;
+        }
+
+        .related-product p {
+            font-size: 14px;
+            color: #555; /* Dark grey text for price */
+            margin: 0;
+        }
+
+        /* Image container */
+.image-container {
+    position: relative;
+    display: inline-block;
+}
+
+/* Cursor Box (Small Hover Area) */
+#cursorBox {
+    width: 100px;
+    height: 100px;
+    border: 2px solid #000;
+    position: absolute;
+    display: none;
+    background: rgba(255, 255, 255, 0.3);
+    pointer-events: none; /* Allows mouse interaction with the image */
+}
+
+/* Zoomed Image Display */
+#zoomWindow {
+    width: 500px;
+    height: 500px;
+    border: 2px solid #000;
+    position: absolute;
+    left: 670px; /* Adjust to position next to the image */
+    top: 0;
+    overflow: hidden;
+    display: none;
+    background-image: url("/uploads/re-image/<%= product.productImage[0] %>");
+    background-repeat: no-repeat;
+    background-size: 900px; /* Adjust for zoom level */
+}
+
+
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="breadcrumbs">
+            <a href="/">Home</a> > 
+            <a href="/productDetails<%= product._id %>">Product Details</a> > 
+            <span><%= product.productName %></span>
+        </div>
+        
+
+        <div class="product-details">
+            
+            <div class="product-image">
+               <!-- Image Container -->
+            <div class="image-container">
+                <!-- Main Image -->
+                <img id="zoomImage" 
+                    src="/uploads/re-image/<%= product.productImage[0] %>" 
+                    data-zoom-image="/uploads/re-image/<%= product.productImage[0] %>" 
+                    width="400" height="400" />
+
+                <!-- Cursor Box (Magnifying Glass Effect) -->
+                <div id="cursorBox"></div>
+                 <!-- Div for Zoomed Image -->
+            <div id="zoomWindow"></div>
+            </div>
+
+           
+
+
+                <div class="image-thumbnails">
+                    <% product.productImage.forEach(image => { %>
+                        <a href="/uploads/re-image/<%= image %>" data-fancybox="gallery">
+                            <img src="/uploads/re-image/<%= image %>" style="width: 100px; margin: 5px;">
+                        </a>
+                    <% }) %>
+                </div>
+
+            </div>
+
+            <div class="product-info">
+                <h1><%= product.productName %></h1>
+                <p><%= product.description %></p>
+                <p><strong>Brand:</strong> <%= product.brand %></p>
+                <p><strong>Category:</strong> <%= product.category.name %></p>
+
+                
+                <p class="price">Sale Price: $<%= product.salePrice %>  
+                    <% if (product.regularPrice > product.salePrice) { %>
+                        <span class="discount">(Save <%= ((product.regularPrice - product.salePrice) / product.regularPrice * 100).toFixed(1) %>%)</span>
+                    <% } %>
+                </p>
+
+                <p class="stock">
+                    <%= product.quantity > 0 ? "In Stock" : "<span style='color:black;'>Sold Out</span>" %>
+                </p>
+                
+                <p class="rating">⭐⭐⭐⭐☆ (4.5 / 5)</p>
+                <button class="btn">Add to Cart</button>
+                <button class="btn">Wishlist</button>
+            </div>
+        </div>
+
+        <div class="related-products">
+            <h3>Related Products</h3>
+            <div class="related-products-list">
+                <% relatedProducts.forEach((related) => { %>
+                    <div class="related-product">
+                        <a href="/productDetails/<%= related._id %>">
+                            <img src="/uploads/re-image/<%= related.productImage[0] %>" 
+                                 alt="<%= related.productName %>">
+                            <h4><%= related.productName %></h4>
+                            <p>₹<%= related.salePrice %></p>
+                        </a>
+                    </div>
+                <% }); %>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Include Elevate Zoom -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevatezoom.min.js"></script>
+    
+    <!-- Custom Zoom Script -->
+    <script>
+   $(document).ready(function() {
+    var $image = $("#zoomImage");
+    var $cursorBox = $("#cursorBox");
+    var $zoomWindow = $("#zoomWindow");
+
+    var imageWidth = $image.width();
+    var imageHeight = $image.height();
+    var zoomFactor = 2; // Adjust the zoom level
+    var zoomWidth = 100;
+    var zoomHeight = 100;
+
+    // Show cursor box & zoom window on hover
+    $image.mouseenter(function() {
+        $cursorBox.show();
+        $zoomWindow.show();
+    });
+
+    // Hide cursor box & zoom window when not hovering
+    $image.mouseleave(function() {
+        $cursorBox.hide();
+        $zoomWindow.hide();
+    });
+
+    // Update cursor and zoom window dynamically
+    $image.mousemove(function(event) {
+        var offset = $image.offset();
+        var x = event.pageX - offset.left;
+        var y = event.pageY - offset.top;
+
+        // Prevent cursor box from going outside the image
+        var cursorX = Math.max(0, Math.min(x - zoomWidth / 2, imageWidth - zoomWidth));
+        var cursorY = Math.max(0, Math.min(y - zoomHeight / 2, imageHeight - zoomHeight));
+
+        // Move the cursor box
+        $cursorBox.css({
+            left: cursorX + "px",
+            top: cursorY + "px"
+        });
+
+        // Move the zoomed image inside the zoom window
+        var bgX = -(cursorX * zoomFactor) + "px";
+        var bgY = -(cursorY * zoomFactor) + "px";
+
+        $zoomWindow.css({
+            "background-position": bgX + " " + bgY
+        });
+    });
+});
+                
+    </script>
+ 
+</body>
+</html>

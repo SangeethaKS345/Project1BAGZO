@@ -1,0 +1,112 @@
+body, html {
+    height: 100%;
+    margin: 0;
+    font-family: "Nunito Sans", sans-serif;
+    overflow: hidden;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.login_wrap {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    border-radius: 5px;
+    background: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border: 2px solid #DB4437; /* Red Border */
+}
+
+.heading_s1 h3 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #DB4437; /* Red Heading */
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.otp-timer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #f8f9fa;
+    font-weight: bold;
+    font-size: 14px;
+    text-align: center;
+    line-height: 60px; /* Align text inside the circle */
+    margin: 10px auto;
+}
+
+#timerValue {
+    display: block;
+    font-size: 24px;
+    font-weight: bold;
+    color: #FF4B2B; /* Bright Orange-Red Text */
+    line-height: 60px;
+}
+
+#timerValue.expired {
+    font-size: 12px;
+    color: red;
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, #FF416C, #FF4B2B); /* Gradient Button */
+    border: none;
+    width: 100%;
+    margin-top: 10px;
+    display: block;
+    color: #fff;
+    font-weight: bold;
+    transition: 0.3s ease-in-out;
+}
+
+.btn-primary:hover {
+    background: #DB4437; /* Solid Red Hover */
+}
+
+.btn-secondary {
+    width: 100%;
+    background-color: #6c757d;
+    border: none;
+    margin-top: 10px;
+    display: block;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+.alert-danger {
+    margin-top: 15px;
+    text-align: center;
+    color: #DB4437; /* Red Alert */
+    font-weight: bold;
+}
+
+.text-center {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.text-muted {
+    color: #FF4B2B; /* Bright Orange-Red Text */
+    text-align: center;
+}
+
+.pt-25 {
+    padding-top: 25px;
+}

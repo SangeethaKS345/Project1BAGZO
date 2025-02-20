@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            background: linear-gradient(to right, #FF416C, #FF4B2B);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .login-container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h1 {
+            color: #DB4437;
+            margin-bottom: 20px;
+        }
+        .btn-custom {
+            background: linear-gradient(to right, #FF416C, #FF4B2B);
+            border: none;
+            color: white;
+            padding: 10px;
+            font-size: 18px;
+            width: 100%;
+            border-radius: 5px;
+            transition: background 0.3s ease-in-out;
+        }
+        .btn-custom:hover {
+            background: #DB4437;
+        }
+        .alert-danger {
+            color: white;
+            background-color: #DB4437;
+            border: none;
+        }
+        a {
+            color: #FF4B2B;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .error-message {
+    color: #DB4437;
+    font-size: 14px;
+    margin-top: 5px;
+    display: block;
+}
+
+.server-error {
+    color: #DB4437;
+    font-size: 16px;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>Admin Login</h1>
+    
+      
+    
+        <% if (typeof message !== "undefined" && message) { %>
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Login Failed',
+                        text: "<%= message %>",
+                    });
+                });
+            </script>
+        <% } %> 
+
+        
+
+        <form id="adminLoginForm" action="/admin/login" method="post" novalidate>
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" name="email">
+                <span class="error-message" id="emailError"></span>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-control" name="password">
+                <span class="error-message" id="passwordError"></span>
+            </div>
+            <button type="submit" class="btn btn-custom">Login</button>
+        </form>
+    
+        <hr>
+        <p><a href="/">Go back home</a></p>
+    </div>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById("adminLoginForm");
+    
+            form.addEventListener("submit", function (event) {
+                const email = form.email.value.trim();
+                const password = form.password.value.trim();
+                const emailError = document.getElementById("emailError");
+                const passwordError = document.getElementById("passwordError");
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+                let isValid = true;
+    
+                // Reset previous error messages
+                emailError.textContent = "";
+                passwordError.textContent = "";
+    
+                if (!email) {
+                    emailError.textContent = "Email is required.";
+                    isValid = false;
+                } else if (!emailRegex.test(email)) {
+                    emailError.textContent = "Enter a valid email.";
+                    isValid = false;
+                }
+    
+                if (!password) {
+                    passwordError.textContent = "Password is required.";
+                    isValid = false;
+                } else if (password.length < 6) {
+                    passwordError.textContent = "Invalid password.";
+                    isValid = false;
+                }
+    
+                if (!isValid) {
+                    event.preventDefault(); 
+                }
+            });
+        });
+    </script>
+    
+    
+</body>
+</html>

@@ -1,0 +1,45 @@
+body {
+    background: linear-gradient(to right, #FF416C, #FF4B2B);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.login-container {
+    background: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+h1 {
+    color: #DB4437;
+    margin-bottom: 20px;
+}
+.btn-custom {
+    background: linear-gradient(to right, #FF416C, #FF4B2B);
+    border: none;
+    color: white;
+    padding: 10px;
+    font-size: 18px;
+    width: 100%;
+    border-radius: 5px;
+    transition: background 0.3s ease-in-out;
+}
+.btn-custom:hover {
+    background: #DB4437;
+}
+.alert-danger {
+    color: white;
+    background-color: #DB4437;
+    border: none;
+}
+a {
+    color: #FF4B2B;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}

@@ -164,21 +164,20 @@ ol {
 	text-transform: uppercase;
 	padding: 14px 30px;
 	color: #ffffff;
-	background: #000000;
+	background: linear-gradient(to right, #FF4B2B, #FF416C);
 	letter-spacing: 4px;
 }
 
 .site-btn {
 	font-size: 14px;
 	color: #ffffff;
-	background: #111111;
+	background: linear-gradient(to right, #FF4B2B, #FF416C);
 	font-weight: 700;
 	border: none;
 	text-transform: uppercase;
 	display: inline-block;
 	padding: 14px 30px;
 }
-
 /* Preloder */
 
 #preloder {
@@ -188,7 +187,7 @@ ol {
 	top: 0;
 	left: 0;
 	z-index: 999999;
-	background: #000;
+	background:#DB4437;
 }
 
 .loader {
@@ -310,6 +309,9 @@ ol {
 	-ms-flex-pack: center;
 	justify-content: center;
 }
+
+
+
 
 /*---------------------
   Header

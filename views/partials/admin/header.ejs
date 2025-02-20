@@ -1,0 +1,141 @@
+<!DOCTYPE HTML>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Cap Quest</title>
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:title" content="">
+    <meta property="og:type" content="">
+    <meta property="og:url" content="">
+    <meta property="og:image" content="">
+    <link rel="shortcut icon" type="image/x-icon" href="#">
+    <link href="/css/main.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="/assets/css/logo.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10.16.6/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://kit.fontawesome.com/16d4885483.js" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        body {
+            background-color: #ffffff;
+        }
+
+        .navbar {
+            background-color: #8da7ab;
+        }
+
+        .navbar-aside {
+            background-color: #b0d5de;
+        }
+
+        .menu-item a.menu-link {
+            color: #310505;
+        }
+
+        .menu-item a.menu-link:hover,
+        .menu-item a.menu-link.active {
+            background-color: #6e7e6e;
+            color: #ffffff;
+        }
+
+        .dropdown-menu {
+            background-color: #bb9aaf;
+        }
+
+        .dropdown-item:hover {
+            background-color: #33053d;
+            color: #ffffff;
+        }
+        .a {
+            text-decoration: none;
+        }
+        .nav__logo {
+        text-decoration: none; /* Remove underline from logo */
+    }
+    </style>
+</head>
+
+<body>
+    <div class="screen-overlay"></div>
+    <aside class="navbar-aside" id="offcanvas_aside">
+        <div class="aside-top">
+            <a href="/admin/users/" class="nav__logo">
+                <!-- New Logo Design -->
+                <div class="logo">
+                  <span class="">Cap</span><span class="zone">Quest</span>
+                </div>
+              </a>
+            <div>
+                <button class="btn btn-icon btn-aside-minimize"> <i class="text-muted material-icons md-menu_open"></i>
+                </button>
+            </div>
+        </div>
+        <nav>
+            <ul class="menu-aside">
+                <li class="menu-item">
+                    <a class="menu-link" href="/admin/dashboard"> <i class="icon material-icons md-home"></i>
+                        <span class="text">Dashboard</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a class="menu-link" href="/admin/users/"> <i class="icon material-icons md-person"></i>
+                        <span class="text">Customers</span>
+                    </a>
+
+                </li>
+                <li class="menu-item">
+                    <a class="menu-link" href="/admin/category"> <i class="icon material-icons md-person"></i>
+                        <span class="text">Category</span>
+                    </a>
+
+                </li>
+                <li class="menu-item">
+                    <a class="menu-link" href="/admin/brands"> <i class="icon material-icons md-stars"></i>
+                        <span class="text">Brands</span> </a>
+                </li>
+                <li class="menu-item">
+                    <a class="menu-link" href="/admin/addProducts"> <i class="icon material-icons md-add_box"></i>
+                        <span class="text">Add product</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a class="menu-link" href="/admin/products"> <i class="icon material-icons md-shopping_bag"></i>
+                        <span class="text">Products</span>
+                    </a>
+                </li>
+
+                <li class="menu-item">
+                    <a class="menu-link" href="/admin/coupon"> <i class="icon material-icons md-class"></i>
+                        <span class="text">Coupon</span> </a>
+                </li>
+                <li class="menu-item">
+                    <a class="menu-link" href="/admin/banner"> <i
+                            class="icon material-icons md-photo_size_select_actual"></i>
+                        <span class="text">Banner</span> </a>
+                </li>
+
+                <li class="menu-item">
+                    <a class="menu-link" href="/admin/orders"> <i class="icon material-icons md-shopping_cart"></i>
+                        <span class="text">Orders</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+    <main class="main-wrap">
+        <header class="main-header navbar">
+            <div class="col-search">
+            </div>
+            <div class="col-nav">
+                <button class="btn btn-icon btn-mobile me-auto" data-trigger="#offcanvas_aside"> <i
+                    class="material-icons md-apps"></i> </button>
+                        <form action="/admin/logout" method="get">
+                            <button type="submit" class="btn btn-danger"><i class="material-icons md-exit_to_app"></i> Logout</button>
+                        </form>        
+            </div>
+        </header>

@@ -11,7 +11,8 @@ const productSchema = new Schema({
         required : true, 
     },
     brand :{
-        type : String,
+        type : Schema.Types.ObjectId,
+        ref:'Brand',
         required : true, 
     },
     category : {
@@ -49,11 +50,11 @@ const productSchema = new Schema({
     },
     status : {
         type : String,
-        enum : ["Availabe", "out of stock", "Discountinued"],
+        enum : ["Available", "out of stock", "Discountinued"],
         default : "Available",
     }, 
 },{timestamps : true});
 
-const Product = mongoose.Model("Product",ProductSchema);
+const Product = mongoose.model("Product", productSchema);
 
 module.exports = Product;
