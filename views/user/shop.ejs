@@ -1,7 +1,7 @@
 <!-- Previous styles remain the same, add these additional styles -->
 <!-- Add these updated styles -->
 <style>
-    /* Base Container */
+  /* Base Container */
 .main-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -86,16 +86,38 @@
   display: flex;
   gap: 30px;
   width: 100%;
+  min-height: 800px;
 }
 
 /* Sidebar */
 .sidebar {
   flex: 0 0 250px;
   padding: 24px;
-  background-color: #fff;
+  background-color: #ffffff;
   border-radius: 12px;
   box-shadow: 0 2px 15px rgba(0,0,0,0.05);
   height: fit-content;
+}
+
+/* Clear Filter Button */
+.clear-filter-btn {
+  display: block;
+  width: 90%;
+  padding: 12px;
+  background: #FF4B2B;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 20px;
+  font-weight: 500;
+  text-align: center;
+  text-decoration: none;
+}
+
+.clear-filter-btn:hover {
+  background: #FF416C;
 }
 
 /* Product Grid */
@@ -105,10 +127,16 @@
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 25px;
   align-items: start;
+  min-height: 800px;
+  align-content: flex-start;
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
 }
 
 /* Product Cards */
 .product-card {
+  height: 400px;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 2px 15px rgba(0,0,0,0.05);
@@ -116,7 +144,6 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  height: 100%;
 }
 
 .product-card:hover {
@@ -137,11 +164,11 @@
 
 /* Product Information */
 .product-info {
-  padding: 20px;
+  padding: 15px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  flex-grow: 1;
+  gap: 10px;
+  flex: 1;
 }
 
 .product-name {
@@ -181,7 +208,7 @@
 
 .filter-title {
   color: #333;
-  font-size: 15px;
+  font-size: 20px;
   font-weight: 600;
   margin-bottom: 16px;
   padding-bottom: 8px;
@@ -198,7 +225,7 @@
   color: #666;
   text-decoration: none;
   transition: all 0.3s ease;
-  font-size: 14px;
+  font-size: 18px;
   padding: 6px 0;
   display: block;
 }
@@ -288,6 +315,7 @@
 
   .product-list-container {
     flex-direction: column;
+    min-height: 600px;
   }
 
   .sidebar {
@@ -297,6 +325,7 @@
 
   .product-grid {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    min-height: 600px;
   }
 }
 
@@ -309,9 +338,10 @@
     height: 180px;
   }
 }
-  </style>
+</style>
   
-  <!-- The rest of your HTML template remains the same -->
+<%- include('../../views/partials/user/header') %>
+
   
   <div class="main-container">
     <section class="shop-page">
@@ -345,6 +375,9 @@
   
       <div class="product-list-container">
         <aside class="sidebar">
+            <a href="/shop" class="clear-filter-btn">
+              Clear All Filters
+            </a>
           <!-- Categories -->
           <div class="filter-section">
             <h3 class="filter-title">Categories</h3>
@@ -454,3 +487,5 @@
     }
   }
   </script>
+
+<%- include('../../views/partials/user/footer') %>
