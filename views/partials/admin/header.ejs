@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Cap Quest</title>
+    <title>BAGZO</title>
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,46 +17,76 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10.16.6/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://kit.fontawesome.com/16d4885483.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <style>
         body {
-            background-color: #ffffff;
-        }
+    background-color: #fafafa;
+}
 
-        .navbar {
-            background-color: #8da7ab;
-        }
+.navbar {
+    background-color: #FF4B2B;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+}
 
-        .navbar-aside {
-            background-color: #b0d5de;
-        }
+.navbar-aside {
+    background-color: #fff;
+    box-shadow: 2px 0 15px rgba(0,0,0,0.05);
+    border-right: 1px solid rgba(255, 75, 43, 0.1);
+}
 
-        .menu-item a.menu-link {
-            color: #310505;
-        }
+.menu-item a.menu-link {
+    color: #333;
+    transition: all 0.3s ease;
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin: 2px 0;
+}
 
-        .menu-item a.menu-link:hover,
-        .menu-item a.menu-link.active {
-            background-color: #6e7e6e;
-            color: #ffffff;
-        }
+.menu-item a.menu-link:hover,
+.menu-item a.menu-link.active {
+    background: linear-gradient(45deg, #FF416C, #FF4B2B);
+    color: #ffffff;
+    transform: translateX(5px);
+}
 
-        .dropdown-menu {
-            background-color: #bb9aaf;
-        }
+.dropdown-menu {
+    background-color: #fff;
+    border: 1px solid rgba(255, 75, 43, 0.1);
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+    border-radius: 8px;
+    padding: 8px 0;
+}
 
-        .dropdown-item:hover {
-            background-color: #33053d;
-            color: #ffffff;
-        }
-        .a {
-            text-decoration: none;
-        }
-        .nav__logo {
-        text-decoration: none; /* Remove underline from logo */
-    }
+.dropdown-item {
+    color: #333;
+    transition: all 0.3s ease;
+    padding: 8px 16px;
+}
+
+.dropdown-item:hover {
+    background: linear-gradient(45deg, #FF416C, #FF4B2B);
+    color: #ffffff;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.nav__logo {
+    
+    color: linear-gradient( #FF416C, #FF4B2B);
+    font-weight: 600;
+    font-size: 1.2em;
+    transition: opacity 0.3s ease;
+}
+
+.nav__logo:hover {
+    opacity: 0.9;
+}
     </style>
 </head>
 
@@ -67,7 +97,7 @@
             <a href="/admin/users/" class="nav__logo">
                 <!-- New Logo Design -->
                 <div class="logo">
-                  <span class="">Cap</span><span class="zone">Quest</span>
+                  <span class="">BAGZO</span><span class="zone"></span>
                 </div>
               </a>
             <div>

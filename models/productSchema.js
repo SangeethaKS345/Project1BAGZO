@@ -53,6 +53,10 @@ const productSchema = new Schema({
         enum : ["Available", "out of stock", "Discountinued"],
         default : "Available",
     }, 
+    createdOn : {
+        type : Date,
+        default : Date.now,
+    },
 },{timestamps : true});
 
 const Product = mongoose.model("Product", productSchema);

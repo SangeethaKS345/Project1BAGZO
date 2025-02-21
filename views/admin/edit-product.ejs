@@ -38,8 +38,7 @@
 
 
                    <div class="card-body">
-                       <form method="post" action="/admin/editProduct/<%=product._id %>" enctype="multipart/form-data"
-                          xxx>
+                    <form method="post" action="/admin/editProduct/<%=product._id %>" enctype="multipart/form-data">
                            <div class="mb-4">
                                <label for="product_name" class="form-label">Product Name</label>
                                <input type="text" name="productName" value="<%=product.productName%>"
@@ -49,12 +48,12 @@
                            <div class="col-lg-4 mb-4">
                                <label class="form-label">Brand</label>
                                <select class="form-select border" name="brand">
-                                      <%for(let i=0;i<brand.length;i++){%>
-                                       <option value="<%=brand[i].brandName%>">
-                                          <%=brand[i].brandName%>
-                                       </option>
-                                      <%}%>
-                               </select>
+                                    <%for(let i=0;i<brand.length;i++){%>
+                                        <option value="<%=brand[i]._id%>" <%= (brand[i]._id.toString() === product.brand.toString()) ? 'selected' : '' %>>
+                                            <%=brand[i].brandName%>
+                                        </option>
+                                    <%}%>
+                                </select>
                                <div id="brand-error" class="error-message"></div>
 
 
@@ -77,10 +76,10 @@
                                <div class="col-lg-4">
                                    <div class="mb-4">
                                        <label class="form-label">Sale price</label>
-                                       <input name="salePrice" type="text" value="<%=product.salePrice%>"
+                                       <input name="salesPrice" type="text" value="<%=product.salesPrice%>"
                                            class="form-control border">
                                    </div>
-                                   <div id="salePrice-error" class="error-message"></div>
+                                   <div id="salesPrice-error" class="error-message"></div>
                                </div>
                                <div class="col-lg-4">
                                    <div class="mb-4">
@@ -213,7 +212,19 @@
                </div>
            </div>
        </div>
+       <div class="container mt-3">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-20" style="margin-right: 200px;">
+                    <% for(let i = 1; i <= totalPages; i++) { %>
+                        <li class="page-item <%= (i === currentPage) ? 'active' : '' %>">
+                            <a class="page-link" href="?page=<%= i %>"> <%= i %> </a>
+                        </li>
+                    <% } %>                    
+                </ul>
+            </nav>
+        </div>
        </div>
+
    </section>
    <script src="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.js"></script>
 <%- include("../../views/partials/admin/footer") %>
@@ -236,17 +247,26 @@
              const description = document.getElementsByName('descriptionData')[0].value;
              const brand = document.getElementsByName('brand')[0].value;
              const price = document.getElementsByName('regularPrice')[0].value;
-             const saleprice = document.getElementsByName('salePrice')[0].value;
+             const saleprice = document.getElementsByName('salesPrice')[0].value;
              const color = document.getElementsByName('color')[0].value;
              const category = document.getElementsByName('category')[0].value;
              const images = document.getElementById('input1')
+             const existingImages = document.getElementById("imageDatas")?.value;
              const quantity=document.getElementsByName('quantity')
  const imageDatas = document.getElementById("imageDatas")?.value;
              let isValid = true;    
              if (name.trim() === "") {
-     displayErrorMessage('productName-error', 'Please enter a product name.');
-     isValid = false;
-  }
+                displayErrorMessage('productName-error', 'Please enter a product name.');
+                isValid = false;
+            }
+
+            if (!existingImages) {
+                const hasNewImages = Array.from(document.querySelectorAll('input[type="file"]')).some(input => input.files.length > 0);
+                if (!hasNewImages) {
+                    displayErrorMessage('images-error', 'Please upload at least one product image.');
+                    isValid = false;
+                }
+            }
             
              if (description=== '') {
                  displayErrorMessage('description-error', 'Please enter a product description.');
@@ -266,8 +286,8 @@
                  displayErrorMessage('regularPrice-error', 'Please enter a valid non-negative price.');
                  isValid = false;
              }
-            if (!/^\d+(\.\d{1,2})?$/.test(saleprice) || parseFloat(saleprice) < 0) {
-                 displayErrorMessage('salePrice-error', 'Please enter a valid non-negative price.');
+            if (!/^\d+(\.\d{1,2})?$/.test(salesprice) || parseFloat(salesprice) < 0) {
+                 displayErrorMessage('salesPrice-error', 'Please enter a valid non-negative price.');
                  isValid = false;
              }
             

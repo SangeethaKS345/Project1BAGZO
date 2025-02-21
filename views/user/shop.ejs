@@ -1,38 +1,100 @@
 <!-- Previous styles remain the same, add these additional styles -->
 <!-- Add these updated styles -->
 <style>
-    .main-container {
+    /* Base Container */
+.main-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  background-color: #fafafa;
 }
 
-/* Top Bar */
+/* Top Bar Styling */
 .shop-topbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
   background-color: #fff;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  width: 100%;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 15px rgba(0,0,0,0.05);
 }
 
-/* Product List Layout */
+/* Search Form */
+.search-form {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  flex: 0 1 350px;
+}
+
+.search-form:focus-within {
+  border-color: #FF4B2B;
+  box-shadow: 0 0 0 2px rgba(255, 75, 43, 0.1);
+}
+
+.search-input {
+  flex: 1;
+  padding: 12px 16px;
+  font-size: 14px;
+  border: none;
+  outline: none;
+  color: #333;
+}
+
+.search-button {
+  padding: 12px 20px;
+  background: #FF4B2B;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.search-button:hover {
+  background: #FF416C;
+}
+
+/* Sort Dropdown */
+.sort-dropdown {
+  padding: 12px 20px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: white;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 180px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+}
+
+.sort-dropdown:hover {
+  border-color: #FF4B2B;
+}
+
+/* Product List Container */
 .product-list-container {
   display: flex;
   gap: 30px;
   width: 100%;
 }
 
+/* Sidebar */
 .sidebar {
   flex: 0 0 250px;
-  padding: 20px;
+  padding: 24px;
   background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-radius: 12px;
+  box-shadow: 0 2px 15px rgba(0,0,0,0.05);
   height: fit-content;
 }
 
@@ -41,40 +103,50 @@
   flex: 1;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
+  gap: 25px;
   align-items: start;
 }
 
-/* Product Card */
+/* Product Cards */
 .product-card {
   background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: transform 0.3s ease;
+  border-radius: 12px;
+  box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
-.product-card img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-  border-radius: 8px 8px 0 0;
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 20px rgba(0,0,0,0.1);
 }
 
+.product-card img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.product-card:hover img {
+  transform: scale(1.05);
+}
+
+/* Product Information */
 .product-info {
-  padding: 15px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
+  gap: 12px;
   flex-grow: 1;
 }
 
 .product-name {
-  color: #DB4437;
+  color: #333;
   font-weight: 600;
-  margin-bottom: 10px;
   font-size: 1rem;
   line-height: 1.4;
   display: -webkit-box;
@@ -84,53 +156,59 @@
 }
 
 .product-price {
-  margin: 10px 0;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  margin: 10px 0;
 }
 
 .original-price {
   text-decoration: line-through;
-  color: #666;
+  color: #888;
   font-size: 0.9em;
 }
 
 .sale-price {
-  color: #DB4437;
-  font-weight: bold;
+  color: #FF4B2B;
+  font-weight: 600;
   font-size: 1.1em;
 }
 
-/* Filter Section */
+/* Filter Sections */
 .filter-section {
-  margin-bottom: 25px;
+  margin-bottom: 30px;
 }
 
 .filter-title {
-  color: #DB4437;
-  font-size: 16px;
+  color: #333;
+  font-size: 15px;
   font-weight: 600;
-  margin-bottom: 15px;
-  border-bottom: 2px solid #DB4437;
+  margin-bottom: 16px;
   padding-bottom: 8px;
+  border-bottom: 2px solid #f0f0f0;
 }
 
 .filter-items {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .filter-item a {
-  color: #FF4B2B;
+  color: #666;
   text-decoration: none;
-  transition: color 0.3s ease;
+  transition: all 0.3s ease;
   font-size: 14px;
+  padding: 6px 0;
   display: block;
-  padding: 5px 0;
 }
 
+.filter-item a:hover {
+  color: #FF4B2B;
+  padding-left: 5px;
+}
+
+/* Price Filters */
 .price-filters {
   display: flex;
   flex-direction: column;
@@ -139,78 +217,75 @@
 
 .price-button {
   width: 100%;
-  padding: 8px;
-  background: #fff;
-  border: 1px solid #FF4B2B;
-  color: #FF4B2B;
-  border-radius: 5px;
+  padding: 10px;
+  background: transparent;
+  border: 1px solid #e0e0e0;
+  color: #666;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: 14px;
   text-align: center;
 }
 
+.price-button:hover {
+  background: #FF4B2B;
+  color: white;
+  border-color: #FF4B2B;
+}
+
 /* Add to Cart Button */
 .add-to-cart-btn {
   margin-top: auto;
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   background: linear-gradient(45deg, #FF416C, #FF4B2B);
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 500;
-}
-
-/* Hover Effect */
-.add-to-cart-btn:hover {
-  background: #DB4437;
-}
-
-/* Search Bar */
-.search-form {
-  width: 100%;
-  max-width: 400px; /* Increased size */
-  border-radius: 30px;
-  display: flex;
-  align-items: center;
-  background-color: #fff;
-  border: 2px solid #DB4437;
-  overflow: hidden;
-}
-
-.search-input {
-  flex: 1;
-  padding: 12px 20px; /* Increased padding */
-  font-size: 16px;
-  border: none;
-  outline: none;
-  color: #FF4B2B;
-  min-width: 250px; /* Ensures better size */
-}
-
-/* Sort Dropdown */
-.sort-dropdown {
-  padding: 8px 15px;
-  border: 2px solid #DB4437;
-  border-radius: 5px;
-  background-color: white;
-  color: #FF4B2B;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  min-width: 150px;
-}
-
-.sort-dropdown:hover {
-  background-color: #DB4437;
   color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  opacity: 0.95;
+}
+
+.add-to-cart-btn:hover {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+/* No Products Message */
+.no-products {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 40px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+}
+
+.no-products h3 {
+  color: #666;
+  font-size: 1.2em;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .shop-topbar {
+    flex-direction: column;
+    gap: 20px;
+    align-items: stretch;
+  }
+
+  .search-form {
+    flex: none;
+    width: 100%;
+  }
+
+  .sort-dropdown {
+    width: 100%;
+  }
+
   .product-list-container {
     flex-direction: column;
   }
@@ -220,20 +295,20 @@
     margin-bottom: 20px;
   }
 
-  .shop-topbar {
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .search-form {
-    max-width: 100%;
-  }
-
-  .sort-dropdown {
-    width: 100%;
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   }
 }
 
+@media (max-width: 480px) {
+  .product-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .product-card img {
+    height: 180px;
+  }
+}
   </style>
   
   <!-- The rest of your HTML template remains the same -->
@@ -318,7 +393,7 @@
           <% } else { %>
             <% products.forEach(product => { %>
               <div class="product-card">
-                <img src="/uploads/products/<%= product.productImage[0] %>" alt="<%= product.productName %>">
+                <img src="/uploads/re-image/<%= product.productImage[0] %>" alt="<%= product.productName %>">
                 <div class="product-info">
                   <h4 class="product-name"><%= product.productName %></h4>
                   <p class="product-price">

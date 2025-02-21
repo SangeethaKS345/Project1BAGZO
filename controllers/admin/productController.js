@@ -23,10 +23,9 @@ const getProductAddPage = async (req, res) => {
   }
 };
 
-// Add Product
-// 
 
-//add product
+
+
 const addProducts = async (req, res) => {
   try {
       console.log("hello")
@@ -83,16 +82,16 @@ const getAllProducts = async (req, res) => {
     const limit = 4;
     
     const searchRegex = new RegExp(search, "i");
-    
+    const brands = await Brand.find({ name: { $regex: searchRegex } }).select("_id");
     const productData = await Product.find({
       $or: [
         { productName: { $regex: searchRegex }},
-        { brand: { $regex: searchRegex }},
+        { brand: { $in: brands.map(b => b._id) } },
       ],
     })
       .limit(limit)
       .skip((page - 1) * limit)
-      .sort({createdAt: -1})
+      .sort({createdOn: -1})
       .populate("category")
       .populate("brand")
       .exec();
@@ -100,13 +99,14 @@ const getAllProducts = async (req, res) => {
     const count = await Product.countDocuments({
       $or: [
         { productName: { $regex: searchRegex }},
-        { brand: { $regex: searchRegex }},
+        { brand: { $in: brands.map(b => b._id) } }
       ],
     });
 
     const category = await Category.find({ isListed: true });
     const brand = await Brand.find({ isBlocked: false });
 
+    console.log(productData)
     if (!productData) {
       return res.status(404).render("admin/products", {
         data: [],
@@ -117,7 +117,7 @@ const getAllProducts = async (req, res) => {
       });
     }
 
-    res.render("admin/products", {
+    res.render("products", {
       data: productData,
       currentPage: page,
       totalPages: Math.ceil(count / limit),
@@ -127,7 +127,7 @@ const getAllProducts = async (req, res) => {
 
   } catch (error) {
     console.error("Error in getAllProducts:", error);
-    res.status(500).render('admin/error', { 
+    res.status(500).render('error', { 
       message: 'Error loading products',
       error: {status: 500}
     });
@@ -164,34 +164,39 @@ const unblockProduct = async (req, res) => {
   console.log(req.query.id);
 };
 
+
 const getEditProduct = async (req, res) => {
   try {
     const id = req.query.id;
-    const product = await Product.findOne({ _id: id });
+    const product = await Product.findOne({ _id: id }).populate('brand');
     const category = await Category.find({});
     const brand = await Brand.find({});
+    
+    // Add pagination variables
+    const totalPages = 1;
+    const currentPage = 1;
+
     res.render("edit-product", {
       product: product,
       cat: category,
       brand: brand,
+      totalPages: totalPages,
+      currentPage: currentPage
     });
   } catch (error) {
-    res.status(500).render('admin/error', { 
-      message: 'An error occurred',
+    console.error("Error fetching product:", error);
+    res.status(500).render('error', { 
+      message: 'An error occurred while fetching the product',
       error: {status: 500}
-  });
+    });
   }
 };
-
-
-
 
 
 
 const editProduct = async (req, res) => {
   try {
     const id = req.params.id;
-
     const product = await Product.findOne({ _id: id });
 
     if (!product) {
@@ -200,63 +205,57 @@ const editProduct = async (req, res) => {
 
     const data = req.body;
 
-    const category = await Category.findOne({ _id: data.category });
-
+    // Check for existing product name
     const existingProduct = await Product.findOne({
       productName: data.productName,
       _id: { $ne: id },
     });
 
     if (existingProduct) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Product with this name already exists. Please try with another name.",
-        });
+      return res.status(400).json({
+        error: "Product with this name already exists. Please try with another name.",
+      });
     }
 
-    // Handling new images
-    const images = [];
+    // Handle image updates
+    let updatedImages = [...(product.productImage || [])];
     if (req.files && req.files.length > 0) {
-      for (let i = 0; i < req.files.length; i++) {
-        images.push(req.files[i].filename);
-      }
+      const newImages = req.files.map(file => file.filename);
+      updatedImages = [...updatedImages, ...newImages];
     }
 
     // Fields to update
     const updateFields = {
       productName: data.productName,
       description: data.descriptionData,
-      brand: data.brand,
+      brand: data.brand,           // Now receiving ObjectId from the form
       category: data.category,
-      regularPrice: data.regularPrice,
-      salePrice: data.salePrice,
-      quantity: data.quantity,
-      size: data.size,
+      regularPrice: parseFloat(data.regularPrice),
+      salesPrice: parseFloat(data.salesPrice),
+      quantity: parseInt(data.quantity),
       color: data.color,
+      productImage: updatedImages
     };
-    console.log(updateFields, "updated");
-    if (images.length > 0) {
-      const existingImages = product.productImage || [];
-      console.log("Existing images:", existingImages);
-
-      const updatedImages = existingImages.slice(0, -images.length);
-      console.log("Updated images after removal:", updatedImages);
-
-      updateFields.productImage = [...updatedImages, ...images];
-    }
 
     // Update product in the database
-    await Product.findByIdAndUpdate({ _id: id }, updateFields, { new: true });
+    const updatedProduct = await Product.findByIdAndUpdate(
+      { _id: id },
+      updateFields,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedProduct) {
+      return res.status(500).json({ error: "Failed to update product" });
+    }
 
     return res.redirect("/admin/products");
+
   } catch (error) {
-    console.error(error);
-    res.status(500).render('admin/error', { 
-      message: 'An error occurred',
+    console.error("Error updating product:", error);
+    res.status(500).render('error', { 
+      message: 'An error occurred while updating the product',
       error: {status: 500}
-  });
+    });
   }
 };
 

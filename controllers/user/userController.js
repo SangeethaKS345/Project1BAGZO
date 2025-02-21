@@ -16,10 +16,10 @@ const loadHomepage = async (req, res) => {
         // Fix: Use `Product.find`, not `product.find`
         let productData = await Product.find({
             isBlocked: false,
-            category: { $in: categories.map(category => category._id) },
-            quantity: { $gt: 0 }
+
         });
 
+        console.log(productData)
         // Fix: Corrected sorting field (assuming `createdAt` is the correct field)
         productData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
@@ -362,14 +362,13 @@ const forgotPasssword = async (req, res) => {
  
 const loadShop = async (req, res) => {
     try {
-        // Check if user is logged in
         const user = req.session.user;
         if (!user) {
             return res.redirect('/login');
         }
         const userData = await User.findOne({ _id: user });
 
-        // Get query parameters
+        
         const query = {
             search: req.query.search || '',
             sort: req.query.sort || '',
@@ -379,35 +378,34 @@ const loadShop = async (req, res) => {
             minPrice: req.query.minPrice || ''
         };
 
-        // Build filter object for MongoDB
+       
         const filter = {
             isBlocked: false, // Hide blocked products
             status: "Available" // Only show available products
         };
 
-        // Search filter
+       
         if (query.search) {
             filter.productName = { $regex: query.search, $options: 'i' };
         }
 
-        // Category filter
+        
         if (query.category) {
             filter.category = query.category;
         }
 
-        // Brand filter
+        
         if (query.brand) {
             filter.brand = query.brand;
         }
 
-        // Price range filter
+       
         if (query.minPrice || query.maxPrice) {
             filter.salesPrice = {};
             if (query.minPrice) filter.salesPrice.$gte = parseInt(query.minPrice);
             if (query.maxPrice) filter.salesPrice.$lte = parseInt(query.maxPrice);
         }
 
-        // Set up sorting
         let sortOptions = {};
         switch (query.sort) {
             case 'price-asc':
@@ -426,7 +424,7 @@ const loadShop = async (req, res) => {
                 sortOptions = { createdAt: -1 }; // Default sort by newest
         }
 
-        // Fetch all necessary data
+        
         const [products, categories, brands] = await Promise.all([
             Product.find(filter)
                    .sort(sortOptions)
