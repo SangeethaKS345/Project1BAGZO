@@ -35,12 +35,12 @@ router.get("/logout", userController.logout);
 
 
 //reset password
-router.get("/forgot-password", userController.forgotPasssword)
-router.post("/reset-password", userController.forgotPassswordSendLink);
-router.get("/new-password", userController.newPassword)
-router.post("/new-password",userController.changePassword)
+router.get("/forgotPassword", userController.forgotPasssword)
+router.post("/resetPassword", userController.forgotPassswordSendLink);
+router.get("/newPassword", userController.newPassword)
+router.post("/newPassword",userController.changePassword)
 // userRouter.js
-router.get("/product-details",productController.productDetails);  // Make sure this matches your controller export
+router.get("/productDetails",productController.productDetails);  // Make sure this matches your controller export
 
 
 //shop route

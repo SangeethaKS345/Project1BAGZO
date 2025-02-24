@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details</title>
+    
+    <!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Fancybox -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+
+<!-- Elevate Zoom -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevatezoom.min.js"></script>
+
+
+    
+
+
+
+
+    <style>
+        /* General Styles */
+body {
+    background-color: #f4f4f4; /* Light grey background */
+    color: #333;
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+    display: flex;
+  flex-wrap: wrap; /* Prevents squeezing */
+  align-items: center; /* Aligns text and images properly */
+}
+
+.text {
+  flex: 1; /* Allows text to take available space */
+  min-width: 200px; /* Prevents excessive shrinking */
+}
+/* Breadcrumbs */
+.breadcrumbs {
+    color: #333;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+.breadcrumbs a {
+    color: #DB4437;
+    text-decoration: none;
+}
+
+/* Product Details */
+.product-details {
+    display: flex;
+    gap: 20px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.product-image img {
+    width: 100%;
+    border-radius: 8px;
+    cursor: pointer;
+    max-width: 100%; /* Ensures the image scales properly */
+  height: auto;
+}
+
+.product-info h1 {
+    color: #DB4437;
+    font-size: 24px;
+}
+
+.product-info p {
+    color: #555;
+}
+.grid-container {
+  display: grid;
+  grid-template-columns: 1fr auto; /* Prevents image squeezing */
+  gap: 10px;
+}
+
+
+
+
+/* Price & Discount */
+.price-container {
+    margin: 15px 0;
+}
+
+.regular-price {
+    color: #777;
+    font-size: 16px;
+    text-decoration: line-through;
+}
+
+.price {
+    font-size: 22px;
+    font-weight: bold;
+    color: #FF4B2B;
+    margin: 5px 0;
+}
+
+.discount {
+    font-size: 16px;
+    font-weight: normal;
+    color: #FF4B2B;
+    margin-left: 10px;
+}
+
+/* Stock & Rating */
+.stock {
+    font-size: 16px;
+    font-weight: bold;
+    color: #DB4437;
+}
+
+.rating {
+    color: #FFCC00;
+    font-size: 18px;
+}
+
+/* Buttons */
+.btn {
+    background: linear-gradient(45deg, #FF416C, #FF4B2B);
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: 0.3s;
+}
+
+.btn:hover {
+    background: #DB4437;
+}
+
+/* Related Products */
+.related-products-list {
+    display: flex;
+    gap: 20px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.related-product {
+    background: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    width: 200px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.related-product img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.related-product h4 {
+    font-size: 14px;
+    color: #DB4437;
+    margin: 5px 0;
+}
+
+.related-product p {
+    font-size: 14px;
+    color: #555;
+    margin: 0;
+}
+
+/* Image Zoom */
+.image-container {
+    position: relative;
+    display: inline-block;
+}
+
+#cursorBox {
+    width: 100px;
+    height: 100px;
+    border: 2px solid #DB4437;
+    position: absolute;
+    display: none;
+    background: rgba(255, 255, 255, 0.3);
+    pointer-events: none;
+}
+
+#zoomWindow {
+    width: 500px;
+    height: 500px;
+    border: 2px solid #DB4437;
+    position: absolute;
+    left: 670px;
+    top: 0;
+    overflow: hidden;
+    display: none;
+    background-repeat: no-repeat;
+    background-size: 900px;
+}
+
+/* Color Variants */
+.color-variants {
+    margin: 15px 0;
+}
+
+.color-options {
+    display: flex;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.color-option {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #e0e0e0;
+    transition: all 0.2s ease;
+}
+
+.color-option:hover {
+    transform: scale(1.1);
+}
+
+.color-option.selected {
+    border: 2px solid #DB4437;
+}
+
+/* Quantity Selector */
+.quantity-selector {
+    display: flex;
+    align-items: center;
+    margin: 15px 0;
+}
+
+.quantity-selector label {
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    border: 1px solid #DB4437;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.quantity-btn {
+    width: 30px;
+    height: 30px;
+    background: #FF4B2B;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.quantity-btn:hover {
+    background: #DB4437;
+}
+
+#quantity {
+    width: 50px;
+    height: 30px;
+    text-align: center;
+    border: none;
+    border-left: 1px solid #DB4437;
+    border-right: 1px solid #DB4437;
+    font-size: 16px;
+}
+
+/* Removing Number Input Arrows */
+#quantity::-webkit-inner-spin-button, 
+#quantity::-webkit-outer-spin-button { 
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+    </style>
+</head>
+<body>
+
+   
+
+    <div class="container">
+        <div class="breadcrumbs">
+            <a href="/">Home</a> > 
+            <a href="/productDetails<%= product._id %>">Product Details</a> > 
+            <span><%= product.productName %></span>
+        </div>
+        
+
+        <div class="product-details">
+            
+            <div class="product-image">
+               <!-- Image Container -->
+            <div class="image-container">
+                <!-- Main Image -->
+                <img id="zoomImage" 
+                    src="/uploads/re-image/<%= product.productImage[0] %>" 
+                    data-zoom-image="/uploads/re-image/<%= product.productImage[0] %>" 
+                    width="400" height="400" />
+
+                <!-- Cursor Box (Magnifying Glass Effect) -->
+                <div id="cursorBox"></div>
+                 <!-- Div for Zoomed Image -->
+            <div id="zoomWindow"></div>
+            </div>
+
+           
+
+
+                <div class="image-thumbnails">
+                    <% product.productImage.forEach(image => { %>
+                        <a href="/uploads/re-image/<%= image %>" data-fancybox="gallery">
+                            <img src="/uploads/re-image/<%= image %>" style="width: 100px; margin: 5px;">
+                        </a>
+                    <% }) %>
+                </div>
+
+            </div>
+
+            <div class="product-info">
+                <div class="product-info">
+                    <h1><%= product.productName %></h1>
+                    <p><%= product.description %></p>
+                    <p><strong>Brand:</strong> <%= product.brand ? product.brand.brandName : 'Not specified' %></p>
+                    <p><strong>Category:</strong> <%= product.category.name %></p>
+                    <p><strong>Color:</strong> <%= product.color || 'Not specified' %></p>
+                    
+                    <!-- Color Variants Section
+                    <div class="color-variants">
+                        <p><strong>Colors:</strong></p>
+                        <div class="color-options">
+                            <% if (product.colors && product.colors.length > 0) { %>
+                                <% product.colors.forEach(color => { %>
+                                    <div class="color-option" 
+                                         style="background-color: '<%= color.code %>';" 
+                                         title="<%= color.name %>"
+                                         data-color="<%= color._id %>">
+                                    </div>
+                                <% }); %>
+                            <% } else { %>
+                                <span>No color variants available</span>
+                            <% } %>
+                        </div>
+                    </div> -->
+                    
+                    <!-- Enhanced Price Display -->
+                    <div class="price-container">
+                        <% if (product.regularPrice > product.salesPrice) { %>
+                            <p class="regular-price"><del>Regular Price: $<%= product.regularPrice %></del></p>
+                            <p class="price">Sale Price: $<%= product.salesPrice %>  
+                                <span class="discount">(Save <%= ((product.regularPrice - product.salesPrice) / product.regularPrice * 100).toFixed(1) %>% OFF)</span>
+                            </p>
+                        <% } else { %>
+                            <p class="price">Price: $<%= product.salesPrice %></p>
+                        <% } %>
+                    </div>
+                
+                    <p class="stock">
+                        <%- product.quantity > 0 ? "In Stock" : "<span style='color:black;'>Sold Out</span>" %>
+                    </p>
+                    
+                    <p class="rating">⭐⭐⭐⭐☆ (4.5 / 5)</p>
+                
+                    <!-- Add to Cart Options -->
+                    <div class="quantity-selector">
+                        <label for="quantity">Quantity:</label>
+                        <div class="quantity-controls">
+                            <button class="quantity-btn minus">-</button>
+                            <input type="number" id="quantity" name="quantity" value="1" min="1" max="<%= product.quantity %>">
+                            <button class="quantity-btn plus">+</button>
+                        </div>
+                    </div>
+                
+                    <button class="btn" id="addToCartBtn">Add to Cart</button>
+                    <button class="btn" id="wishlistBtn">Wishlist</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="related-products">
+            <h3>Related Products</h3>
+            <div class="related-products-list">
+                <% relatedProducts.forEach((related) => { %>
+                    <div class="related-product">
+                        <a href="/productDetails/<%= related._id %>">
+                            <img src="/uploads/re-image/<%= related.productImage[0] %>" 
+                                 alt="<%= related.productName %>">
+                            <h4><%= related.productName %></h4>
+                            <p>₹<%= related.salesPrice %></p>
+                        </a>
+                    </div>
+                <% }); %>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Include Elevate Zoom -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevatezoom.min.js"></script>
+    
+    <!-- Custom Zoom Script -->
+    <script>
+   $(document).ready(function() {
+    var $image = $("#zoomImage");
+    var $cursorBox = $("#cursorBox");
+    var $zoomWindow = $("#zoomWindow");
+
+    var imageWidth = $image.width();
+    var imageHeight = $image.height();
+    var zoomFactor = 2; // Adjust the zoom level
+    var zoomWidth = 100;
+    var zoomHeight = 100;
+
+    // Show cursor box & zoom window on hover
+    $image.mouseenter(function() {
+        $cursorBox.show();
+        $zoomWindow.show();
+    });
+
+    // Hide cursor box & zoom window when not hovering
+    $image.mouseleave(function() {
+        $cursorBox.hide();
+        $zoomWindow.hide();
+    });
+
+    // Update cursor and zoom window dynamically
+    $image.mousemove(function(event) {
+        var offset = $image.offset();
+        var x = event.pageX - offset.left;
+        var y = event.pageY - offset.top;
+
+        // Prevent cursor box from going outside the image
+        var cursorX = Math.max(0, Math.min(x - zoomWidth / 2, imageWidth - zoomWidth));
+        var cursorY = Math.max(0, Math.min(y - zoomHeight / 2, imageHeight - zoomHeight));
+
+        // Move the cursor box
+        $cursorBox.css({
+            left: cursorX + "px",
+            top: cursorY + "px"
+        });
+
+        // Move the zoomed image inside the zoom window
+        var bgX = -(cursorX * zoomFactor) + "px";
+        var bgY = -(cursorY * zoomFactor) + "px";
+
+        $zoomWindow.css({
+            "background-position": bgX + " " + bgY
+        });
+    });
+});
+
+// Add this script at the bottom of your page
+$(document).ready(function() {
+    // // Color variant selection
+    // $('.color-option').click(function() {
+    //     $('.color-option').removeClass('selected');
+    //     $(this).addClass('selected');
+        
+    //     // You can use this to update the product image or other details based on color
+    //     const selectedColor = $(this).data('color');
+    //     console.log("Selected color:", selectedColor);
+        
+    //     // Example: Update product image based on color (if you implement this feature)
+    //     // $('#zoomImage').attr('src', '/uploads/re-image/' + selectedColor + '/main.jpg');
+    // });
+    
+    // Quantity selector
+    $('.quantity-btn.plus').click(function() {
+        const max = parseInt($('#quantity').attr('max'));
+        let current = parseInt($('#quantity').val());
+        if (current < max) {
+            $('#quantity').val(current + 1);
+        }
+    });
+    
+    $('.quantity-btn.minus').click(function() {
+        let current = parseInt($('#quantity').val());
+        if (current > 1) {
+            $('#quantity').val(current - 1);
+        }
+    });
+    
+    // Add to cart with selected options
+    $('#addToCartBtn').click(function() {
+        const quantity = $('#quantity').val();
+        const selectedColor = $('.color-option.selected').data('color') || null;
+        
+        // Add to cart logic
+        $.ajax({
+            url: '/addToCart',
+            method: 'POST',
+            data: {
+                productId: '<%= product._id %>',
+                quantity: quantity,
+                color: selectedColor
+            },
+            success: function(response) {
+                alert('Product added to cart!');
+            },
+            error: function(error) {
+                console.error('Error adding to cart:', error);
+                alert('Error adding product to cart.');
+            }
+        });
+    });
+});
+                
+    </script>
+
+ 
+</body>
+</html>

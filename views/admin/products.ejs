@@ -18,16 +18,19 @@
 <div class="right mt-5">
     <table class="table table-striped">
         <thead>
-            <tr>
-                <th scope="col"><b>Product name</b></th>
-                <th scope="col"><b>Brand</b></th>
-                <th scope="col"><b>Category</b></th>
-                <th scope="col"><b>Sale Price</b></th>
-                <!-- <th scope="col"><b>Offer Price</b></th> -->
+                    <tr>
+                        <th scope="col"><b>Product name</b></th>
+                        <th scope="col"><b>Brand</b></th>
+                        <th scope="col"><b>Category</b></th>
+                        <th scope="col"><b>Regular Price</b></th>  <!-- Add this line -->
+                        <th scope="col"><b>Sale Price</b></th>
+                        <th scope="col"><b>Quantity</b></th>
+                        <th scope="col"><b>Action</b></th>
+                        <th scope="col"><b>Edit</b></th>
+                         <!-- <th scope="col"><b>Offer Price</b></th> -->
                 <!-- <th scope="col"><b>Offer</b></th> -->
-                <th scope="col"><b>Quantity</b></th>
-                <th scope="col"><b>Action</b></th>
-                <th scope="col"><b>Edit</b></th>
+                    </tr>
+                </thead>
             </tr>
         </thead>
         <tbody>
@@ -38,9 +41,9 @@
                 <td><%=data[i].productName %></td>
                 <td><%=data[i].brand.brandName %></td>
                 <td><%=data[i].category.name %></td>
+                <td><%=data[i].regularPrice%></td> 
                 <td><%=data[i].salesPrice%></td>
                 <td><%=data[i].quantity%></td>
-
                
                 <!-- <td>
                 

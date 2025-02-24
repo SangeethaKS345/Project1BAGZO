@@ -279,7 +279,7 @@ const logout = async(req,res) =>{
 const forgotPasssword = async (req, res) => {
     try {
   
-      return res.render("forgot-password")
+      return res.render("forgotPassword")
       
     } catch (error) {
       console.log('Forgot password page renderign error',error);
@@ -326,7 +326,7 @@ const forgotPasssword = async (req, res) => {
     try {
   
     
-      return res.render("new-password")
+      return res.render("newPassword")
       
     } catch (error) {
       console.log('Forgot password page renderign error',error);
@@ -345,30 +345,18 @@ const forgotPasssword = async (req, res) => {
     }
   }
 
-//   const CapProductDetails = async(req,res)=>{
-//     try {
-      
-//         const Products=await product.find({isBlocked:false})
-//         const User=req.session.user
-        
-     
-//        console.log(Products)
-//         res.render("product-details",{User,Products})
-//     } catch (error) {
-//         console.log("error")
-//     }
-//   }
 
  
 const loadShop = async (req, res) => {
     try {
-        const user = req.session.user;
-        if (!user) {
-            return res.redirect('/login');
-        }
-        const userData = await User.findOne({ _id: user });
-
+        // Initialize userData as null
+        let userData ;
         
+        // Check if user is logged in and get user data if they are
+        if (req.session.user) {
+            userData = await User.findOne({ _id: req.session.user });
+        }
+
         const query = {
             search: req.query.search || '',
             sort: req.query.sort || '',
@@ -378,34 +366,35 @@ const loadShop = async (req, res) => {
             minPrice: req.query.minPrice || ''
         };
 
-       
+        // Base filter conditions
         const filter = {
-            isBlocked: false, // Hide blocked products
-            status: "Available" // Only show available products
+            isBlocked: false,
+            status: "Available"
         };
 
-       
+        // Add search filter if provided
         if (query.search) {
             filter.productName = { $regex: query.search, $options: 'i' };
         }
 
-        
+        // Add category filter if provided
         if (query.category) {
             filter.category = query.category;
         }
 
-        
+        // Add brand filter if provided
         if (query.brand) {
             filter.brand = query.brand;
         }
 
-       
+        // Add price range filter if provided
         if (query.minPrice || query.maxPrice) {
             filter.salesPrice = {};
             if (query.minPrice) filter.salesPrice.$gte = parseInt(query.minPrice);
             if (query.maxPrice) filter.salesPrice.$lte = parseInt(query.maxPrice);
         }
 
+        // Sort options
         let sortOptions = {};
         switch (query.sort) {
             case 'price-asc':
@@ -421,10 +410,10 @@ const loadShop = async (req, res) => {
                 sortOptions = { productName: -1 };
                 break;
             default:
-                sortOptions = { createdAt: -1 }; // Default sort by newest
+                sortOptions = { createdAt: -1 };
         }
 
-        
+        // Fetch all required data
         const [products, categories, brands] = await Promise.all([
             Product.find(filter)
                    .sort(sortOptions)
@@ -436,12 +425,14 @@ const loadShop = async (req, res) => {
 
         console.log('Products:', products); // Debug log
 
+        // Render the shop page with or without user data
         res.render('shop', {
             products,
             categories,
             brands,
             query,
-            userData
+            userData, // This will be null for non-logged-in users
+            isLoggedIn: !!req.session.user // Add a boolean flag for login status
         });
 
     } catch (error) {
@@ -449,7 +440,6 @@ const loadShop = async (req, res) => {
         res.status(500).send('Internal Server Error');
     }
 };
-
 
 // Export Routes
 module.exports = {

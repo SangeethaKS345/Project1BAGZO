@@ -28,50 +28,73 @@ const getProductAddPage = async (req, res) => {
 
 const addProducts = async (req, res) => {
   try {
-      console.log("hello")
-      console.log(req.files);
-      const products = req.body;
-
-      // Check if product already exists
-      const productExists = await Product.findOne({
-          productName: products.productName,
-      });
-
-      if (!productExists) {
-          const images = [];
-
-          if (req.files && req.files.length > 0) {
-              for (let i = 0; i < req.files.length; i++) {
-                  images.push(`${req.files[i].filename}`);
-              }
-              console.log(images);
+    console.log("hello");
+    console.log(req.files);
+    
+    // Get the raw body data to preserve punctuation
+    const products = req.body;
+    
+    // Check if product already exists
+    const productExists = await Product.findOne({
+      productName: products.productName,
+    });
+    
+    if (!productExists) {
+      const images = [];
+      
+      // Image validation
+      if (req.files && req.files.length > 0) {
+        // Check file types and sizes
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        
+        for (let i = 0; i < req.files.length; i++) {
+          const file = req.files[i];
+          
+          // Validate file type
+          if (!allowedTypes.includes(file.mimetype)) {
+            return res.status(400).json({
+              error: `Invalid file type for ${file.originalname}. Only JPEG, PNG, and WebP images are allowed.`
+            });
           }
-
-          // Create new product - now using category ID directly
-          const newProduct = new Product({
-              productName: products.productName,
-              description: products.description,
-              brand: products.brand,
-              category: products.category, // This will now be the ObjectId
-              regularPrice: products.regularPrice,
-              salesPrice: products.salePrice,
-              createdOn: new Date(),
-              quantity: products.quantity,
-              size: products.size,
-              color: products.color,
-              productImage: images
-          });
-
-          await newProduct.save();
-          return res.redirect("/admin/addProducts");
-      } else {
-          return res.status(400).json({
-              error: "Product already exists, please try with another name",
-          });
+          
+          // Validate file size
+          if (file.size > maxSize) {
+            return res.status(400).json({
+              error: `File ${file.originalname} exceeds maximum size of 5MB.`
+            });
+          }
+          
+          images.push(`${file.filename}`);
+        }
+        console.log(images);
       }
+      
+      // Create new product without restricting description content
+      const newProduct = new Product({
+        productName: products.productName,
+        description: products.description, // Preserve all punctuation and special characters
+        brand: products.brand,
+        category: products.category,
+        regularPrice: products.regularPrice,
+        salesPrice: products.salePrice,
+        createdOn: new Date(),
+        quantity: products.quantity,
+        size: products.size,
+        color: products.color,
+        productImage: images
+      });
+      
+      await newProduct.save();
+      return res.redirect("/admin/addProducts");
+    } else {
+      return res.status(400).json({
+        error: "Product already exists, please try with another name",
+      });
+    }
   } catch (error) {
-      console.error("Error saving product:", error);
-      return res.redirect("/admin/pageerror");
+    console.error("Error saving product:", error);
+    return res.redirect("/admin/pageerror");
   }
 };
 
@@ -176,7 +199,7 @@ const getEditProduct = async (req, res) => {
     const totalPages = 1;
     const currentPage = 1;
 
-    res.render("edit-product", {
+    res.render("editProduct", {
       product: product,
       cat: category,
       brand: brand,

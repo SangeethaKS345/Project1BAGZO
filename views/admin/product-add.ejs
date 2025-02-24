@@ -330,12 +330,13 @@
    }
             
    if (description.trim() === "") {
-      displayErrorMessage('description-error', 'Please enter a product description.');
-      isValid = false;
-   } else if (!/^[a-zA-Z\s]+$/.test(description.trim())) {
-      displayErrorMessage('description-error', 'Product description should contain only alphabetic characters.');
-      isValid = false;
-   }
+   displayErrorMessage('description-error', 'Please enter a product description.');
+   isValid = false;
+}
+// } else if (!/^[\w\s.,!?;:()\-"']+$/i.test(description.trim())) {
+//    displayErrorMessage('description-error', 'Description contains invalid characters.');
+//    isValid = false;
+// }
   
   
            

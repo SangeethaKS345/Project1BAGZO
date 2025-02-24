@@ -1,0 +1,112 @@
+.content-main {
+    padding: 30px;
+  }
+
+  .content-header {
+    margin-bottom: 30px;
+  }
+
+  .content-title {
+    color: #DB4437;
+    font-size: 24px;
+  }
+
+  .search-container {
+    margin-bottom: 30px;
+  }
+
+  .input-group {
+    border: 1px solid #FF416C !important;
+  }
+
+  .input-group input {
+    border: none !important;
+  }
+
+  .input-group .btn {
+    color: #FF416C;
+  }
+
+  .card {
+    border: none;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .card-body {
+    padding: 20px;
+  }
+
+  .form-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #FF416C;
+  }
+
+  textarea.form-control {
+min-height: 100px;
+resize: vertical;
+}
+
+.status-badge {
+padding: 8px 12px;
+border-radius: 20px;
+font-weight: 600;
+font-size: 0.9em;
+display: inline-block;
+min-width: 100px;
+text-align: center;
+}
+
+.status-listed {
+background-color: #28a745;
+color: white;
+}
+
+.status-unlisted {
+background-color: #dc3545;
+color: white;
+}
+
+.action-btn {
+min-width: 80px;
+font-weight: 500;
+}
+.error-message {
+color: #dc3545;
+font-size: 14px;
+margin-top: 5px;
+display: none;
+}
+.pagination-container {
+display: flex;
+justify-content: center;
+align-items: center;
+margin-top: 20px;
+}
+
+.pagination-container a,
+.pagination-container span {
+padding: 8px 12px;
+margin: 0 5px;
+border-radius: 5px;
+text-decoration: none;
+font-size: 16px;
+font-weight: 500;
+}
+
+.pagination-container a {
+background-color: #FF416C;
+color: white;
+transition: background 0.3s ease;
+}
+
+.pagination-container a:hover {
+background-color: #DB4437;
+}
+
+.pagination-container .current-page {
+background-color: #28a745;
+color: white;
+font-weight: bold;
+}

@@ -31,6 +31,7 @@ router.get('/editCategory', categoryController.getEditCategory);
 router.post("/editCategory/:id", adminAuth, categoryController.editCategory);
 router.get("/listCategory", adminAuth, categoryController.getListCategory);
 router.get("/unlistCategory", adminAuth, categoryController.getUnlistCategory);
+router.delete('/deleteCategory/:id', categoryController.deleteCategory);
 
 
 router.get("/brands",adminAuth,brandController.getBrandPage);

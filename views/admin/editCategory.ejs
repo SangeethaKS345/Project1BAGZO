@@ -1,65 +1,201 @@
 <%- include("../../views/partials/admin/header") %>
+<head>
+<style>
+    .content-main {
+        padding: 30px;
+    }
+
+    .form-container {
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        border: 1px solid #FF416C;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-label {
+        color: #333;
+        font-weight: 500;
+    }
+
+    .form-control {
+        border: 1px solid #ddd;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    .form-control:focus {
+        border-color: #FF416C;
+        box-shadow: 0 0 0 0.2rem rgba(255, 65, 108, 0.25);
+    }
+
+    textarea.form-control {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .btn-container {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+
+    .btn-primary {
+        background-color: #FF416C;
+        border-color: #FF416C;
+    }
+
+    .btn-primary:hover {
+        background-color: #e63e66;
+        border-color: #e63e66;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+
+    .btn-danger:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
+    }
+
+    .mt-60 {
+        margin-top: 60px;
+    }
+</style>
+</head>
+
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-6 mt-60">
-            <form method="post" action="/admin/editCategory/<%= category._id%>">
-                <div class="d-grid text-end mt-30 col-md-5">
-                    <button class="btn btn-primary" type="submit">Update category</button>
-                </div>
-                <div class="mb-4 mt-30">
-                    <label for="product_name" class="form-label">Name</label>
-                    <input type="text" name="categoryName" value="<%=category.name %>" class="form-control border" />
-                </div>
-                
-                <div class="mb-4">
-                    <label class="form-label">Description</label>
-                    <textarea name="description" class="form-control border"><%= category.description%> </textarea>
-                </div>
-            </form>
+            <div class="form-container">
+                <form id="editCategoryForm" onsubmit="handleSubmit(event)">
+                    <div class="btn-container">
+                        <button type="button" class="btn btn-danger" onclick="confirmDelete()">Delete Category</button>
+                        <button type="submit" class="btn btn-primary">Update Category</button>
+                    </div>
+                    <div class="mb-4">
+                        <label for="categoryName" class="form-label">Name</label>
+                        <input type="text" id="categoryName" name="categoryName" value="<%= category.name %>" class="form-control" required />
+                    </div>
+                    <div class="mb-4">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea id="description" name="description" class="form-control" required><%= category.description %></textarea>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
-<%- include("../../views/partials/admin/footer") %>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    document.getElementById('editCategoryForm').addEventListener('submit', async function (event) {
-        event.preventDefault(); // Prevent default form submission
-
-        const categoryId = "<%= category._id %>"; // Get category ID from EJS
+   async function handleSubmit(event) {
+        event.preventDefault();
+        
+        const form = event.target;
+        const categoryId = "<%= category._id %>";
         const categoryName = document.getElementById('categoryName').value.trim();
         const description = document.getElementById('description').value.trim();
 
+        // Validate inputs
+        if (!categoryName || !description) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Validation Error',
+                text: 'Please fill in all fields',
+                confirmButtonColor: "#DB4437"
+            });
+            return;
+        }
+
         try {
             const response = await fetch(`/admin/editCategory/${categoryId}`, {
-                method: 'PUT', // Use PUT method
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ categoryName, description }),
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    categoryName,
+                    description
+                })
             });
+
+            // First check if response is JSON
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error("Received non-JSON response from server");
+            }
 
             const data = await response.json();
 
             if (response.ok) {
-                Swal.fire({
+                await Swal.fire({
                     icon: 'success',
-                    title: 'Success',
-                    text: data.message, // "Category updated successfully"
-                }).then(() => {
-                    window.location.href = '/admin/categories'; // Redirect after success
+                    title: 'Success!',
+                    text: 'Category updated successfully',
+                    confirmButtonColor: "#FF416C"
                 });
+                window.location.href = '/admin/category';
             } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: data.error || 'Something went wrong!',
-                });
+                throw new Error(data.error || 'Failed to update category');
             }
         } catch (error) {
+            console.error('Update error:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'Internal server error',
+                text: error.message || 'An unexpected error occurred',
+                confirmButtonColor: "#DB4437"
             });
         }
-    });
+    }
+
+    function confirmDelete() {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, delete it!'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/admin/deleteCategory/<%= category._id %>`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        await Swal.fire({
+                            icon: 'success',
+                            title: 'Deleted!',
+                            text: 'Category has been deleted.',
+                            confirmButtonColor: "#FF416C"
+                        });
+                        window.location.href = '/admin/category';
+                    } else {
+                        throw new Error(data.message || 'Failed to delete category');
+                    }
+                } catch (error) {
+                    console.error('Delete error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.message || 'An unexpected error occurred',
+                        confirmButtonColor: "#DB4437"
+                    });
+                }
+            }
+        });
+    }
+    
 </script>
+<%- include("../../views/partials/admin/footer") %>

@@ -107,7 +107,9 @@ const productDetails = async (req, res) => {
         }
 
         const userData = userId ? await User.findById(userId) : null;
-        const product = await Product.findOne({ _id: productId }).populate('category');
+        const product = await Product.findOne({ _id: productId })
+  .populate('category')
+  .populate('brand'); 
 
         if (!product) {
             console.log("Product not found");
@@ -124,7 +126,7 @@ const productDetails = async (req, res) => {
             _id: { $ne: productId } 
         }).limit(3);
 
-        res.render("product-details", {
+        res.render("productDetails", {
             user: userData,
             product: product,
             quantity: product.quantity,
