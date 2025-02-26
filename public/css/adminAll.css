@@ -1,0 +1,326 @@
+/* Common Styles */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f9fafb;
+    color: #444;
+  }
+  
+  .content-main {
+    padding: 30px;
+    margin-bottom: 50px;
+  }
+  
+  .content-header {
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .content-title {
+    color: #DB4437;
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 0;
+  }
+  
+  /* Card Styles */
+  .card {
+    border: none;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    margin-bottom: 30px;
+    overflow: hidden;
+  }
+  
+  .card-header {
+    background-color: #fff;
+    border-bottom: 1px solid #e9ecef;
+    padding: 15px 20px;
+  }
+  
+  .card-body {
+    padding: 20px;
+    background-color: #fff;
+  }
+  
+  /* Form Styles */
+  .form-label {
+    font-weight: 500;
+    color: #555;
+    margin-bottom: 8px;
+  }
+  
+  .form-control, .form-select {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px 15px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+  }
+  
+  .form-control:focus, .form-select:focus {
+    border-color: #FF416C;
+    box-shadow: 0 0 0 0.2rem rgba(255, 65, 108, 0.25);
+  }
+  
+  .input-upload {
+    position: relative;
+    margin-bottom: 20px;
+  }
+  
+  .input-upload img {
+    max-width: 100px;
+    margin-bottom: 10px;
+  }
+  
+  textarea.form-control {
+    min-height: 100px;
+    resize: vertical;
+  }
+  
+  /* Button Styles */
+  .btn {
+    font-weight: 500;
+    padding: 10px 20px;
+    border-radius: 6px;
+    transition: all 0.3s;
+  }
+  
+  .btn-primary {
+    background-color: #FF416C;
+    border-color: #FF416C;
+  }
+  
+  .btn-primary:hover {
+    background-color: #DB4437;
+    border-color: #DB4437;
+  }
+  
+  .btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+  }
+  
+  .btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+  }
+  
+  .btn-info {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+  }
+  
+  .btn a {
+    text-decoration: none;
+    color: white;
+  }
+  
+  /* Table Styles */
+  .table {
+    width: 100%;
+    margin-bottom: 1rem;
+    background-color: transparent;
+    border-collapse: collapse;
+  }
+  
+  .table thead th {
+    vertical-align: bottom;
+    border-bottom: 2px solid #dee2e6;
+    padding: 12px;
+    font-weight: 600;
+    color: #444;
+  }
+  
+  .table td {
+    padding: 15px 12px;
+    vertical-align: middle;
+    border-bottom: 1px solid #e9ecef;
+  }
+  
+  .table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+  
+  .table-hover tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+  
+  /* Badge Styles */
+  .badge {
+    padding: 6px 10px;
+    font-weight: 500;
+    border-radius: 20px;
+    font-size: 12px;
+  }
+  
+  .badge.alert-success {
+    background-color: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+    border: 1px solid rgba(40, 167, 69, 0.2);
+  }
+  
+  .badge.alert-danger {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    border: 1px solid rgba(220, 53, 69, 0.2);
+  }
+  
+  /* Search Box */
+  .input-group.border {
+    border: 1px solid #FF416C !important;
+    border-radius: 30px;
+    overflow: hidden;
+    background-color: white;
+  }
+  
+  .input-group.border input {
+    border: none !important;
+    box-shadow: none;
+    padding: 12px 15px;
+  }
+  
+  .input-group.border .btn {
+    background-color: transparent;
+    color: #FF416C;
+    border: none;
+    font-weight: 500;
+  }
+  
+ /* Fixed Pagination Styles */
+.container.mt-3 {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 20px !important;
+  }
+  
+  .pagination {
+    display: flex;
+    padding-left: 0;
+    list-style: none;
+    border-radius: 0.25rem;
+    margin-bottom: 20px;
+  }
+  
+  .pagination .page-item {
+    margin: 0 3px;
+  }
+  
+  .pagination .page-item.active .page-link {
+    background-color: #FF416C;
+    border-color: #FF416C;
+    color: white;
+    z-index: 1; /* Ensures active page is above others */
+  }
+  
+  .pagination .page-link {
+    position: relative;
+    display: block;
+    padding: 0.5rem 0.75rem;
+    line-height: 1.25;
+    color: #FF416C;
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px; /* Adds slight rounding to page numbers */
+    text-decoration: none;
+    min-width: 38px; /* Ensures consistent width */
+    text-align: center;
+    transition: all 0.2s;
+  }
+  
+  .pagination .page-link:hover {
+    color: white;
+    background-color: #DB4437;
+    border-color: #DB4437;
+  }
+  
+  /* Fix for right margin issue in your pagination container */
+  .pagination.justify-content-center {
+    margin-right: 0 !important; /* Override the inline style */
+  }
+  
+  nav[aria-label="Page navigation"] {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  
+  /* Media query for smaller screens */
+  @media (max-width: 768px) {
+    .pagination .page-link {
+      padding: 0.4rem 0.6rem;
+      min-width: 32px;
+    }
+    
+    .pagination {
+      flex-wrap: wrap;
+    }
+  }
+  
+  /* Brand Management Specific */
+  .img-fluid.rounded-circle {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+  }
+  
+  /* Customer Management Specific */
+  .status-text {
+    display: inline-block;
+    width: 60px;
+    text-align: center;
+  }
+  
+  .status-blocked {
+    color: #dc3545;
+  }
+  
+  /* Product Management Specific */
+  .thumbnails-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .thumbnails-container img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+  }
+  
+  /* Error Messages */
+  .error-message {
+    color: #dc3545;
+    font-size: 14px;
+    margin-top: 5px;
+    display: none;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .content-main {
+      padding: 15px;
+    }
+    
+    .card-body {
+      padding: 15px;
+    }
+    
+    .input-group.border {
+      width: 100% !important;
+      margin-left: 0 !important;
+    }
+    
+    .table-responsive {
+      overflow-x: auto;
+    }
+    
+    .pagination {
+      justify-content: center;
+    }
+  }

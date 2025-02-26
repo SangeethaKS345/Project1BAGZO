@@ -47,7 +47,7 @@ const addCategory = async (req,res)=>{
     console.log(req.body)
     const {name,description} = req.body;
     try {
-        const normalizedName = name.trim().toLowerCase();
+        const normalizedName = name.trim();
         const existingCategory = await Category.findOne({name:normalizedName});
         //const existingCategory = await Category.findOne({name});
         if(existingCategory){

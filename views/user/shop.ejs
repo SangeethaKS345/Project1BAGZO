@@ -426,17 +426,19 @@
           <% } else { %>
             <% products.forEach(product => { %>
               <div class="product-card">
-                <img src="/uploads/re-image/<%= product.productImage[0] %>" alt="<%= product.productName %>">
-                <div class="product-info">
-                  <h4 class="product-name"><%= product.productName %></h4>
-                  <p class="product-price">
-                    <span class="original-price">₹<%= product.regularPrice %></span>
-                    <span class="sale-price">₹<%= product.salesPrice %></span>
-                  </p>
-                  <button class="add-to-cart-btn" onclick="addToCart('<%= product._id %>')">
-                    Add to Cart
-                  </button>
-                </div>
+                <a href="/productDetails?id=<%= product._id %>">
+                  <img src="/uploads/re-image/<%= product.productImage[0] %>" alt="<%= product.productName %>">
+                  <div class="product-info">
+                    <h4 class="product-name"><%= product.productName %></h4>
+                    <p class="product-price">
+                      <span class="original-price">₹<%= product.regularPrice %></span>
+                      <span class="sale-price">₹<%= product.salesPrice %></span>
+                    </p>
+                  </div>
+                </a>
+                <button class="add-to-cart-btn" onclick="addToCart('<%= product._id %>')">
+                  Add to Cart
+                </button>
               </div>
             <% }) %>
           <% } %>

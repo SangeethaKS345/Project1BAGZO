@@ -1,6 +1,162 @@
 <%- include("../../views/partials/admin/header") %>
 <head>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css">
+    <style>
+        /* CSS for Products Listing Page */
+
+.content-header {
+  margin-bottom: 30px;
+}
+
+.content-title {
+  color: #DB4437;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+/* Search Box */
+.input-group.border {
+  border: 1px solid #FF416C !important;
+  border-radius: 30px;
+  overflow: hidden;
+  background-color: white;
+  width: 500px;
+  margin-left: 230px;
+}
+
+.input-group.border input {
+  border: none !important;
+  box-shadow: none;
+  padding: 12px 15px;
+  border-radius: 30px;
+}
+
+.input-group.border .btn {
+  background-color: transparent;
+  color: #FF416C;
+  border: none;
+  font-weight: 500;
+}
+
+/* Table Styles */
+.table {
+  width: 100%;
+  margin-bottom: 1rem;
+  background-color: transparent;
+  border-collapse: collapse;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.table thead th {
+  vertical-align: bottom;
+  border-bottom: 2px solid #dee2e6;
+  padding: 12px;
+  font-weight: 600;
+  color: #444;
+}
+
+.table td {
+  padding: 15px 12px;
+  vertical-align: middle;
+  border-bottom: 1px solid #e9ecef;
+}
+
+/* Button Styles */
+.btn {
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: all 0.3s;
+  width: 80px;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+.btn-success {
+  background-color: #28a745;
+  border-color: #28a745;
+}
+
+.btn-info {
+  background-color: #17a2b8;
+  border-color: #17a2b8;
+}
+
+.btn a {
+  text-decoration: none !important;
+  color: white;
+}
+
+/* Pagination */
+.container.mt-3 {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 20px !important;
+}
+
+.pagination {
+  display: flex;
+  padding-left: 0;
+  list-style: none;
+  border-radius: 0.25rem;
+  margin-bottom: 20px;
+  margin-right: 0 !important;
+}
+
+.pagination .page-item {
+  margin: 0 3px;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #FF416C;
+  border-color: #FF416C;
+  color: white;
+  z-index: 1;
+}
+
+.pagination .page-link {
+  position: relative;
+  display: block;
+  padding: 0.5rem 0.75rem;
+  line-height: 1.25;
+  color: #FF416C;
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  text-decoration: none;
+  min-width: 38px;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.pagination .page-link:hover {
+  color: white;
+  background-color: #DB4437;
+  border-color: #DB4437;
+}
+
+/* SweetAlert integration */
+.swal2-popup {
+  font-size: 14px;
+  border-radius: 10px;
+}
+
+.swal2-title {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.swal2-confirm {
+  background-color: #FF416C !important;
+}
+    </style>
 </head>
 <div class="content-header">
     <div>

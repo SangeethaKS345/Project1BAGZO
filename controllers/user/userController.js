@@ -7,43 +7,37 @@ const Product = require("../../models/productSchema");
 const Brand = require("../../models/brandSchema");
 
 // Load Home Page
-const loadHomepage = async (req, res) => {
+const loadHomepage = async (req, res, next) => {
     try {
         const user = req.session.user;
-        // Fix: Use `Category.find`, not `category.find`
+
+        // Fetch categories
         const categories = await Category.find({ isListed: true });
 
-        // Fix: Use `Product.find`, not `product.find`
-        let productData = await Product.find({
-            isBlocked: false,
+        // Fetch products with sorting directly in the query
+        const productData = await Product.find({ isBlocked: false }).sort({ createdAt: -1 });
 
-        });
-
-        console.log(productData)
-        // Fix: Corrected sorting field (assuming `createdAt` is the correct field)
-        productData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        console.log(productData);
 
         if (user) {
-            const userData = await User.findOne({ _id: user });
+            const userData = await User.findById(req.session.user.id);
             return res.render("home", { userData, products: productData });
         } else {
             return res.render("home", { products: productData, userData: "" });
         }
-
     } catch (error) {
-        console.error("Error loading homepage:", error);
-        res.status(500).send("Server Error");
+        next(error);  // Pass error to errorHandler
     }
 };
 
 
+
 // Load Signup Page
-const loadSignup = async (req, res) => {
+const loadSignup = async (req, res, next) => {
     try {
         return res.render('signup', { message: "" }); // Ensuring 'message' is always passed
     } catch (error) {
-        console.error("Signup page not loading:", error);
-        res.status(500).send("Server Error");
+        next(error); 
     }
 };
 
@@ -71,12 +65,13 @@ const sendVerificationEmail = async (email, otp) => {
             text: `Your OTP is ${otp}`,
         });
 
-        return info.accepted.length > 0;
+        return { success: true, message: "Email sent successfully" };
     } catch (error) {
         console.error("Error sending email:", error);
-        return false;
+        return { success: false, message: error.message };
     }
 };
+
 
 // Secure password hashing
 const securePassword = async (password) => {
@@ -90,26 +85,21 @@ const securePassword = async (password) => {
 
 
 // Signup Handler
-const signup = async (req, res) => {
+const signup = async (req, res, next) => {
     try {
-        // let message=null;
         const { name, phone, email, password, cPassword } = req.body;
 
         if (!name || !phone || !email || !password || !cPassword) {
-            const message = "All fields are required";
-            return res.render("signup", { message });
+            return res.redirect(`/signup?action=signup&form=signup&message=${encodeURIComponent("All fields are required")}`);
         }
 
         if (password !== cPassword) {
-            const message = "Passwords do not match";
-            return res.render("signup", { message });
+            return res.redirect(`/signup?action=signup&form=signup&message=${encodeURIComponent("Passwords do not match")}`);
         }
 
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            const message = "User already exists";
-            console.log("Rendering signup page with message:", message);
-            return res.render("signup", { message });
+            return res.redirect(`/signup?action=signup&form=signup&message=${encodeURIComponent("Email already exists. Please use a different email address or try logging in.")}`);
         }
 
         // Generate OTP and store it in session
@@ -117,25 +107,25 @@ const signup = async (req, res) => {
         const emailSent = await sendVerificationEmail(email, otp);
 
         if (!emailSent) {
-            return res.render("signup", { message: "Failed to send OTP. Try again" });
+            return res.redirect(`/signup?action=signup&form=signup&message=${encodeURIComponent("Failed to send OTP. Try again")}`);
         }
 
         req.session.userOtp = otp;
         req.session.userData = { name, phone, email, password };
 
-        console.log("OTP sent successfully:", otp);
         res.render("verifyOtp");
     } catch (error) {
         console.error("Error in signup:", error);
-        res.redirect("/pageNotFound");
+        res.redirect(`/signup?action=signup&form=signup&message=${encodeURIComponent("An error occurred. Please try again.")}`);
     }
 };
 
 
 
 
+
 // Verify OTP
-const verifyOtp = async (req, res) => {
+const verifyOtp = async (req, res, next) => {
     try {
         const { otp } = req.body;
 
@@ -167,13 +157,81 @@ const verifyOtp = async (req, res) => {
         req.session.save();
 
         return res.json({ success: true, redirectUrl: "/" });
+        console.log
     } catch (error) {
         console.error("Error verifying OTP:", error);
-        return res.json({ success: false, message: "Server error, try again" });
+        next(error);  // Pass the error to the error-handling middleware
     }
 };
 
-// Resend OTP
+
+
+
+// Page Not Found
+const pageNotFound = (req, res, next) => {
+    try {
+        res.status(404).render("404");
+    } catch (error) {
+        next(error); 
+    }
+};
+
+
+// Load Login Page
+const loadLogin = async (req, res, next) => {
+    try {
+        if (!req.session.user) {
+            return res.render("login");
+        }
+        res.redirect("/");
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+// Login Handler
+const login = async (req, res, next) => {
+    try {
+        console.log("Signin route hit");
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.redirect(`/signup?form=signin&message=${encodeURIComponent("Email and password are required")}`);
+        }
+
+        // Log out user if already logged in
+        if (req.session.user) {
+            req.session.destroy();
+            return res.redirect("/signup"); 
+        }
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.redirect(`/signup?form=signin&message=${encodeURIComponent("Email not found. Please sign up first.")}`);
+        }
+
+        // Check if user is blocked
+        if (user.isBlocked) {
+            return res.redirect(`/signup?form=signin&message=${encodeURIComponent("Your account is blocked due to some issue. Please contact support at support@example.com.")}`);
+        }
+
+        const passwordMatch = await bcrypt.compare(password, user.password);
+        if (!passwordMatch) {
+            return res.redirect(`/signup?form=signin&message=${encodeURIComponent("Incorrect password. Please try again.")}`);
+        }
+
+        req.session.user = {
+           id: user._id,
+           name: user.name,
+        }
+        res.redirect("/");
+    } catch (error) {
+        console.error("Login Error:", error);
+        res.redirect(`/signup?form=signin&message=${encodeURIComponent("An error occurred. Please try again.")}`);
+    }
+};
+
 const resendOtp = async (req, res) => {
     try {
         if (!req.session.userData || !req.session.userData.email) {
@@ -196,87 +254,29 @@ const resendOtp = async (req, res) => {
     }
 };
 
-// Load Shopping Page
-// const loadShopping = async (req, res) => {
-//     try {
-//         return res.render('shop');
-//     } catch (error) {
-//         console.error("Shopping page not loading:", error);
-//         res.status(500).send("Server Error");
-//     }
-// };
-
-// Page Not Found
-const pageNotFound = async (req, res) => {
-    try {
-        res.render("404");
-    } catch (error) {
-        res.redirect("/404");
-    }
-};
-
-// Load Login Page
-const loadLogin = async (req, res) => {
-    try {
-        if (!req.session.user) {
-            return res.render("login");
-        } else {
-            res.redirect("/");
-        }
-    } catch (error) {
-        res.redirect("/pageNotFound");
-    }
-};
-
-// Login Handler
-const login = async (req, res) => {
-    try {
-        console.log("Signin route hit"); // Debugging log
-        const { email, password } = req.body;
-        if (!email || !password) {
-            // return res.status(400).json({ message: "Email and password are required" });
-            return res.render("signup", { message: "Email and password are required" });
-        }
-
-        const user = await User.findOne({ email });
-        if (!user) {
-            // return res.status(404).json({ message: "User not found" });
-            return res.render("signup", { message: "User not found" });
-        }
-
-        const passwordMatch = await bcrypt.compare(password, user.password);
-        if (!passwordMatch) {
-            // return res.status(401).json({ message: "Incorrect password" });
-            return res.render("signup", { message: "Incorrect password" });
-        }
-
-        req.session.user = user._id;
-        res.redirect("/");
-    } catch (error) {
-        console.error("Login Error:", error);
-        // res.status(500).json({ message: "Internal server error" });
-        return res.redirect("/pageNotFound");
-    }
-};
 
 
-const logout = async(req,res) =>{
+
+const logout = async (req, res, next) => {
     try {
         req.session.destroy((err) => {
-            if(err){
-                console.error("Session destruction error", err.message);
-                return res.redirect("/pageNotFound");
+            if (err) {
+                console.error("Session destruction error:", err.message);
+                return next(err); // Pass error to middleware
             }
-           return res.redirect("/login");
-        })
+            return res.redirect("/login");
+        });
     } catch (error) {
-        
-        console.log("Logout error:", error);
-        res.redirect("/pageNotFound");
+        console.error("Logout error:", error);
+        next(error); // Pass error to middleware
     }
-}
+};
 
-const forgotPasssword = async (req, res) => {
+
+
+
+
+const forgotPassword = async (req, res) => {
     try {
   
       return res.render("forgotPassword")
@@ -286,7 +286,7 @@ const forgotPasssword = async (req, res) => {
       res.redirect("/pageNotFound");
     }
   }
-  const forgotPassswordSendLink = async (req, res) => {
+  const forgotPasswordSendLink = async (req, res) => {
     try {
       const { email } = req.body;
   
@@ -345,12 +345,11 @@ const forgotPasssword = async (req, res) => {
     }
   }
 
-
  
-const loadShop = async (req, res) => {
+const loadShop = async (req, res, next) => {
     try {
         // Initialize userData as null
-        let userData ;
+        let userData;
         
         // Check if user is logged in and get user data if they are
         if (req.session.user) {
@@ -372,22 +371,12 @@ const loadShop = async (req, res) => {
             status: "Available"
         };
 
-        // Add search filter if provided
+        // Add filters
         if (query.search) {
             filter.productName = { $regex: query.search, $options: 'i' };
         }
-
-        // Add category filter if provided
-        if (query.category) {
-            filter.category = query.category;
-        }
-
-        // Add brand filter if provided
-        if (query.brand) {
-            filter.brand = query.brand;
-        }
-
-        // Add price range filter if provided
+        if (query.category) filter.category = query.category;
+        if (query.brand) filter.brand = query.brand;
         if (query.minPrice || query.maxPrice) {
             filter.salesPrice = {};
             if (query.minPrice) filter.salesPrice.$gte = parseInt(query.minPrice);
@@ -397,49 +386,72 @@ const loadShop = async (req, res) => {
         // Sort options
         let sortOptions = {};
         switch (query.sort) {
-            case 'price-asc':
-                sortOptions = { salesPrice: 1 };
-                break;
-            case 'price-desc':
-                sortOptions = { salesPrice: -1 };
-                break;
-            case 'name-asc':
-                sortOptions = { productName: 1 };
-                break;
-            case 'name-desc':
-                sortOptions = { productName: -1 };
-                break;
-            default:
-                sortOptions = { createdAt: -1 };
+            case 'price-asc': sortOptions = { salesPrice: 1 }; break;
+            case 'price-desc': sortOptions = { salesPrice: -1 }; break;
+            case 'name-asc': sortOptions = { productName: 1 }; break;
+            case 'name-desc': sortOptions = { productName: -1 }; break;
+            default: sortOptions = { createdAt: -1 };
         }
 
         // Fetch all required data
         const [products, categories, brands] = await Promise.all([
-            Product.find(filter)
-                   .sort(sortOptions)
-                   .populate('category')
-                   .populate('brand'),
+            Product.find(filter).sort(sortOptions).populate('category').populate('brand'),
             Category.find({ isListed: true }),
             Brand.find()
         ]);
 
         console.log('Products:', products); // Debug log
 
-        // Render the shop page with or without user data
+        // Render the shop page
         res.render('shop', {
             products,
             categories,
             brands,
             query,
             userData, // This will be null for non-logged-in users
-            isLoggedIn: !!req.session.user // Add a boolean flag for login status
+            isLoggedIn: !!req.session.user
         });
 
     } catch (error) {
-        console.error('Shop page error:', error);
-        res.status(500).send('Internal Server Error');
+        next(error); // Pass error to the error handler middleware
     }
 };
+const handleGoogleAuth = async (req, res, next) => {
+    try {
+        if (!req.googleProfile) {
+            throw new Error("Google profile data is missing.");
+        }
+
+        const { email, name } = req.googleProfile;
+
+        // Check if user exists
+        const existingUser = await User.findOne({ email });
+
+        if (!existingUser) {
+            req.session.flashMessage = "No account found with this Gmail address. Please sign up first.";
+            return res.redirect("/signup?form=signin");
+        }
+
+        // Check if the user is blocked
+        if (existingUser.isBlocked) {
+            req.session.flashMessage = "Your account is blocked. Please contact support.";
+            return res.redirect("/signup?form=signin");
+        }
+
+        // Login successful
+        req.session.user = {
+            id: existingUser._id,
+            name: existingUser.name
+        };
+
+        res.redirect("/");
+    } catch (error) {
+        console.error("Google Auth Error:", error);
+        req.session.flashMessage = "Authentication failed. Please try again.";
+        return res.redirect("/signup");
+    }
+};
+
 
 // Export Routes
 module.exports = {
@@ -454,9 +466,10 @@ module.exports = {
     loadLogin,
     login,
     logout,
-    forgotPasssword,
-    forgotPassswordSendLink,
+    forgotPassword,
+    forgotPasswordSendLink,
     newPassword,
     changePassword,
-    loadShop
+    loadShop,
+    handleGoogleAuth
 };

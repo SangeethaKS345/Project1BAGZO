@@ -1,23 +1,44 @@
-const User = require("../models/userSchema");
+const User = require("../models/userSchema")
 
-const userAuth = (req,res,next)=>{
-    if(req.session.user){
-        User.findById(req.session.user)
-        .then(data =>{
-            if(data && !data.isBlocked){
-                next();
-            }else{
-                res.redirect("/signup?action=signup")
-            }
-        })
-        .catch(error => {
-            console.log("Error in user auth middleware");
-            res.status(500).send("Internal Server error");
-        })
-    }else{
-        res.redirect("/signup?action=signup");
-    }
-}
+// userAuth.js
+const userAuth = (req, res, next) => {
+  // Skip auth check for static resources if needed
+  if (req.path.startsWith('/public/') || req.path.startsWith('/assets/')) {
+    return next();
+  }
+  
+  if (req.session && req.session.user) {
+    User.findById(req.session.user)
+      .then(data => {
+        if (data && !data.isBlocked) {
+          // Attach user to request object for use in route handlers
+          req.user = data;
+          
+          // Set cache control headers to prevent back button issues
+          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+          res.setHeader('Pragma', 'no-cache');
+          res.setHeader('Expires', '0');
+          
+          next();
+        } else {
+          // Clear invalid session
+          req.session.destroy(err => {
+            if (err) console.error('Session destruction error:', err);
+            res.redirect("/");
+          });
+        }
+      })
+      .catch(error => {
+        console.error("Error in user authentication:", error);
+        const err = new Error('Authentication error');
+        err.statusCode = 500;
+        next(err); // Pass to error handler
+      });
+  } else {
+    res.redirect("/");
+  }
+};
+
 
 
 const adminAuth = async (req, res, next) => {

@@ -92,13 +92,12 @@ const User = require("../../models/userSchema")
 
 
 
-const productDetails = async (req, res) => {
+const productDetails = async (req, res, next) => {
     try {
         console.log("Fetching product details...");
         
         const userId = req.session.user;
-        const productId = req.query.id; // If using query params
-        // const productId = req.params.id; // If using dynamic route
+        const productId = req.query.id;
 
         console.log("Product ID:", productId);
 
@@ -106,10 +105,13 @@ const productDetails = async (req, res) => {
             return res.redirect("/404");
         }
 
+        // Fetch user data if logged in
         const userData = userId ? await User.findById(userId) : null;
-        const product = await Product.findOne({ _id: productId })
-  .populate('category')
-  .populate('brand'); 
+        
+        // Fetch product data
+        const product = await Product.findById(productId)
+            .populate('category')
+            .populate('brand');
 
         if (!product) {
             console.log("Product not found");
@@ -127,15 +129,16 @@ const productDetails = async (req, res) => {
         }).limit(3);
 
         res.render("productDetails", {
-            user: userData,
-            product: product,
+            userData,
+            product,
             quantity: product.quantity,
             category: findCategory,
-            relatedProducts: relatedProducts
+            relatedProducts,
+            totalOffer
         });
+
     } catch (error) {
-        console.error("Error fetching product details:", error);
-        res.status(500).redirect("/404");
+        next(error); // Pass error to the error handler middleware
     }
 };
 

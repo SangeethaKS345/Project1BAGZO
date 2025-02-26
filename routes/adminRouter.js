@@ -28,7 +28,7 @@ router.get("/unblockCustomer",adminAuth,customerController.customerunBlocked);
 router.get("/category",adminAuth,categoryController.categoryInfo);
 router.post("/addCategory",adminAuth,categoryController.addCategory);
 router.get('/editCategory', categoryController.getEditCategory);
-router.post("/editCategory/:id", adminAuth, categoryController.editCategory);
+router.put("/editCategory/:id", adminAuth, categoryController.editCategory);
 router.get("/listCategory", adminAuth, categoryController.getListCategory);
 router.get("/unlistCategory", adminAuth, categoryController.getUnlistCategory);
 router.delete('/deleteCategory/:id', categoryController.deleteCategory);
