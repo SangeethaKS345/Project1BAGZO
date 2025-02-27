@@ -58,9 +58,9 @@ const router = express.Router();
 const userController = require("../controllers/user/userController");
 const passport = require("passport");
 const productController = require("../controllers/user/productController");
-
-// ❌ Removed duplicate "pageNotFound" route
-router.get("/pageNotFound", userController.pageNotFound);
+const {errorHandler} = require("../middlewares/errorHandler");
+//error handling middleware
+router.use(errorHandler);
 
 // User Authentication Routes
 router.get("/", userController.loadHomepage);
@@ -75,9 +75,14 @@ router.get("/auth/google", passport.authenticate("google", { scope: ["profile", 
 router.get(
     "/auth/google/callback",
     passport.authenticate("google", { failureRedirect: "/signup" }),
-    (req, res) => {
-        res.redirect("/shop");  // Redirect to shop page after login
-    }
+    userController.handleGoogleAuth
+    // (req, res) => {
+    //     req.session.user = {
+    //         id: req.user._id,
+    //         name: req.user.name,}
+
+    //     res.redirect("/"); 
+    // }
 );
 
 // Login & Logout Routes

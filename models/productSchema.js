@@ -53,12 +53,7 @@ const productSchema = new Schema({
         enum : ["Available", "out of stock", "Discountinued"],
         default : "Available",
     }, 
-    colors: [{
-        name: String,
-        code: String, // Hex code or color name
-        images: [String], // Optional: color-specific images
-        stock: Number // Optional: separate stock for each color
-      }],
+    
     createdOn : {
         type : Date,
         default : Date.now,

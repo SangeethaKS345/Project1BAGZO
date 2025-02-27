@@ -19,12 +19,9 @@ const getProductAddPage = async (req, res) => {
     res.status(500).render('admin/error', { 
       message: 'An error occurred',
       error: {status: 500}
-  });
+    });
   }
 };
-
-
-
 
 const addProducts = async (req, res) => {
   try {
@@ -129,8 +126,19 @@ const getAllProducts = async (req, res) => {
     const category = await Category.find({ isListed: true });
     const brand = await Brand.find({ isBlocked: false });
 
-    console.log(productData)
-    if (!productData) {
+    // Handle null brands for display in template
+    const safeProductData = productData.map(product => {
+      if (!product.brand) {
+        product.brand = { brandName: 'Unknown' };
+      }
+      if (!product.category) {
+        product.category = { name: 'Uncategorized' };
+      }
+      return product;
+    });
+
+    console.log(safeProductData);
+    if (!safeProductData || safeProductData.length === 0) {
       return res.status(404).render("admin/products", {
         data: [],
         currentPage: page,
@@ -141,7 +149,7 @@ const getAllProducts = async (req, res) => {
     }
 
     res.render("products", {
-      data: productData,
+      data: safeProductData,
       currentPage: page,
       totalPages: Math.ceil(count / limit),
       cat: category,
@@ -169,7 +177,7 @@ const blockProduct = async (req, res) => {
     res.status(500).render('admin/error', { 
       message: 'An error occurred',
       error: {status: 500}
-  });
+    });
   }
 };
 
@@ -182,11 +190,10 @@ const unblockProduct = async (req, res) => {
     res.status(500).render('admin/error', { 
       message: 'An error occurred',
       error: {status: 500}
-  });
+    });
   }
   console.log(req.query.id);
 };
-
 
 const getEditProduct = async (req, res) => {
   try {
@@ -215,8 +222,6 @@ const getEditProduct = async (req, res) => {
   }
 };
 
-
-
 const editProduct = async (req, res) => {
   try {
     const id = req.params.id;
@@ -240,6 +245,17 @@ const editProduct = async (req, res) => {
       });
     }
 
+    const brand = await Brand.findOne({ brandName: data.brand });
+    if (!brand) {
+      return res.status(400).json({ error: "Brand not found" });
+    }
+
+    // Find the category by name
+    const category = await Category.findOne({ name: data.category });
+    if (!category) {
+      return res.status(400).json({ error: "Category not found" });
+    }
+
     // Handle image updates
     let updatedImages = [...(product.productImage || [])];
     if (req.files && req.files.length > 0) {
@@ -251,8 +267,8 @@ const editProduct = async (req, res) => {
     const updateFields = {
       productName: data.productName,
       description: data.descriptionData,
-      brand: data.brand,           // Now receiving ObjectId from the form
-      category: data.category,
+      brand: brand._id,           // Now receiving ObjectId from the form
+      category: category._id,     // Fixed variable name from categoryry to category
       regularPrice: parseFloat(data.regularPrice),
       salesPrice: parseFloat(data.salesPrice),
       quantity: parseInt(data.quantity),
@@ -296,7 +312,7 @@ const deleteSingleImage = async (req, res) => {
     );
     if (fs.existsSync(imagePath)) {
       await fs.unlinkSync(imagePath);
-      console.log(`Image${imageNameToServer} deleted successfully`);
+      console.log(`Image ${imageNameToServer} deleted successfully`);
     } else {
       console.log(`Image ${imageNameToServer} not found `);
     }
@@ -305,9 +321,10 @@ const deleteSingleImage = async (req, res) => {
     res.status(500).render('admin/error', { 
       message: 'An error occurred',
       error: {status: 500}
-  });
+    });
   }
 };
+
 module.exports = {
   getProductAddPage,
   addProducts,

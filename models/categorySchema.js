@@ -12,18 +12,14 @@ const categorySchema = new mongoose.Schema({
         required: true
     },
     isListed: {
-        type: Boolean,  // Changed to Boolean type
-        default: true   // Boolean true
+        type: Boolean,
+        default: true
     },
     categoryOffer: {
         type: Number,
         default: 0
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
     }
-}, { timestamps: true });  // Moved timestamps to options object
+}, { timestamps: true });
 
 const Category = mongoose.model("Category", categorySchema);
 

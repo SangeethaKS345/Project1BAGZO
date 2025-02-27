@@ -9,6 +9,9 @@ const productController = require("../controllers/admin/productController");
 const multer = require("multer");
 const storage = require("../helpers/multer")
 const uploads = require("../helpers/multer");
+const { adminErrorHandler} = require("../middlewares/errorHandler");
+//error handler
+router.use(adminErrorHandler);
 
 
 
@@ -54,11 +57,11 @@ router.post("/editProduct/:id",adminAuth,uploads.array("images",4),productContro
 router.post("/deleteImage",adminAuth,productController.deleteSingleImage);
 
 
-router.get('/pageerror', adminAuth, (req, res) => {
-    res.render('admin/error', { 
-        message: 'An error occurred',
-        error: {status: 500}
-    });
-});
+// router.get('/pageerror', adminAuth, (req, res) => {
+//     res.render('admin/error', { 
+//         message: 'An error occurred',
+//         error: {status: 500}
+//     });
+// });
 
 module.exports = router;

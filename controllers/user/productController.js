@@ -94,12 +94,9 @@ const User = require("../../models/userSchema")
 
 const productDetails = async (req, res, next) => {
     try {
-        console.log("Fetching product details...");
-        
-        const userId = req.session.user;
+        // Extract user ID correctly
+        const userId = req.session.user?.id;
         const productId = req.query.id;
-
-        console.log("Product ID:", productId);
 
         if (!productId) {
             return res.redirect("/404");
@@ -118,11 +115,13 @@ const productDetails = async (req, res, next) => {
             return res.redirect("/404");
         }
 
+        // Get category and offer details
         const findCategory = product.category;
         const categoryOffer = findCategory?.categoryOffer || 0;
         const productOffer = product.productOffer || 0;
         const totalOffer = categoryOffer + productOffer;
 
+        // Fetch related products (excluding the current one)
         const relatedProducts = await Product.find({ 
             category: findCategory?._id, 
             _id: { $ne: productId } 
@@ -141,6 +140,7 @@ const productDetails = async (req, res, next) => {
         next(error); // Pass error to the error handler middleware
     }
 };
+
 
 module.exports = {
     productDetails,

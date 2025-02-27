@@ -11,25 +11,31 @@ const loadHomepage = async (req, res, next) => {
     try {
         const user = req.session.user;
 
-        // Fetch categories
+        console.log("user in session", user)
+        // Fetch categories and brands
         const categories = await Category.find({ isListed: true });
+        const brand = await Brand.find({ isBlocked: false });
 
         // Fetch products with sorting directly in the query
-        const productData = await Product.find({ isBlocked: false }).sort({ createdAt: -1 });
+        const productData = await Product.find({
+            isBlocked: false,
+            category: { $in: categories.map(category => category._id) },
+            brand: { $in: brand.map(brand => brand._id) }
+        }).sort({ createdAt: -1 });
 
-        console.log(productData);
+        //console.log(productData);
 
         if (user) {
             const userData = await User.findById(req.session.user.id);
-            return res.render("home", { userData, products: productData });
+            return res.render("home", { userData, products: productData, categories, brand });
         } else {
-            return res.render("home", { products: productData, userData: "" });
+            return res.render("home", { products: productData, userData: "", categories, brand });
         }
+
     } catch (error) {
         next(error);  // Pass error to errorHandler
     }
 };
-
 
 
 // Load Signup Page
@@ -183,6 +189,9 @@ const loadLogin = async (req, res, next) => {
         if (!req.session.user) {
             return res.render("login");
         }
+        if(req.session.user){
+            return res.redirect('/');
+        }
         res.redirect("/");
     } catch (error) {
         next(error);
@@ -213,7 +222,7 @@ const login = async (req, res, next) => {
 
         // Check if user is blocked
         if (user.isBlocked) {
-            return res.redirect(`/signup?form=signin&message=${encodeURIComponent("Your account is blocked due to some issue. Please contact support at support@example.com.")}`);
+            return res.redirect(`/signup?form=signin&message=${encodeURIComponent("Your account is blocked due to some issue. Please contact support at bagzosupport@gmail.com.")}`);
         }
 
         const passwordMatch = await bcrypt.compare(password, user.password);
@@ -346,14 +355,14 @@ const forgotPassword = async (req, res) => {
   }
 
  
-const loadShop = async (req, res, next) => {
+  const loadShop = async (req, res, next) => {
     try {
         // Initialize userData as null
-        let userData;
-        
+        let userData = null;
+
         // Check if user is logged in and get user data if they are
-        if (req.session.user) {
-            userData = await User.findOne({ _id: req.session.user });
+        if (req.session.user && req.session.user.id) {
+            userData = await User.findById(req.session.user.id);
         }
 
         const query = {
@@ -365,18 +374,38 @@ const loadShop = async (req, res, next) => {
             minPrice: req.query.minPrice || ''
         };
 
+        // Fetch only listed categories and unblocked brands
+        const [categories, brands] = await Promise.all([
+            Category.find({ isListed: true }), 
+            Brand.find({ isBlocked: false })
+        ]);
+
         // Base filter conditions
         const filter = {
             isBlocked: false,
             status: "Available"
         };
 
-        // Add filters
+        // Add category filter only if categories exist
+        if (categories.length > 0) {
+            filter.category = { $in: categories.map(cat => cat._id) };
+        }
+
+        // Add brand filter only if brands exist
+        if (brands.length > 0) {
+            filter.brand = { $in: brands.map(brand => brand._id) };
+        }
+
+        // Add search filter
         if (query.search) {
             filter.productName = { $regex: query.search, $options: 'i' };
         }
+
+        // Add category and brand filters if specified
         if (query.category) filter.category = query.category;
         if (query.brand) filter.brand = query.brand;
+
+        // Add price range filters
         if (query.minPrice || query.maxPrice) {
             filter.salesPrice = {};
             if (query.minPrice) filter.salesPrice.$gte = parseInt(query.minPrice);
@@ -393,14 +422,13 @@ const loadShop = async (req, res, next) => {
             default: sortOptions = { createdAt: -1 };
         }
 
-        // Fetch all required data
-        const [products, categories, brands] = await Promise.all([
-            Product.find(filter).sort(sortOptions).populate('category').populate('brand'),
-            Category.find({ isListed: true }),
-            Brand.find()
-        ]);
+        // Fetch products with valid categories and brands
+        const products = await Product.find(filter)
+            .sort(sortOptions)
+            .populate('category')
+            .populate('brand');
 
-        console.log('Products:', products); // Debug log
+        console.log('Filtered Products:', products); // Debug log
 
         // Render the shop page
         res.render('shop', {
@@ -416,34 +444,31 @@ const loadShop = async (req, res, next) => {
         next(error); // Pass error to the error handler middleware
     }
 };
+
+
 const handleGoogleAuth = async (req, res, next) => {
     try {
-        if (!req.googleProfile) {
-            throw new Error("Google profile data is missing.");
-        }
-
-        const { email, name } = req.googleProfile;
+        const userId = req.user._id;
 
         // Check if user exists
-        const existingUser = await User.findOne({ email });
+        const existingUser = await User.findOne({ _id: userId });
 
         if (!existingUser) {
             req.session.flashMessage = "No account found with this Gmail address. Please sign up first.";
             return res.redirect("/signup?form=signin");
         }
 
-        // Check if the user is blocked
+        // // Check if the user is blocked
         if (existingUser.isBlocked) {
-            req.session.flashMessage = "Your account is blocked. Please contact support.";
+            req.session.flashMessage = "Your account is blocked due to some issue. Please contact support at bagzosupport@gmail.com.";
             return res.redirect("/signup?form=signin");
         }
 
-        // Login successful
+
         req.session.user = {
             id: existingUser._id,
             name: existingUser.name
-        };
-
+        }
         res.redirect("/");
     } catch (error) {
         console.error("Google Auth Error:", error);

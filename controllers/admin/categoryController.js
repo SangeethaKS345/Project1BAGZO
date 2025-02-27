@@ -94,7 +94,7 @@ const editCategory = async (req, res) => {
             });
         }
 
-        const normalizedCategoryName = categoryName.trim().toLowerCase();
+        const normalizedCategoryName = categoryName.trim();
 
         // Check for existing category with same name
         const existingCategory = await Category.findOne({

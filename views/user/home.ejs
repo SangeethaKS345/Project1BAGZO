@@ -364,8 +364,16 @@
         </div>
     </div>
   </section>
+  <script>
+    window.onpopstate = function () {
+        window.location.href = "/"; // Change this to your actual home route if different
+    };
+</script>
+ <!-- Footer Section Begin -->
+ <%- include('../../views/partials/user/footer') %>
+</body>
+</html>
 
-    <!-- Footer Section Begin -->
-    <%- include('../../views/partials/user/footer') %>
+   
 
     

@@ -66,49 +66,55 @@ passport.use(new GoogleStrategy(
     },
     async (accessToken, refreshToken, profile, done) => {
         try {
-            console.log("🔹 Google Profile:", profile);
+            //console.log(" Google Profile:", profile);
 
-            let user = await User.findOne({ googleId: profile.id });
-
-            if (user) {
-                console.log("✅ User already exists:", user);
-                return done(null, user);
+            let userData = await User.findOne({ googleId: profile.id });
+            
+            console.log("userData : ", userData);
+            if (userData) {
+               // console.log("User already exists:", user);
+             
+                return done(null, userData);
             } else {
-                user = new User({
-                    name: profile.displayName,
+                userData = new User({
+                    name: profile.name,
                     email: profile.emails[0].value,
                     googleId: profile.id,
                 });
-                await user.save();
-                console.log("✅ New user created:", user);
-                return done(null, user);
+                console.log(firstname,lastname);
+                
+                let result = await userData.save();
+
+
+                console.log("New user created:", result);
+                return done(null, userData);
             }
         } catch (err) {
-            console.error("❌ Error in Google authentication:", err);
+            console.error("Error in Google authentication:", err);
             return done(err, null);
         }
     }
 ));
 
-// ✅ Serialize User (Stores user ID in session)
-passport.serializeUser((user, done) => {
-    console.log("🔹 Serializing User:", user.id);
-    done(null, user.id);
+// Serialize User (Stores user ID in session)
+passport.serializeUser((userData, done) => {
+   // console.log("Serializing User:", user.id);
+    done(null, userData.id);
 });
 
-// ✅ Deserialize User (Retrieves user from session)
+//  Deserialize User (Retrieves user from session)
 passport.deserializeUser(async (id, done) => {
     try {
-        console.log("🔹 Deserializing User with ID:", id);
-        const user = await User.findById(id);
-        if (!user) {
-            console.log("❌ User not found!");
+        //console.log("🔹 Deserializing User with ID:", id);
+        const userData = await User.findById(id);
+        if (!userData) {
+            console.log(" User not found!");
             return done(null, false);
         }
-        console.log("✅ User found:", user);
-        done(null, user);
+       // console.log(" User found:", user);
+        done(null, userData);
     } catch (err) {
-        console.error("❌ Error deserializing user:", err);
+        console.error(" Error deserializing user:", err);
         done(err, null);
     }
 });

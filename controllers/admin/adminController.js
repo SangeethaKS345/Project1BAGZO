@@ -27,33 +27,7 @@ const loadLogin=async(req,res)=>{
 }
 
 
-// const login = async (req, res) => {
-//     console.log("login");
-//     try{
 
-//         const {email, password} = req.body;
-//         const admin = await User.findOne({email, isAdmin: true});
-//         if(admin){
-
-//             const passwordMatch = bcrypt.compare(password, admin.password);
-//             if(passwordMatch){
-//                 req.session.admin = true;
-//                 console.log("Pass match")
-//                 return res.redirect("/dashboard");
-//             }else {
-//                 console.log("Pass not matched")
-//                 return res.render("login", { message: "Incorrect password!" });
-//             }
-//         }else {
-//             console.log("Admin not found");
-//             return res.render("login", { message: "Admin not found!" });
-//         }
-//         }catch(error){
-//             console.log("Kayyinn poyi")
-//             console.error("Login Error:", error);
-//             return res.redirect("/login");
-//     }
-// };
 
 const login = async (req, res) => {
     console.log("login");
