@@ -166,7 +166,7 @@ const verifyOtp = async (req, res, next) => {
         console.log
     } catch (error) {
         console.error("Error verifying OTP:", error);
-        next(error);  // Pass the error to the error-handling middleware
+        next(error); 
     }
 };
 
@@ -271,13 +271,13 @@ const logout = async (req, res, next) => {
         req.session.destroy((err) => {
             if (err) {
                 console.error("Session destruction error:", err.message);
-                return next(err); // Pass error to middleware
+                return next(err); 
             }
             return res.redirect("/login");
         });
     } catch (error) {
         console.error("Logout error:", error);
-        next(error); // Pass error to middleware
+        next(error); 
     }
 };
 
@@ -428,7 +428,7 @@ const forgotPassword = async (req, res) => {
             .populate('category')
             .populate('brand');
 
-        console.log('Filtered Products:', products); // Debug log
+        console.log('Filtered Products:', products); 
 
         // Render the shop page
         res.render('shop', {
@@ -436,12 +436,12 @@ const forgotPassword = async (req, res) => {
             categories,
             brands,
             query,
-            userData, // This will be null for non-logged-in users
+            userData, // if user didnt loged in this will be null
             isLoggedIn: !!req.session.user
         });
 
     } catch (error) {
-        next(error); // Pass error to the error handler middleware
+        next(error); 
     }
 };
 

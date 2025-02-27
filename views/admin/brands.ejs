@@ -211,6 +211,7 @@
       <h2 class="content-title card-title">Brands</h2>
     </div>
   </div>
+  
   <div class="card">
     <div class="card-body">
       <div class="row">
@@ -262,17 +263,16 @@
                   </td>
                   <td class="text-start">
                     <% if (brand.isBlocked === false) { %>
-                      <button class="btn btn-danger">
-                        <a href="/admin/blockBrand?id=<%= brand._id %>" class="text-white" style="display: block; width: 90px;">Block</a>
+                      <button class="btn btn-danger block-btn" data-id="<%= brand._id %>" data-name="<%= brand.brandName %>" style="width: 90px">
+                        Block
                       </button>
-                      
                     <% } else { %>
-                    <button class="btn btn-success" style="width: 90px">
-                      <a href="/admin/unBlockBrand?id=<%= brand._id %>" class="text-white">Unblock</a>
-                    </button>
+                      <button class="btn btn-success unblock-btn" data-id="<%= brand._id %>" data-name="<%= brand.brandName %>" style="width: 90px">
+                        Unblock
+                      </button>
                     <% } %>
-                    <button class="btn btn-danger" style="width: 90px" onclick="return confirmDelete()">
-                      <a href="/admin/deleteBrand?id=<%= brand._id %>" class="text-white">Delete</a>
+                    <button class="btn btn-danger delete-btn" data-id="<%= brand._id %>" data-name="<%= brand.brandName %>" style="width: 90px">
+                      Delete
                     </button>
                   </td>
                 </tr>
@@ -297,9 +297,16 @@
   </div>
 </section>
 
+<!-- SweetAlert2 CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.7.12/sweetalert2.min.css">
+<!-- SweetAlert2 JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.7.12/sweetalert2.all.min.js"></script>
+
 <script>
   // Form Validation
   document.getElementById("brandForm").addEventListener("submit", function (e) {
+    e.preventDefault(); // Prevent default submission
+    
     let valid = true;
     
     const brandName = document.getElementById("brand_name").value.trim();
@@ -329,15 +336,103 @@
       valid = false;
     }
 
-    if (!valid) {
-      e.preventDefault(); // Stop form submission if validation fails
+    if (valid) {
+      // Show loading state
+      Swal.fire({
+        title: 'Adding Brand',
+        text: 'Please wait...',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+      
+      // Submit the form
+      this.submit();
+    } else {
+      // Show error message
+      Swal.fire({
+        icon: 'error',
+        title: 'Validation Error',
+        text: 'Please check the form for errors',
+        confirmButtonColor: '#3085d6'
+      });
     }
   });
 
-  // Confirm Delete
-  function confirmDelete() {
-    return confirm("Are you sure you want to delete this brand?");
-  }
+  
+
+  // Delete brand with confirmation
+  document.querySelectorAll('.delete-btn').forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      const brandId = this.getAttribute('data-id');
+      const brandName = this.getAttribute('data-name');
+      
+      Swal.fire({
+        title: 'Are you sure?',
+        text: `You are about to delete the brand "${brandName}". This action cannot be undone!`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = `/admin/deleteBrand?id=${brandId}`;
+        }
+      });
+    });
+  });
+
+  // Block brand with confirmation
+  document.querySelectorAll('.block-btn').forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      const brandId = this.getAttribute('data-id');
+      const brandName = this.getAttribute('data-name');
+      
+      Swal.fire({
+        title: 'Block Brand?',
+        text: `Are you sure you want to block "${brandName}"?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, block it',
+        cancelButtonText: 'Cancel'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = `/admin/blockBrand?id=${brandId}`;
+        }
+      });
+    });
+  });
+
+  // Unblock brand with confirmation
+  document.querySelectorAll('.unblock-btn').forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      const brandId = this.getAttribute('data-id');
+      const brandName = this.getAttribute('data-name');
+      
+      Swal.fire({
+        title: 'Unblock Brand?',
+        text: `Are you sure you want to unblock "${brandName}"?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, unblock it',
+        cancelButtonText: 'Cancel'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = `/admin/unBlockBrand?id=${brandId}`;
+        }
+      });
+    });
+  });
 
   // Clear Form Button
   document.getElementById("clearBtn").addEventListener("click", function () {
@@ -345,6 +440,14 @@
     document.getElementById("previewImage").src = "";
     document.getElementById("nameError").classList.add("d-none");
     document.getElementById("imageError").classList.add("d-none");
+    
+    Swal.fire({
+      icon: 'info',
+      title: 'Form Cleared',
+      text: 'The form has been reset',
+      timer: 1500,
+      showConfirmButton: false
+    });
   });
 
   // Image Preview
@@ -361,13 +464,34 @@
     }
   });
 
-  // Apply styles based on status text
-  document.querySelectorAll('.status-text').forEach(element => {
-    if (element.textContent.trim().toLowerCase() === 'blocked') {
-      element.classList.add('status-blocked');
+  // Success toast notification (for when redirected back after an operation)
+  document.addEventListener('DOMContentLoaded', function() {
+    // Check for success or error messages in URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const successMsg = urlParams.get('success');
+    const errorMsg = urlParams.get('error');
+    
+    if (successMsg) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: decodeURIComponent(successMsg),
+        timer: 2000,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false
+      });
+    } else if (errorMsg) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error!',
+        text: decodeURIComponent(errorMsg),
+        timer: 3000,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false
+      });
     }
   });
 </script>
-
-
 <%- include("../../views/partials/admin/footer") %>

@@ -1,18 +1,4 @@
-// // errorHandler.js
-// const errorHandler = (err, req, res, next) => {
-//     console.error('Error:', err.stack);
-    
-    
-//     // Default error page for other errors
-//     return res.status(statusCode).render('error', {
-//       title: 'Error',
-//       message: process.env.NODE_ENV === 'production' 
-//         ? 'Something went wrong. Please try again later.' 
-//         : err.message
-//     });
-//   };
-  
-//   module.exports = errorHandler;
+
 
 function errorHandler(err, req, res, next) {
   console.error(err.stack);

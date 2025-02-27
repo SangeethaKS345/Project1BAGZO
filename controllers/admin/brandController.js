@@ -1,59 +1,41 @@
 const Brand = require("../../models/brandSchema");
 const Product = require("../../models/productSchema");
 
-
-
-
-
-const getBrandPage = async(req,res)=>{
+// Get Brand Page
+const getBrandPage = async (req, res, next) => {
   try {
-       const page = parseInt(req.query.page) || 1;
-       const limit =4;
-       const skip = (page-1)*limit;
-       const brandData = await Brand.find({}).sort({createdAt:-1}).skip(skip).limit(limit);
-       const totalBrands =await Brand.countDocuments();
-       const totalPages = Math.ceil(totalBrands/limit)
-       const reverseBrand = brandData.reverse();
-       res.render("brands",{
-        data : reverseBrand,
-        currentPage : page,
-        totalPages : totalPages,
-        totalBrands : totalBrands,
-       })
+    const page = parseInt(req.query.page) || 1;
+    const limit = 4;
+    const skip = (page - 1) * limit;
 
+    const brandData = await Brand.find({})
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const totalBrands = await Brand.countDocuments();
+    const totalPages = Math.ceil(totalBrands / limit);
+
+    res.render("brands", {
+      data: brandData.reverse(), 
+      currentPage: page,
+      totalPages: totalPages,
+      totalBrands: totalBrands,
+    });
   } catch (error) {
-    res.redirect("/pageerror")
+    next(error); 
   }
-}
+};
 
-// const addBrand =async (req,res)=>{
-//   try {
-//     const brand = req.body.name;
-//     const findBrand = await Brand.findOne({brandName: brand});
-//     if(!findBrand){
-//       const image = req.file.filename;
-//       const newBrand = new Brand({
-//         brandName :brand,
-//         brandImage : image,
-//       })
-//       await newBrand.save();
-//         res.redirect("/admin/brands")
-      
-//     }
-//   } catch (error) {
-//     res.redirect("/pageerror")
-    
-//   }
-// }
-
-const addBrand = async (req, res) => {
+// Add Brand
+const addBrand = async (req, res, next) => {
   try {
-    console.log("Request received for adding a brand:", req.body); // Debug log
-    console.log("Uploaded file:", req.file); // Debug log
+    console.log("Request received for adding a brand:", req.body);
+    console.log("Uploaded file:", req.file);
 
     if (!req.file) {
       console.log("No file uploaded");
-      return res.status(400).send("No image uploaded");
+      return res.redirect("/admin/brands?error=noimage");
     }
 
     const brand = req.body.name;
@@ -61,7 +43,7 @@ const addBrand = async (req, res) => {
 
     if (!findBrand) {
       const image = req.file.filename;
-      console.log("Saving new brand:", brand, image); // Debug log
+      console.log("Saving new brand:", brand, image);
 
       const newBrand = new Brand({
         brandName: brand,
@@ -69,57 +51,65 @@ const addBrand = async (req, res) => {
       });
 
       await newBrand.save();
-      res.redirect("/admin/brands");
-    } else {
-      console.log("Brand already exists"); // Debug log
-      res.status(400).send("Brand already exists");
-    }
+      return res.redirect("/admin/brands");
+    } 
+
+    console.log("Brand already exists");
+    res.redirect("/admin/brands?error=exists&name=" + encodeURIComponent(brand));
   } catch (error) {
-    console.error("Error in addBrand:", error);
-    res.redirect("/pageerror");
+    next(error); // Pass error to middleware
   }
 };
 
-const blockBrand = async (req,res)=>{
-  try {
-    
-  const  id = req.query.id;
-    await Brand.updateOne({_id:id},{$set:{isBlocked:true}});
-    res.redirect("/admin/brands")
-  } catch (error) {
-  
-}
-}
-
-const unBlockBrand = async (req,res)=>{
+// Block Brand
+const blockBrand = async (req, res, next) => {
   try {
     const id = req.query.id;
-    await Brand.updateOne({_id:id},{$set:{isBlocked:false}});
-    res.redirect("/admin/brands");
-
-    } catch (error) {
-    res.redirect("/pageerror")
-  }
-}
-
-const deletBrand = async (req,res)=>{
-  try {
-    const {id} = req.query;
-    if(!id){
-      return res.status(400).redirect("/pageerror")
+    if (!id) {
+      return res.redirect("/admin/brands?error=invalidid");
     }
-    await Brand.deleteOne({_id:id});
-    res.redirect("/admin/brands")
+
+    await Brand.updateOne({ _id: id }, { $set: { isBlocked: true } });
+    res.redirect("/admin/brands");
   } catch (error) {
-    console.error("Error deleting brand:",error);
-    res.status(500).redirect("/pageerror")
+    next(error);
   }
-}
+};
+
+// Unblock Brand
+const unBlockBrand = async (req, res, next) => {
+  try {
+    const id = req.query.id;
+    if (!id) {
+      return res.redirect("/admin/brands?error=invalidid");
+    }
+
+    await Brand.updateOne({ _id: id }, { $set: { isBlocked: false } });
+    res.redirect("/admin/brands");
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Delete Brand
+const deleteBrand = async (req, res, next) => {
+  try {
+    const { id } = req.query;
+    if (!id) {
+      return res.status(400).redirect("/admin/brands?error=invalidid");
+    }
+
+    await Brand.deleteOne({ _id: id });
+    res.redirect("/admin/brands");
+  } catch (error) {
+    next(error);
+  }
+};
 
 module.exports = {
   getBrandPage,
   addBrand,
   blockBrand,
   unBlockBrand,
-  deletBrand,
-}
+  deleteBrand, 
+};
