@@ -1,9 +1,26 @@
+<<<<<<< HEAD
 // const passport = require('passport');
 // const googleStrategy = require('passport-google-oauth20').Strategy;
 // const User = require('../models/userSchema');
 // const env = require('dotenv').config();
+=======
+const passport = require("passport");
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const User = require("../models/userSchema");
+const dotenv = require("dotenv").config();
+>>>>>>> 334f225 (cart page added. working on profile page.)
 
+passport.use(new GoogleStrategy(
+    {
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        callbackURL: "http://localhost:3001/auth/google/callback"
+    },
+    async (accessToken, refreshToken, profile, done) => {
+        try {
+            console.log("Google Profile:", profile);
 
+<<<<<<< HEAD
 // passport.use(new googleStrategy({
 //     clientID : process.env.GOOGLE_CLIENT_ID,
 //     clientSecret : process.env.GOOGLE_CLIENT_SECRET,
@@ -86,6 +103,23 @@ passport.use(new GoogleStrategy(
                 let result = await userData.save();
 
 
+=======
+            let userData = await User.findOne({ googleId: profile.id });
+            
+            console.log("userData : ", userData);
+            if (userData) {
+               // console.log("User already exists:", user);
+                return done(null, userData);
+            } else {
+                userData = new User({
+                    name: profile.displayName, // Changed to displayName for full name
+                    email: profile.emails[0].value,
+                    googleId: profile.id,
+                });
+                
+                let result = await userData.save();
+
+>>>>>>> 334f225 (cart page added. working on profile page.)
                 console.log("New user created:", result);
                 return done(null, userData);
             }
@@ -119,4 +153,8 @@ passport.deserializeUser(async (id, done) => {
     }
 });
 
+<<<<<<< HEAD
 module.exports = passport;
+=======
+module.exports = passport;
+>>>>>>> 334f225 (cart page added. working on profile page.)

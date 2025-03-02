@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="keywords" content="Male_Fashion, unica, creative, html">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Sign In</title>
+    
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,800" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #f6f5f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            font-family: 'Montserrat', sans-serif;
+            height: 100vh;
+        }
+
+        h1 {
+            font-weight: bold;
+            margin: 0;
+            margin-bottom: 15px;
+            color: #DB4437;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        p {
+            font-size: 14px;
+            font-weight: 100;
+            line-height: 20px;
+            letter-spacing: 0.5px;
+            margin: 20px 0 30px;
+        }
+
+        span {
+            font-size: 14px;
+            margin-bottom: 25px;
+            color: #FF4B2B;
+        }
+
+        a {
+            color: #333;
+            font-size: 14px;
+            text-decoration: none;
+            margin: 15px 0;
+            transition: 0.3s;
+        }
+
+        a:hover {
+            color: #FF4B2B;
+        }
+
+        button {
+            border-radius: 20px;
+            border: 1px solid #FF4B2B;
+            background: linear-gradient(to right, #FF4B2B, #FF416C);
+            color: #FFFFFF;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 12px 45px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #DB4437;
+            border-color: #DB4437;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        button:focus {
+            outline: none;
+        }
+
+        button.ghost {
+            background-color: transparent;
+            border-color: #FFFFFF;
+        }
+
+        button.ghost:hover {
+            background-color: #FFFFFF;
+            color: #FF4B2B;
+        }
+
+        form {
+            background-color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 0 50px;
+            height: 100%;
+            text-align: center;
+        }
+
+        input {
+            background-color: #eee;
+            border: none;
+            border-radius: 5px;
+            padding: 12px 15px;
+            margin: 8px 0;
+            width: 100%;
+        }
+
+        input:focus {
+            outline: 1px solid #DB4437;
+        }
+
+        .container {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            max-width: 900px;
+            min-height: 600px;
+        }
+
+        .form-container {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            transition: all 0.6s ease-in-out;
+        }
+
+        .sign-in-container {
+            left: 0;
+            width: 50%;
+            z-index: 2;
+        }
+
+        .input-container {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .overlay-container {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 50%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 100;
+        }
+
+        .overlay {
+            background: linear-gradient(to right, #FF4B2B, #FF416C);
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: 0 0;
+            color: #FFFFFF;
+            position: relative;
+            left: 0;
+            height: 100%;
+            width: 100%;
+        }
+
+        .overlay-panel {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 0 40px;
+            text-align: center;
+            top: 0;
+            height: 100%;
+            width: 100%;
+        }
+
+        .gmail-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 15px;
+            background-color: #fff;
+            color: #333;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-top: 15px;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+
+        .gmail-btn:hover {
+            background-color: #f5f5f5;
+            border-color: #DB4437;
+        }
+
+        .gmail-btn i {
+            margin-right: 10px;
+            color: #DB4437;
+        }
+
+        .back-home-btn {
+            margin-top: 15px;
+            color: #333;
+        }
+
+        .signup-link {
+            margin-top: 20px;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* Error message styling */
+        .error-message {
+            color: #DB4437;
+            font-size: 14px;
+            margin-top: 5px;
+            text-align: left;
+            width: 100%;
+        }
+
+        .alert {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            width: 100%;
+        }
+
+        .alert-danger {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sign-in-container {
+                width: 100%;
+            }
+            
+            .overlay-container {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" id="container">
+        <div class="form-container sign-in-container">
+            <form action="/signin" method="post" id="signinForm" novalidate>
+                <h1>Sign In</h1>
+                <span>Use your account to sign in</span>
+                
+                <div id="signin-message" class="alert alert-danger" style="display: none;"></div>
+                
+                <div class="input-container">
+                    <input type="email" placeholder="Email" name="email" id="signin-email" />
+                    <div id="signin-email-error" class="error-message"></div>
+                </div>
+                <div class="input-container">
+                    <input type="password" placeholder="Password" name="password" id="signin-password" />
+                    <div id="signin-password-error" class="error-message"></div>
+                </div>
+                
+                <a href="/forgotPassword">Forgot your password?</a>
+                <button type="button" id="signinBtn">Sign In</button>
+                <a href="/auth/google" class="gmail-btn"><i class="fab fa-google"></i> Sign in with Gmail</a>
+                
+                <div class="signup-link">
+                    Don't have an account? <a href="/signup">Sign Up</a>
+                </div>
+                
+                <a href="/" class="back-home-btn">Back to Home</a>
+            </form>
+        </div>
+        <div class="overlay-container">
+            <div class="overlay">
+                <div class="overlay-panel">
+                    <h1>Hello, Friend!</h1>
+                    <p>Enter your personal details and start your journey with us</p>
+                    <p>New here? Join our community today and discover a world of amazing products and exclusive offers!</p>
+                    <button class="ghost" onclick="window.location.href='/signup'">Sign Up</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Get URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const message = urlParams.get("message");
+            
+            // Show error message if present
+            if (message) {
+                const decodedMessage = decodeURIComponent(message);
+                const signinMessage = document.getElementById('signin-message');
+                signinMessage.textContent = decodedMessage;
+                signinMessage.style.display = "block";
+            }
+        });
+
+        // Sign In form validation and submission
+        document.getElementById('signinBtn').addEventListener('click', function() {
+            // Clear previous error messages
+            document.getElementById('signin-email-error').textContent = '';
+            document.getElementById('signin-password-error').textContent = '';
+            document.getElementById('signin-message').style.display = 'none';
+            
+            let isValid = true;
+            const email = document.getElementById('signin-email').value.trim();
+            const password = document.getElementById('signin-password').value.trim();
+            
+            // Email validation
+            if (email === '') {
+                document.getElementById('signin-email-error').textContent = 'Email is required.';
+                isValid = false;
+            } else if (!/\S+@\S+\.\S+/.test(email)) {
+                document.getElementById('signin-email-error').textContent = 'Please enter a valid email.';
+                isValid = false;
+            }
+            
+            // Password validation
+            if (password === '') {
+                document.getElementById('signin-password-error').textContent = 'Password is required.';
+                isValid = false;
+            }
+            
+            if (isValid) {
+                document.getElementById('signinForm').submit();
+            }
+        });
+    </script>
+</body>
+</html>

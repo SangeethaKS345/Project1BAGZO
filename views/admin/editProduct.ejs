@@ -53,12 +53,26 @@
                             <div class="col-lg-4 mb-4">
                                 <label class="form-label">Brand</label>
                                 <select class="form-select border" name="brand">
+<<<<<<< HEAD
                                     <%for(let i=0; i<brand.length; i++) {%>
                                         <option value="<%= brand[i].brandName %>" <%= product.brand === brand[i].brandName ? 'selected' : '' %>>
                                             <%=brand[i].brandName%>
                                         </option>
                                     <%}%>
                                 </select>
+=======
+                                    <% for(let i = 0; i < brand.length; i++) { %>
+                                        <option value="<%= brand[i].brandName %>" 
+                                            <% if (product.brand && product.brand.toString() === brand[i].brandName.toString()) { %> 
+                                                selected 
+                                            <% } %>
+                                        >
+                                            <%= brand[i].brandName %>
+                                        </option>
+                                    <% } %>
+                                </select>
+                                
+>>>>>>> 334f225 (cart page added. working on profile page.)
                                 <div id="brand-error" class="error-message"></div>
                             </div>
                             <div class="mb-4">
@@ -92,6 +106,7 @@
                                     </div>
                                 </div>
                             </div>
+<<<<<<< HEAD
     
                             <div class="card mb-4">
                                 <div class="card-body">
@@ -355,6 +370,296 @@ function setupEventListeners() {
 }
 
 // Handle image selection for upload and cropping
+=======
+    
+                            <div class="card mb-4">
+                                <div class="card-body">
+                                    <div class="row gx-2">
+                                        <div class="col-sm-6 mb-3">
+                                            <label class="form-label">Category</label>
+                                            <select class="form-select border" style="width: 150px;" name="category">
+                                                <% for(let i = 0; i < cat.length; i++) { %>
+                                                    <option value="<%= cat[i].name %>" 
+                                                        <% if (product.category && product.category.toString() === cat[i].name.toString()) { %> 
+                                                            selected 
+                                                        <% } %>
+                                                    >
+                                                        <%= cat[i].name %>
+                                                    </option>
+                                                <% } %>
+                                            </select>
+                                            
+                                            <div id="category-error" class="error-message"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card mb-2">
+                                <div class="card-header">
+                                    <h4>Product Images</h4>
+                                    <p class="text-muted small">Right-click on existing images to crop them</p>
+                                </div>
+    
+                                <div class="card-body">
+                                    <!-- First Image -->
+                                    <div class="card-body image-container">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <h5 class="mr-3">Main Image</h5>
+                                            <div class="ms-auto">
+                                                <button type="button" class="btn btn-sm btn-danger delete-image-btn" data-image-id="1">Delete</button>
+                                                <button type="button" class="btn btn-sm btn-warning reset-image-btn" data-image-id="1">Reset</button>
+                                            </div>
+                                        </div>
+                                        <div class="image-preview-container">
+                                            <img src="/uploads/re-image/<%= product.productImage[0] || 'placeholder.jpg' %>" 
+                                                alt="Product Image 1" id="imgView1" class="img-thumbnail" 
+                                                style="max-width: 200px; max-height: 200px;">
+                                        </div>
+                                        <div class="mt-2">
+                                            <input class="form-control" type="file" name="images" id="input1"
+                                                accept="image/png, image/jpeg, image/jpg"
+                                                onchange="handleImageSelect(event, 1)">
+                                            <div id="image1-error" class="error-message"></div>
+                                        </div>
+                                        <div class="cropper-container mt-3" id="cropperContainer1" style="display:none;">
+                                            <div style="max-width: 400px;">
+                                                <div id="cropperWrapper1" style="width: 100%; max-height: 300px;"></div>
+                                                <div class="d-flex mt-2">
+                                                    <button type="button" class="btn btn-primary crop-save-btn" data-index="1">Save Cropped</button>
+                                                    <button type="button" class="btn btn-secondary ms-2 crop-cancel-btn" data-index="1">Cancel</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+    
+                                    <!-- Second Image -->
+                                    <div class="card-body image-container">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <h5 class="mr-3">Image 2</h5>
+                                            <div class="ms-auto">
+                                                <button type="button" class="btn btn-sm btn-danger delete-image-btn" data-image-id="2">Delete</button>
+                                                <button type="button" class="btn btn-sm btn-warning reset-image-btn" data-image-id="2">Reset</button>
+                                            </div>
+                                        </div>
+                                        <div class="image-preview-container">
+                                            <img src="/uploads/re-image/<%= product.productImage[1] || 'placeholder.jpg' %>" 
+                                                alt="Product Image 2" id="imgView2" class="img-thumbnail" 
+                                                style="max-width: 200px; max-height: 200px;">
+                                        </div>
+                                        <div class="mt-2">
+                                            <input class="form-control" type="file" name="images" id="input2"
+                                                accept="image/png, image/jpeg, image/jpg"
+                                                onchange="handleImageSelect(event, 2)">
+                                            <div id="image2-error" class="error-message"></div>
+                                        </div>
+                                        <div class="cropper-container mt-3" id="cropperContainer2" style="display:none;">
+                                            <div style="max-width: 400px;">
+                                                <div id="cropperWrapper2" style="width: 100%; max-height: 300px;"></div>
+                                                <div class="d-flex mt-2">
+                                                    <button type="button" class="btn btn-primary crop-save-btn" data-index="2">Save Cropped</button>
+                                                    <button type="button" class="btn btn-secondary ms-2 crop-cancel-btn" data-index="2">Cancel</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+    
+                                    <!-- Third Image -->
+                                    <div class="card-body image-container">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <h5 class="mr-3">Image 3</h5>
+                                            <div class="ms-auto">
+                                                <button type="button" class="btn btn-sm btn-danger delete-image-btn" data-image-id="3">Delete</button>
+                                                <button type="button" class="btn btn-sm btn-warning reset-image-btn" data-image-id="3">Reset</button>
+                                            </div>
+                                        </div>
+                                        <div class="image-preview-container">
+                                            <img src="/uploads/re-image/<%= product.productImage[2] || 'placeholder.jpg' %>" 
+                                                alt="Product Image 3" id="imgView3" class="img-thumbnail" 
+                                                style="max-width: 200px; max-height: 200px;">
+                                        </div>
+                                        <div class="mt-2">
+                                            <input class="form-control" type="file" name="images" id="input3"
+                                                accept="image/png, image/jpeg, image/jpg"
+                                                onchange="handleImageSelect(event, 3)">
+                                            <div id="image3-error" class="error-message"></div>
+                                        </div>
+                                        <div class="cropper-container mt-3" id="cropperContainer3" style="display:none;">
+                                            <div style="max-width: 400px;">
+                                                <div id="cropperWrapper3" style="width: 100%; max-height: 300px;"></div>
+                                                <div class="d-flex mt-2">
+                                                    <button type="button" class="btn btn-primary crop-save-btn" data-index="3">Save Cropped</button>
+                                                    <button type="button" class="btn btn-secondary ms-2 crop-cancel-btn" data-index="3">Cancel</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+    
+                                    <!-- Fourth Image -->
+                                    <div class="card-body image-container">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <h5 class="mr-3">Image 4</h5>
+                                            <div class="ms-auto">
+                                                <button type="button" class="btn btn-sm btn-danger delete-image-btn" data-image-id="4">Delete</button>
+                                                <button type="button" class="btn btn-sm btn-warning reset-image-btn" data-image-id="4">Reset</button>
+                                            </div>
+                                        </div>
+                                        <div class="image-preview-container">
+                                            <img src="/uploads/re-image/<%= product.productImage[3] || 'placeholder.jpg' %>" 
+                                                alt="Product Image 4" id="imgView4" class="img-thumbnail" 
+                                                style="max-width: 200px; max-height: 200px;">
+                                        </div>
+                                        <div class="mt-2">
+                                            <input class="form-control" type="file" name="images" id="input4"
+                                                accept="image/png, image/jpeg, image/jpg"
+                                                onchange="handleImageSelect(event, 4)">
+                                            <div id="image4-error" class="error-message"></div>
+                                        </div>
+                                        <div class="cropper-container mt-3" id="cropperContainer4" style="display:none;">
+                                            <div style="max-width: 400px;">
+                                                <div id="cropperWrapper4" style="width: 100%; max-height: 300px;"></div>
+                                                <div class="d-flex mt-2">
+                                                    <button type="button" class="btn btn-primary crop-save-btn" data-index="4">Save Cropped</button>
+                                                    <button type="button" class="btn btn-secondary ms-2 crop-cancel-btn" data-index="4">Cancel</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex mt-4">
+                                <button class="btn btn-md btn-primary rounded font-sm hover-up me-2" id="updatebtn" type="button">
+                                    Update Product
+                                </button>
+                                <button class="btn btn-md btn-warning rounded font-sm hover-up me-2" id="resetAllBtn" type="button">
+                                    Reset All Images
+                                </button>
+                                <button class="btn btn-md btn-secondary rounded font-sm hover-up" id="clearAllBtn" type="button">
+                                    Clear All Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Your custom JavaScript -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Your custom JavaScript -->
+<script>
+    // Global variables to store croppers
+const croppers = {};
+let originalFormData = {};
+
+// Store original form data when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Save original form data
+    saveOriginalFormData();
+    
+    // Set up event listeners
+    setupEventListeners();
+    
+    // Initialize the file inputs based on current image state
+    updateFileInputStates();
+});
+
+function saveOriginalFormData() {
+    const form = document.getElementById('productForm');
+    originalFormData = {
+        productName: form.productName.value,
+        brand: form.brand.value,
+        descriptionData: form.descriptionData.value,
+        regularPrice: form.regularPrice.value,
+        salesPrice: form.salesPrice.value,
+        quantity: form.quantity.value,
+        category: form.category.value,
+        image1: form.hiddenImage1.value,
+        image2: form.hiddenImage2.value,
+        image3: form.hiddenImage3.value,
+        image4: form.hiddenImage4.value
+    };
+}
+
+function updateFileInputStates() {
+    // For each image slot, check if there's an existing image
+    for (let i = 1; i <= 4; i++) {
+        const hiddenImageValue = document.getElementById(`hiddenImage${i}`).value;
+        const fileInput = document.getElementById(`input${i}`);
+        const imgSrc = document.getElementById(`imgView${i}`).src;
+        
+        // If there's an image (not deleted and not placeholder), disable the file input
+        if (hiddenImageValue && hiddenImageValue !== 'deleted' && !imgSrc.includes('placeholder.jpg')) {
+            fileInput.disabled = true;
+            fileInput.classList.add('disabled-input');
+        } else {
+            fileInput.disabled = false;
+            fileInput.classList.remove('disabled-input');
+        }
+    }
+}
+
+function setupEventListeners() {
+    // Image delete buttons
+    document.querySelectorAll('.delete-image-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const imageId = this.dataset.imageId;
+            deleteImage(imageId);
+        });
+    });
+    
+    // Image reset buttons
+    document.querySelectorAll('.reset-image-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const imageId = this.dataset.imageId;
+            resetImage(imageId);
+        });
+    });
+    
+    // Crop save buttons
+    document.querySelectorAll('.crop-save-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const index = this.dataset.index;
+            saveCroppedImage(index);
+        });
+    });
+    
+    // Crop cancel buttons
+    document.querySelectorAll('.crop-cancel-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const index = this.dataset.index;
+            cancelCropping(index);
+        });
+    });
+    
+    // Update button
+    document.getElementById('updatebtn').addEventListener('click', function() {
+        validateAndSubmitForm();
+    });
+    
+    // Reset All button
+    document.getElementById('resetAllBtn').addEventListener('click', function() {
+        resetAllImages();
+    });
+    
+    // Clear All Changes button
+    document.getElementById('clearAllBtn').addEventListener('click', function() {
+        clearAllChanges();
+    });
+}
+
+>>>>>>> 334f225 (cart page added. working on profile page.)
 // Handle image selection for upload and cropping
 function handleImageSelect(event, index) {
     const file = event.target.files[0];
@@ -407,6 +712,10 @@ function handleImageSelect(event, index) {
     
     reader.readAsDataURL(file);
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 334f225 (cart page added. working on profile page.)
 // Save cropped image
 function saveCroppedImage(index) {
     if (!croppers[index]) return;
@@ -487,6 +796,13 @@ function deleteImage(imageId) {
                 document.getElementById(`cropperContainer${imageId}`).style.display = 'none';
             }
             
+<<<<<<< HEAD
+=======
+            // Enable the file input now that the image is deleted
+            document.getElementById(`input${imageId}`).disabled = false;
+            document.getElementById(`input${imageId}`).classList.remove('disabled-input');
+            
+>>>>>>> 334f225 (cart page added. working on profile page.)
             Swal.fire('Deleted!', 'The image has been deleted.', 'success');
         }
     });
@@ -503,11 +819,36 @@ function resetImage(imageId) {
     document.getElementById(`input${imageId}`).value = '';
     
     // Reset preview image
+<<<<<<< HEAD
     document.getElementById(`imgView${imageId}`).src = `/uploads/re-image/${originalImage}`;
+=======
+    document.getElementById(`imgView${imageId}`).src = originalImage ? `/uploads/re-image/${originalImage}` : '/uploads/re-image/placeholder.jpg';
+    
+    // Update file input state (disable if image exists)
+    updateFileInputState(imageId);
+>>>>>>> 334f225 (cart page added. working on profile page.)
     
     Swal.fire('Reset', 'Image has been reset to original.', 'info');
 }
 
+<<<<<<< HEAD
+=======
+// Update a single file input state
+function updateFileInputState(imageId) {
+    const hiddenImageValue = document.getElementById(`hiddenImage${imageId}`).value;
+    const fileInput = document.getElementById(`input${imageId}`);
+    const imgSrc = document.getElementById(`imgView${imageId}`).src;
+    
+    if (hiddenImageValue && hiddenImageValue !== 'deleted' && !imgSrc.includes('placeholder.jpg')) {
+        fileInput.disabled = true;
+        fileInput.classList.add('disabled-input');
+    } else {
+        fileInput.disabled = false;
+        fileInput.classList.remove('disabled-input');
+    }
+}
+
+>>>>>>> 334f225 (cart page added. working on profile page.)
 // Reset all images
 function resetAllImages() {
     Swal.fire({
@@ -523,7 +864,13 @@ function resetAllImages() {
             for (let i = 1; i <= 4; i++) {
                 document.getElementById(`hiddenImage${i}`).value = originalFormData[`image${i}`];
                 document.getElementById(`input${i}`).value = '';
+<<<<<<< HEAD
                 document.getElementById(`imgView${i}`).src = `/uploads/re-image/${originalFormData[`image${i}`]}`;
+=======
+                document.getElementById(`imgView${i}`).src = originalFormData[`image${i}`] ? 
+                    `/uploads/re-image/${originalFormData[`image${i}`]}` : 
+                    '/uploads/re-image/placeholder.jpg';
+>>>>>>> 334f225 (cart page added. working on profile page.)
                 
                 // Destroy cropper if active
                 if (croppers[i]) {
@@ -533,6 +880,12 @@ function resetAllImages() {
                 }
             }
             
+<<<<<<< HEAD
+=======
+            // Update all file input states
+            updateFileInputStates();
+            
+>>>>>>> 334f225 (cart page added. working on profile page.)
             Swal.fire('Reset', 'All images have been reset to original.', 'success');
         }
     });
@@ -556,7 +909,11 @@ function clearAllChanges() {
             form.brand.value = originalFormData.brand;
             form.descriptionData.value = originalFormData.descriptionData;
             form.regularPrice.value = originalFormData.regularPrice;
+<<<<<<< HEAD
             form.salesPrice.value = originalFormData.salsePrice;
+=======
+            form.salesPrice.value = originalFormData.salesPrice;
+>>>>>>> 334f225 (cart page added. working on profile page.)
             form.quantity.value = originalFormData.quantity;
             form.category.value = originalFormData.category;
             
@@ -681,6 +1038,19 @@ function cropExistingImage(index) {
 
 // Add context menu for cropping existing images
 document.addEventListener('DOMContentLoaded', function() {
+<<<<<<< HEAD
+=======
+    // Add CSS for disabled inputs
+    const style = document.createElement('style');
+    style.textContent = `
+        .disabled-input {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
+    `;
+    document.head.appendChild(style);
+    
+>>>>>>> 334f225 (cart page added. working on profile page.)
     for (let i = 1; i <= 4; i++) {
         const imgView = document.getElementById(`imgView${i}`);
         
@@ -688,6 +1058,7 @@ document.addEventListener('DOMContentLoaded', function() {
         imgView.addEventListener('contextmenu', function(e) {
             e.preventDefault();
             
+<<<<<<< HEAD
             Swal.fire({
                 title: 'Image Options',
                 text: 'Would you like to crop this existing image?',
@@ -700,6 +1071,23 @@ document.addEventListener('DOMContentLoaded', function() {
                     cropExistingImage(i);
                 }
             });
+=======
+            // Only show crop option if this is not a placeholder image
+            if (!imgView.src.includes('placeholder.jpg')) {
+                Swal.fire({
+                    title: 'Image Options',
+                    text: 'Would you like to crop this existing image?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, crop it',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        cropExistingImage(i);
+                    }
+                });
+            }
+>>>>>>> 334f225 (cart page added. working on profile page.)
         });
     }
 });

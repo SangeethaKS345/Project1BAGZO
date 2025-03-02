@@ -5,7 +5,11 @@ const customerInfo = async (req, res, next) => {
     try {
         let search = req.query.search || "";
         let page = parseInt(req.query.page) || 1;
+<<<<<<< HEAD
         const limit = 3;
+=======
+        const limit = 5;
+>>>>>>> 334f225 (cart page added. working on profile page.)
 
         const userData = await User.find({
             isAdmin: false,

@@ -38,7 +38,14 @@ const addBrand = async (req, res, next) => {
       return res.redirect("/admin/brands?error=noimage");
     }
 
-    const brand = req.body.name;
+    // Capitalize the first letter of each word in the brand name
+    const brand = req.body.name
+      .trim()
+      .toLowerCase()
+      .split(" ")
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+
     const findBrand = await Brand.findOne({ brandName: brand });
 
     if (!findBrand) {
@@ -55,12 +62,22 @@ const addBrand = async (req, res, next) => {
     } 
 
     console.log("Brand already exists");
+<<<<<<< HEAD
     res.redirect("/admin/brands?error=exists&name=" + encodeURIComponent(brand));
+=======
+    res.redirect("/admin/brands?error=exists&message=" + encodeURIComponent("Brand already existed"));
+>>>>>>> 334f225 (cart page added. working on profile page.)
   } catch (error) {
     next(error); // Pass error to middleware
   }
 };
 
+<<<<<<< HEAD
+=======
+
+
+
+>>>>>>> 334f225 (cart page added. working on profile page.)
 // Block Brand
 const blockBrand = async (req, res, next) => {
   try {
@@ -112,4 +129,8 @@ module.exports = {
   blockBrand,
   unBlockBrand,
   deleteBrand, 
+<<<<<<< HEAD
 };
+=======
+};
+>>>>>>> 334f225 (cart page added. working on profile page.)

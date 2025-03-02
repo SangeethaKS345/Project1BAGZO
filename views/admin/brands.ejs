@@ -466,6 +466,7 @@
 
   // Success toast notification (for when redirected back after an operation)
   document.addEventListener('DOMContentLoaded', function() {
+<<<<<<< HEAD
     // Check for success or error messages in URL params
     const urlParams = new URLSearchParams(window.location.search);
     const successMsg = urlParams.get('success');
@@ -493,5 +494,45 @@
       });
     }
   });
+=======
+  const urlParams = new URLSearchParams(window.location.search);
+  const successMsg = urlParams.get('success');
+  const errorMsg = urlParams.get('error');
+
+  if (successMsg) {
+    Swal.fire({
+      icon: 'success',
+      title: 'Success!',
+      text: decodeURIComponent(successMsg),
+      timer: 2000,
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false
+    });
+  } else if (errorMsg) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error!',
+      text: decodeURIComponent(errorMsg), // Will show "Brand already exists"
+      timer: 3000,
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false
+    });
+  }
+});
+
+
+//   const updateBrandNamesToLowercase = async () => {
+//   const brands = await Brand.find();
+//   for (const brand of brands) {
+//     brand.brandName = brand.brandName.toLowerCase();
+//     await brand.save();
+//   }
+//   console.log("All brand names have been updated to lowercase.");
+// };
+
+// updateBrandNamesToLowercase();
+>>>>>>> 334f225 (cart page added. working on profile page.)
 </script>
 <%- include("../../views/partials/admin/footer") %>

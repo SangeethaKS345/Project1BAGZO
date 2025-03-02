@@ -470,24 +470,27 @@
   
   async function addToCart(productId) {
     try {
-      const response = await fetch('/cart/add', {
+      const response = await fetch('/add-to-cart', {  // Updated route
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ productId }),
       });
-      
+
       if (response.ok) {
         alert('Product added to cart successfully!');
       } else {
-        alert('Failed to add product to cart');
+        const errorData = await response.json();
+        alert('Failed to add product: ' + errorData.message);
       }
     } catch (error) {
       console.error('Error adding to cart:', error);
       alert('Error adding product to cart');
     }
-  }
+}
+
+  
   </script>
 
 <%- include('../../views/partials/user/footer') %>

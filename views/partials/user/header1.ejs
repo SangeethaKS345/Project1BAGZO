@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<<<<<<< HEAD
 <html lang="zxx">
 
 <head>
@@ -150,3 +151,81 @@
   </script>
 </body>
 </html>
+=======
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forgot Password</title>
+    <link rel="stylesheet" href="/css/forgot-password.css" type="text/css">
+</head>
+<body>
+    <div class="container">
+        <h2>Forgot Password</h2>
+        <form id="forgotPasswordForm">
+            <label for="email">Enter your email:</label>
+            <input type="email" id="email" name="email" required>
+            <span id="emailError" class="error">Please enter a valid Gmail address</span>
+            <br><br>
+            <button type="submit" id="submitBtn">Submit</button>
+        </form>
+    </div>
+
+    <script>
+       document.getElementById("email").addEventListener("input", function() {
+    let emailInput = this.value.trim();
+    let emailError = document.getElementById("emailError");
+    let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Allow all domains
+
+    if (!emailPattern.test(emailInput)) {
+        emailError.style.display = "block";
+    } else {
+        emailError.style.display = "none";
+    }
+});
+
+document.getElementById("forgotPasswordForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+    let emailValue = document.getElementById("email").value.trim();
+    let emailError = document.getElementById("emailError");
+    let submitBtn = document.getElementById("submitBtn");
+    
+    if (!emailValue.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) { // Allow all domains
+        emailError.style.display = "block";
+        return;
+    }
+    
+    submitBtn.disabled = true;
+    fetch('/resetPassword', {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email: emailValue })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error("Server error, please try again.");
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            setTimeout(() => {
+                window.location.href = "/newPassword"
+            }, 1000);
+        } else {
+            alert("Error: " + data.message);
+            submitBtn.disabled = false;
+        }
+    })
+    .catch(error => {
+        alert(error.message || "Network error, please try again.");
+        submitBtn.disabled = false;
+    });
+});
+
+    </script>
+</body>
+</html>
+>>>>>>> 334f225 (cart page added. working on profile page.)

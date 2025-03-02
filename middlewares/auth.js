@@ -65,24 +65,63 @@
 // }
 
 
+<<<<<<< HEAD
+=======
+const mongoose = require("mongoose");
+>>>>>>> 334f225 (cart page added. working on profile page.)
 const User = require("../models/userSchema");
 
 const userAuth = (req, res, next) => {
   if (req.session.user) {
+<<<<<<< HEAD
     User.findById(req.session.user)
+=======
+    // Extract user ID properly
+    let userId;
+    if (typeof req.session.user === 'object' && req.session.user.id) {
+      userId = req.session.user.id;
+    } else {
+      userId = req.session.user;
+    }
+    
+    // Validate the ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      console.error("Invalid user ID format");
+      req.session.destroy(); // Clear invalid session
+      return res.redirect("/login");
+    }
+    
+    User.findById(userId)
+>>>>>>> 334f225 (cart page added. working on profile page.)
       .then((data) => {
         if (data && !data.isBlocked) {
           // Set the user data in req.user
           req.user = data;
+<<<<<<< HEAD
           next();
         } else {
           console.error("User is not authenticated");
+=======
+          
+          // Store only the ID in the session for future use
+          req.session.user = userId;
+          
+          next();
+        } else {
+          console.error("User is not authenticated or is blocked");
+          req.session.destroy();
+>>>>>>> 334f225 (cart page added. working on profile page.)
           res.redirect("/login");
         }
       })
       .catch((error) => {
         console.log("Error in user auth middleware", error);
+<<<<<<< HEAD
         res.status(500).send("Internal Server Error");
+=======
+        req.session.destroy();
+        res.redirect("/login");
+>>>>>>> 334f225 (cart page added. working on profile page.)
       });
   } else {
     res.redirect("/login");
