@@ -10,19 +10,7 @@ const adminRouter = require("./routes/adminRouter");
 const app = express();
 const {errorHandler, adminErrorHandler} = require("./middlewares/errorHandler.js");
 
-// Connect to MongoDB
-db();
 
-<<<<<<< HEAD
-// Error Handling Middleware
-
-// User Authentication Middleware
-const userAuth = (req, res, next) => {
-  if (req.path.startsWith("/public/") || req.path.startsWith("/assets/")) {
-    return next();
-  }
-
-=======
 // Connect to MongoDB
 db();
 
@@ -34,7 +22,6 @@ const userAuth = (req, res, next) => {
     return next();
   }
 
->>>>>>> 334f225 (cart page added. working on profile page.)
   if (req.session && req.session.user) {
     const User = require("./models/User"); // Adjust path as needed
 
@@ -100,8 +87,6 @@ app.use((req, res, next) => {
   res.setHeader("Expires", "0");
   next();
 });
-<<<<<<< HEAD
-=======
 
 // Middleware to pass user data to all views
 app.use((req, res, next) => {
@@ -112,38 +97,15 @@ app.use((req, res, next) => {
 // Set View Engine
 app.set("view engine", "ejs");
 app.set("views", [path.join(__dirname, "views/user"), path.join(__dirname, "views/admin")]);
->>>>>>> 334f225 (cart page added. working on profile page.)
 
 // Serve Static Files
 app.use(express.static("public"));
 
-<<<<<<< HEAD
-// Set View Engine
-app.set("view engine", "ejs");
-app.set("views", [path.join(__dirname, "views/user"), path.join(__dirname, "views/admin")]);
-
-// Serve Static Files
-app.use(express.static("public"));
-
-=======
->>>>>>> 334f225 (cart page added. working on profile page.)
 // Global User Variable for Templates
 app.use((req, res, next) => {
   res.locals.user = req.user;
   next();
 });
-<<<<<<< HEAD
-
-// Routes
-app.use("/", userRouter);
-app.use("/admin", adminRouter);
-
-
-
-// error handler
-app.use(errorHandler,adminErrorHandler);
-=======
->>>>>>> 334f225 (cart page added. working on profile page.)
 
 // Routes
 app.use("/", userRouter);
@@ -156,8 +118,4 @@ app.use(errorHandler,adminErrorHandler);
 const PORT = process.env.PORT || 4488;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-<<<<<<< HEAD
 });
-=======
-});
->>>>>>> 334f225 (cart page added. working on profile page.)

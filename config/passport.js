@@ -1,14 +1,7 @@
-<<<<<<< HEAD
-// const passport = require('passport');
-// const googleStrategy = require('passport-google-oauth20').Strategy;
-// const User = require('../models/userSchema');
-// const env = require('dotenv').config();
-=======
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const User = require("../models/userSchema");
 const dotenv = require("dotenv").config();
->>>>>>> 334f225 (cart page added. working on profile page.)
 
 passport.use(new GoogleStrategy(
     {
@@ -20,90 +13,6 @@ passport.use(new GoogleStrategy(
         try {
             console.log("Google Profile:", profile);
 
-<<<<<<< HEAD
-// passport.use(new googleStrategy({
-//     clientID : process.env.GOOGLE_CLIENT_ID,
-//     clientSecret : process.env.GOOGLE_CLIENT_SECRET,
-//     callbackURL : "http://localhost:3001/auth/google/callback"
-// },
-
-// async(accessToken, refreshToken, profile, done) => {
-
-//     try{
-//         let user = await User.findOne({googleId : profile.id});
-
-//         if(user){
-//            return done(null, user);
-//         }else{
-//             user = await User({
-//                 name : profile.displayName,
-//                 email : profile.emails[0].value,
-//                 googleId : profile.id,
-//             }).save();
-//            return  done(null, user);
-            
-//         }
-//     }catch(err){
-//         return done(err,null)
-//         console.error(err);
-//     }
-// }
-// ))
-
-
-// passport.serializeUser((user, done) => {
-//     done(null, user.id);
-// });
-
-
-// passport.deserializeUser((id, done) => {
-//     User.findById(id)
-//        .then(user => {
-//            done(null, user);
-//        })
-//        .catch(err => {
-//            done(err, null);
-//            console.error(err);
-//        })
-// });
-
-
-// module.exports = passport;
-
-const passport = require("passport");
-const GoogleStrategy = require("passport-google-oauth20").Strategy;
-const User = require("../models/userSchema");
-const dotenv = require("dotenv").config();
-
-passport.use(new GoogleStrategy(
-    {
-        clientID: process.env.GOOGLE_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: "http://localhost:3001/auth/google/callback"
-    },
-    async (accessToken, refreshToken, profile, done) => {
-        try {
-            //console.log(" Google Profile:", profile);
-
-            let userData = await User.findOne({ googleId: profile.id });
-            
-            console.log("userData : ", userData);
-            if (userData) {
-               // console.log("User already exists:", user);
-             
-                return done(null, userData);
-            } else {
-                userData = new User({
-                    name: profile.name,
-                    email: profile.emails[0].value,
-                    googleId: profile.id,
-                });
-                console.log(firstname,lastname);
-                
-                let result = await userData.save();
-
-
-=======
             let userData = await User.findOne({ googleId: profile.id });
             
             console.log("userData : ", userData);
@@ -119,7 +28,6 @@ passport.use(new GoogleStrategy(
                 
                 let result = await userData.save();
 
->>>>>>> 334f225 (cart page added. working on profile page.)
                 console.log("New user created:", result);
                 return done(null, userData);
             }
@@ -153,8 +61,4 @@ passport.deserializeUser(async (id, done) => {
     }
 });
 
-<<<<<<< HEAD
 module.exports = passport;
-=======
-module.exports = passport;
->>>>>>> 334f225 (cart page added. working on profile page.)
