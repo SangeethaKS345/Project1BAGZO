@@ -11,11 +11,7 @@ const getProductAddPage = async (req, res, next) => {
   try {
     const category = await Category.find({ isListed: true });
     const brand = await Brand.find({ isBlocked: false });
-<<<<<<< HEAD
     res.render("product-add", { cat: category, brand: brand });
-=======
-    res.render("productAdd", { cat: category, brand: brand });
->>>>>>> 334f225 (cart page added. working on profile page.)
   } catch (error) {
     next(error); // Pass error to middleware
   }
@@ -67,11 +63,7 @@ const addProducts = async (req, res, next) => {
     await newProduct.save();
     res.redirect("/admin/addProducts");
   } catch (error) {
-<<<<<<< HEAD
     next(error); // Pass error to middleware
-=======
-    next(error); 
->>>>>>> 334f225 (cart page added. working on profile page.)
   }
 };
 

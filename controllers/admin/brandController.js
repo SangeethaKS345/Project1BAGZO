@@ -62,22 +62,12 @@ const addBrand = async (req, res, next) => {
     } 
 
     console.log("Brand already exists");
-<<<<<<< HEAD
     res.redirect("/admin/brands?error=exists&name=" + encodeURIComponent(brand));
-=======
-    res.redirect("/admin/brands?error=exists&message=" + encodeURIComponent("Brand already existed"));
->>>>>>> 334f225 (cart page added. working on profile page.)
   } catch (error) {
     next(error); // Pass error to middleware
   }
 };
 
-<<<<<<< HEAD
-=======
-
-
-
->>>>>>> 334f225 (cart page added. working on profile page.)
 // Block Brand
 const blockBrand = async (req, res, next) => {
   try {
@@ -129,8 +119,4 @@ module.exports = {
   blockBrand,
   unBlockBrand,
   deleteBrand, 
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> 334f225 (cart page added. working on profile page.)

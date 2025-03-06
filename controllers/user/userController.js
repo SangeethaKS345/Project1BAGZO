@@ -12,19 +12,11 @@ const loadHomepage = async (req, res, next) => {
     try {
         const user = req.session.user;
 
-<<<<<<< HEAD
         console.log("user in session", user)
         // Fetch categories and brands
-=======
-        console.log("user in session", user);
-        // Fetch unblocked brands
-        const brands = await Brand.find({ isBlocked: false });
-        // Fetch listed categories
->>>>>>> 334f225 (cart page added. working on profile page.)
         const categories = await Category.find({ isListed: true });
         const brand = await Brand.find({ isBlocked: false });
 
-<<<<<<< HEAD
         // Fetch products with sorting directly in the query
         const productData = await Product.find({
             isBlocked: false,
@@ -39,26 +31,6 @@ const loadHomepage = async (req, res, next) => {
             return res.render("home", { userData, products: productData, categories, brand });
         } else {
             return res.render("home", { products: productData, userData: "", categories, brand });
-=======
-        // Get the IDs of unblocked brands and listed categories
-        const brandIds = brands.map(brand => brand._id);
-        const categoryIds = categories.map(category => category._id);
-
-        // Fetch products with sorting directly in the query, ensuring the products belong to unblocked brands and listed categories
-        const productData = await Product.find({ 
-            isBlocked: false,
-            brand: { $in: brandIds },
-            category: { $in: categoryIds }
-        }).sort({ createdAt: -1 });
-
-        // console.log(productData);
-
-        if (user) {
-            const userData = await User.findById(req.session.user.id);
-            return res.render("home", { userData, products: productData, categories, brands });
-        } else {
-            return res.render("home", { products: productData, userData: "", categories, brands });
->>>>>>> 334f225 (cart page added. working on profile page.)
         }
     } catch (error) {
         next(error);  // Pass error to errorHandler
@@ -195,7 +167,6 @@ const verifyOtp = async (req, res, next) => {
         console.log
     } catch (error) {
         console.error("Error verifying OTP:", error);
-<<<<<<< HEAD
         next(error); 
     }
 };
@@ -228,8 +199,6 @@ const loadLogin = async (req, res, next) => {
     }
 };
 
-
-// Login Handler
 const login = async (req, res, next) => {
     try {
         console.log("Signin route hit");
@@ -270,65 +239,6 @@ const login = async (req, res, next) => {
         res.redirect(`/signup?form=signin&message=${encodeURIComponent("An error occurred. Please try again.")}`);
     }
 };
-
-=======
-        next(error);  // Pass the error to the error-handling middleware
-    }
-};
-
-
-
-
-// Page Not Found
-const pageNotFound = (req, res, next) => {
-    try {
-        res.status(404).render("404");
-    } catch (error) {
-        next(error); 
-    }
-};
-
-
-// Load Login Page
-const loadLogin = async (req, res, next) => {
-    try {
-        if (!req.session.user) {
-            return res.render("login");
-        }
-        res.redirect("/");
-    } catch (error) {
-        next(error);
-    }
-};
-
-
-// Login Handler
-
-const login = async (req, res, next) => {
-    try {
-        const { email, password } = req.body;
-        const user = await User.findOne({ email });
-
-        if (!user) {
-            return res.render("signin", { error: "Invalid email or password" });
-        }
-
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.render("signin", { error: "Invalid email or password" });
-        }
-
-        // Store user data in session
-        req.session.user = { id: user._id, name: user.name, email: user.email };
-
-        res.redirect("/");
-    } catch (error) {
-        next(error);
-    }
-};
-
-
->>>>>>> 334f225 (cart page added. working on profile page.)
 const resendOtp = async (req, res) => {
     try {
         if (!req.session.userData || !req.session.userData.email) {
@@ -359,21 +269,13 @@ const logout = async (req, res, next) => {
         req.session.destroy((err) => {
             if (err) {
                 console.error("Session destruction error:", err.message);
-<<<<<<< HEAD
                 return next(err); 
-=======
-                return next(err); // Pass error to middleware
->>>>>>> 334f225 (cart page added. working on profile page.)
             }
             return res.redirect("/login");
         });
     } catch (error) {
         console.error("Logout error:", error);
-<<<<<<< HEAD
         next(error); 
-=======
-        next(error); // Pass error to middleware
->>>>>>> 334f225 (cart page added. working on profile page.)
     }
 };
 
@@ -451,7 +353,6 @@ const forgotPassword = async (req, res) => {
   }
 
  
-<<<<<<< HEAD
   const loadShop = async (req, res, next) => {
     try {
         // Initialize userData as null
@@ -529,7 +430,6 @@ const handleGoogleAuth = async (req, res, next) => {
             email: existingUser.email
         };
 
-<<<<<<< HEAD
         // Fetch only listed categories and unblocked brands
         const [categories, brands] = await Promise.all([
             Category.find({ isListed: true }), 
@@ -598,13 +498,6 @@ const handleGoogleAuth = async (req, res, next) => {
 
     } catch (error) {
         next(error); 
-=======
-        res.redirect("/");
-    } catch (error) {
-        console.error("Google Auth Error:", error);
-        req.session.flashMessage = "Authentication failed. Please try again.";
-        return res.redirect("/signup");
->>>>>>> 334f225 (cart page added. working on profile page.)
     }
 };
 
@@ -657,9 +550,6 @@ module.exports = {
     forgotPasswordSendLink,
     newPassword,
     changePassword,
-<<<<<<< HEAD
     loadShop,
-=======
->>>>>>> 334f225 (cart page added. working on profile page.)
     handleGoogleAuth
 };

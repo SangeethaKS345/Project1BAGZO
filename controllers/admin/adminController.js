@@ -79,8 +79,4 @@ module.exports = {
     login,
     loadDashboard,
     logout  
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> 334f225 (cart page added. working on profile page.)
