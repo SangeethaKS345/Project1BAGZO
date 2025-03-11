@@ -467,351 +467,388 @@ textarea.form-control {
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <script>
-// Global variables
-const selectedImages = {
-    1: null,
-    2: null,
-    3: null,
-    4: null
-};
+    // Global variables to store croppers and original form data
+let activeCropper = null;
+let originalFormData = {};
 
-let croppers = {
-    1: null,
-    2: null,
-    3: null,
-    4: null
-};
+// Store original form data when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Save original form data
+    saveOriginalFormData();
+    
+    // Set up event listeners
+    setupEventListeners();
+    
+    // Initialize the file inputs based on current image state
+    updateFileInputStates();
+    
+    // Add CSS for disabled inputs
+    const style = document.createElement('style');
+    style.textContent = `
+        .disabled-input {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
+    `;
+    document.head.appendChild(style);
+});
 
-// Handle image selection
-function handleImageSelect(event, index) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    // Validate file type
-    if (!isValidImageFile(file)) {
-        // Clear the input
-        event.target.value = '';
-        
-        // Show error message
-        showErrorToast('Invalid file type. Please upload only JPG, JPEG, or PNG images.');
-        return;
-    }
-    
-    // Validate file size (max 5MB)
-    const maxSizeInBytes = 5 * 1024 * 1024; // 5MB
-    if (file.size > maxSizeInBytes) {
-        // Clear the input
-        event.target.value = '';
-        
-        // Show error message
-        showErrorToast(`File size exceeds 5MB limit. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB.`);
-        return;
-    }
-    
-    // Store the selected image
-    selectedImages[index] = file;
-    
-    // Display image preview
-    const imgView = document.getElementById(`imgView${index}`);
-    imgView.src = URL.createObjectURL(file);
-    imgView.style.display = 'block';
-    
-    // Show buttons
-    document.getElementById(`cropButton${index}`).style.display = 'inline-block';
-    document.getElementById(`clearImage${index}`).style.display = 'inline-block';
-    
-    // Update thumbnail preview
-    updateThumbnailsPreview();
+function saveOriginalFormData() {
+    const form = document.getElementById('productForm');
+    originalFormData = {
+        productName: form.productName.value,
+        brand: form.brand.value,
+        descriptionData: form.descriptionData.value,
+        regularPrice: form.regularPrice.value,
+        salesPrice: form.salesPrice.value,
+        quantity: form.quantity.value,
+        category: form.category.value,
+        image1: form.hiddenImage1.value,
+        image2: form.hiddenImage2.value,
+        image3: form.hiddenImage3.value,
+        image4: form.hiddenImage4.value
+    };
 }
 
-// Function to validate image file types
-function isValidImageFile(file) {
-    // Valid image MIME types
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-    
-    // Check if the file type is in our valid types list
-    if (!validTypes.includes(file.type)) {
-        return false;
+function updateFileInputStates() {
+    // For each image slot, check if there's an existing image
+    for (let i = 1; i <= 4; i++) {
+        const hiddenImageValue = document.getElementById(`hiddenImage${i}`).value;
+        const fileInput = document.getElementById(`input${i}`);
+        const imgSrc = document.getElementById(`imgView${i}`).src;
+        
+        // If there's an image (not deleted and not placeholder), disable the file input
+        if (hiddenImageValue && hiddenImageValue !== 'deleted' && !imgSrc.includes('placeholder.jpg')) {
+            fileInput.disabled = true;
+            fileInput.classList.add('disabled-input');
+        } else {
+            fileInput.disabled = false;
+            fileInput.classList.remove('disabled-input');
+        }
     }
-    
-    // Also validate by file extension as a fallback
-    const fileName = file.name.toLowerCase();
-    if (!fileName.endsWith('.jpg') && !fileName.endsWith('.jpeg') && !fileName.endsWith('.png')) {
-        return false;
-    }
-    
-    return true;
 }
 
-// Initialize cropper for an image
-function initCropper(index) {
+function setupEventListeners() {
+    // Image delete buttons
+    document.querySelectorAll('.delete-image-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const imageId = this.dataset.imageId;
+            deleteImage(imageId);
+        });
+    });
+    
+    // Image reset buttons
+    document.querySelectorAll('.reset-image-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const imageId = this.dataset.imageId;
+            resetImage(imageId);
+        });
+    });
+    
+    // Crop save buttons
+    document.querySelectorAll('.crop-save-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const index = this.dataset.index;
+            saveCroppedImage(index);
+        });
+    });
+    
+    // Crop cancel buttons
+    document.querySelectorAll('.crop-cancel-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const index = this.dataset.index;
+            cancelCropping(index);
+        });
+    });
+    
+    // Update button
+    document.getElementById('updatebtn').addEventListener('click', function() {
+        validateAndSubmitForm();
+    });
+    
+    // Reset All button
+    document.getElementById('resetAllBtn').addEventListener('click', function() {
+        resetAllImages();
+    });
+    
+    // Clear All Changes button
+    document.getElementById('clearAllBtn').addEventListener('click', function() {
+        clearAllChanges();
+    });
+
+    // Context menu for existing images
+    for (let i = 1; i <= 4; i++) {
+        const imgView = document.getElementById(`imgView${i}`);
+        
+        imgView.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            
+            // Only show crop option if this is not a placeholder image
+            if (!imgView.src.includes('placeholder.jpg')) {
+                Swal.fire({
+                    title: 'Image Options',
+                    text: 'Would you like to crop this existing image?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, crop it',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        initializeCropping(i, imgView.src);
+                    }
+                });
+            }
+        });
+    }
+}
+
+// Initialize image cropping
+function initializeCropping(index, src) {
+    const cropperContainer = document.getElementById(`cropperContainer${index}`);
+    const cropperWrapper = document.getElementById(`cropperWrapper${index}`);
+    
     // Destroy any existing cropper
-    if (croppers[index]) {
-        croppers[index].destroy();
+    if (activeCropper) {
+        activeCropper.destroy();
+        activeCropper = null;
     }
     
-    // Get image element
-    const image = document.getElementById(`imgView${index}`);
+    // Setup for cropping
+    cropperContainer.style.display = 'block';
     
-    // Show cropper container
-    document.getElementById(`cropperContainer${index}`).style.display = 'block';
+    // Create image element for cropper
+    const img = document.createElement('img');
+    img.id = `cropperImage${index}`;
+    img.src = src;
+    img.style.maxWidth = '100%';
     
-    // Initialize Cropper.js
-    croppers[index] = new Cropper(image, {
-        aspectRatio: 1, // Square crop (change as needed)
+    // Clear previous content and add new image
+    cropperWrapper.innerHTML = '';
+    cropperWrapper.appendChild(img);
+    
+    // Initialize cropper
+    activeCropper = new Cropper(img, {
+        aspectRatio: 1,
         viewMode: 1,
-        guides: true,
-        background: false,
-        autoCropArea: 0.8,
+        autoCropArea: 1,
         responsive: true
     });
 }
 
-// Cancel cropping operation
-function cancelCrop(index) {
-    if (croppers[index]) {
-        croppers[index].destroy();
-        croppers[index] = null;
+// Handle image selection for upload and cropping
+function handleImageSelect(event, index) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Check file type
+    if (!file.type.match('image/jpeg') && !file.type.match('image/png') && !file.type.match('image/jpg')) {
+        Swal.fire('Error', 'Please select a valid image file (JPEG, JPG or PNG)', 'error');
+        event.target.value = '';
+        return;
     }
     
-    // Hide cropper container
-    document.getElementById(`cropperContainer${index}`).style.display = 'none';
+    // Mark this image as "changed" by setting the hidden input to empty
+    document.getElementById(`hiddenImage${index}`).value = 'replaced';
     
-    // Refresh image preview
-    const imgView = document.getElementById(`imgView${index}`);
-    if (selectedImages[index]) {
-        imgView.src = URL.createObjectURL(selectedImages[index]);
-    }
+    // Show cropper
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        initializeCropping(index, e.target.result);
+    };
+    
+    reader.readAsDataURL(file);
 }
 
 // Save cropped image
 function saveCroppedImage(index) {
-    if (!croppers[index]) return;
+    if (!activeCropper) return;
     
     // Get cropped canvas
-    const croppedCanvas = croppers[index].getCroppedCanvas({
-        width: 600,
-        height: 600,
-        minWidth: 256,
-        minHeight: 256,
-        maxWidth: 4096,
-        maxHeight: 4096,
-        fillColor: '#fff',
-        imageSmoothingEnabled: true,
-        imageSmoothingQuality: 'high',
+    const canvas = activeCropper.getCroppedCanvas({
+        width: 800,
+        height: 800
     });
     
-    // Convert canvas to blob
-    croppedCanvas.toBlob(function(blob) {
-        if (!blob) return;
-        
-        // Create a new file from the blob
-        const timestamp = new Date().getTime();
-        const fileName = `cropped-image-${timestamp}-${index}.jpg`;
+    if (!canvas) return;
+    
+    // Update preview image
+    const imgView = document.getElementById(`imgView${index}`);
+    imgView.src = canvas.toDataURL();
+    
+    // Convert to Blob and create File
+    canvas.toBlob(function(blob) {
+        const fileName = `cropped_image_${index}.jpg`;
         const croppedFile = new File([blob], fileName, { type: 'image/jpeg' });
         
-        // Update selected image
-        selectedImages[index] = croppedFile;
+        // Create a new FileList-like object
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(croppedFile);
         
-        // Update file input
-        const input = document.getElementById(`input${index}`);
-        const fileList = new DataTransfer();
-        fileList.items.add(croppedFile);
-        input.files = fileList.files;
+        // Set the file input value
+        const fileInput = document.getElementById(`input${index}`);
+        fileInput.files = dataTransfer.files;
         
-        // Update image preview
-        const imgView = document.getElementById(`imgView${index}`);
-        imgView.src = URL.createObjectURL(croppedFile);
+        // Hide cropper
+        cancelCropping(index);
         
-        // Destroy cropper
-        croppers[index].destroy();
-        croppers[index] = null;
-        
-        // Hide cropper container
-        document.getElementById(`cropperContainer${index}`).style.display = 'none';
-        
-        // Update thumbnails
-        updateThumbnailsPreview();
-        
-        // Show success message
-        showToast(`Image ${index} cropped successfully`);
-    }, 'image/jpeg', 0.9);
+        // Set hidden input value to empty (indicating it's changed)
+        document.getElementById(`hiddenImage${index}`).value = '';
+    }, 'image/jpeg');
 }
 
-// Simple toast notification
-function showToast(message) {
-    // Create toast element
-    const toast = document.createElement('div');
-    toast.className = 'position-fixed bottom-0 end-0 p-3';
-    toast.style.zIndex = '9999';
-    
-    toast.innerHTML = `
-        <div class="toast show bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header bg-success text-white">
-                <i class="fas fa-check-circle me-2"></i>
-                <strong class="me-auto">Success</strong>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"
-                    onclick="this.parentElement.parentElement.parentElement.remove()"></button>
-            </div>
-            <div class="toast-body">
-                ${message}
-            </div>
-        </div>
-    `;
-    
-    // Add to document
-    document.body.appendChild(toast);
-    
-    // Remove after 3 seconds
-    setTimeout(() => {
-        toast.remove();
-    }, 3000);
-}
-
-// Show error toast notification
-function showErrorToast(message) {
-    // Create toast element
-    const toast = document.createElement('div');
-    toast.className = 'position-fixed bottom-0 end-0 p-3';
-    toast.style.zIndex = '9999';
-    
-    toast.innerHTML = `
-        <div class="toast show bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header bg-danger text-white">
-                <i class="fas fa-exclamation-circle me-2"></i>
-                <strong class="me-auto">Error</strong>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"
-                    onclick="this.parentElement.parentElement.parentElement.remove()"></button>
-            </div>
-            <div class="toast-body">
-                ${message}
-            </div>
-        </div>
-    `;
-    
-    // Add to document
-    document.body.appendChild(toast);
-    
-    // Remove after 5 seconds
-    setTimeout(() => {
-        toast.remove();
-    }, 5000);
-}
-
-// Clear a selected image
-function clearImage(index) {
-    // Cancel any active cropper
-    if (croppers[index]) {
-        croppers[index].destroy();
-        croppers[index] = null;
-        document.getElementById(`cropperContainer${index}`).style.display = 'none';
+// Cancel cropping
+function cancelCropping(index) {
+    if (activeCropper) {
+        activeCropper.destroy();
+        activeCropper = null;
     }
+    
+    document.getElementById(`cropperContainer${index}`).style.display = 'none';
+    
+    // If no file was selected, reset the file input
+    if (document.getElementById(`input${index}`).files.length === 0) {
+        document.getElementById(`input${index}`).value = '';
+    }
+}
+
+// Delete image
+function deleteImage(imageId) {
+    Swal.fire({
+        title: 'Delete Image',
+        text: 'Are you sure you want to delete this image?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Clear the file input
+            document.getElementById(`input${imageId}`).value = '';
+            
+            // Set preview to placeholder
+            document.getElementById(`imgView${imageId}`).src = '/uploads/re-image/placeholder.jpg';
+            
+            // Set hidden input to indicate deletion
+            document.getElementById(`hiddenImage${imageId}`).value = 'deleted';
+            
+            // If there's an active cropper, destroy it
+            if (activeCropper) {
+                activeCropper.destroy();
+                activeCropper = null;
+                document.getElementById(`cropperContainer${imageId}`).style.display = 'none';
+            }
+            
+            // Enable the file input now that the image is deleted
+            document.getElementById(`input${imageId}`).disabled = false;
+            document.getElementById(`input${imageId}`).classList.remove('disabled-input');
+            
+            Swal.fire('Deleted!', 'The image has been deleted.', 'success');
+        }
+    });
+}
+
+// Reset single image
+function resetImage(imageId) {
+    const originalImage = originalFormData[`image${imageId}`];
+    
+    // Reset hidden input value
+    document.getElementById(`hiddenImage${imageId}`).value = originalImage;
     
     // Reset file input
-    const input = document.getElementById(`input${index}`);
-    input.value = '';
+    document.getElementById(`input${imageId}`).value = '';
     
-    // Clear preview
-    const imgView = document.getElementById(`imgView${index}`);
-    imgView.src = '';
-    imgView.style.display = 'none';
+    // Reset preview image
+    document.getElementById(`imgView${imageId}`).src = originalImage ? `/uploads/re-image/${originalImage}` : '/uploads/re-image/placeholder.jpg';
     
-    // Hide buttons
-    document.getElementById(`cropButton${index}`).style.display = 'none';
-    document.getElementById(`clearImage${index}`).style.display = 'none';
+    // Update file input state (disable if image exists)
+    updateFileInputState(imageId);
     
-    // Clear from selected images
-    selectedImages[index] = null;
-    
-    // Update thumbnail preview
-    updateThumbnailsPreview();
+    Swal.fire('Reset', 'Image has been reset to original.', 'info');
 }
 
-// Update thumbnails preview
-function updateThumbnailsPreview() {
-    const container = document.getElementById('addedImagesContainer');
-    container.innerHTML = '';
+// Update a single file input state
+function updateFileInputState(imageId) {
+    const hiddenImageValue = document.getElementById(`hiddenImage${imageId}`).value;
+    const fileInput = document.getElementById(`input${imageId}`);
+    const imgSrc = document.getElementById(`imgView${imageId}`).src;
     
-    // Count selected images for validation
-    let count = 0;
-    
-    // Add thumbnail for each selected image
-    for (let i = 1; i <= 4; i++) {
-        if (selectedImages[i]) {
-            count++;
-            
-            // Create thumbnail container
-            const thumbnail = document.createElement('div');
-            thumbnail.classList.add('thumbnail', 'border', 'rounded', 'p-2', 'position-relative');
-            thumbnail.style.width = '80px';
-            
-            // Create image
-            const img = document.createElement('img');
-            img.src = URL.createObjectURL(selectedImages[i]);
-            img.alt = `Image ${i}`;
-            img.classList.add('img-fluid');
-            
-            // Create badge
-            const badge = document.createElement('span');
-            badge.textContent = i;
-            badge.classList.add('position-absolute', 'top-0', 'end-0', 'badge', 'bg-primary', 'rounded-circle');
-            badge.style.transform = 'translate(25%, -25%)';
-            
-            // Append to container
-            thumbnail.appendChild(img);
-            thumbnail.appendChild(badge);
-            container.appendChild(thumbnail);
-        }
-    }
-    
-    // Show validation message if needed
-    const errorElement = document.getElementById('images-error');
-    if (count < 3) {
-        errorElement.textContent = `You've selected ${count} image(s). At least 3 images are required.`;
-        errorElement.style.display = 'block';
+    if (hiddenImageValue && hiddenImageValue !== 'deleted' && !imgSrc.includes('placeholder.jpg')) {
+        fileInput.disabled = true;
+        fileInput.classList.add('disabled-input');
     } else {
-        errorElement.textContent = '';
-        errorElement.style.display = 'none';
-    }
-    
-    // If no images selected, show a placeholder
-    if (count === 0) {
-        const placeholder = document.createElement('div');
-        placeholder.className = 'text-center text-muted p-3 w-100';
-        placeholder.innerHTML = '<i class="fas fa-images fa-2x mb-2"></i><br>No images selected yet';
-        container.appendChild(placeholder);
+        fileInput.disabled = false;
+        fileInput.classList.remove('disabled-input');
     }
 }
 
-// Reset the entire form
-function resetForm() {
-    // Confirm reset
-    if (!confirm('Are you sure you want to reset the form? All entered data will be lost.')) {
-        return;
-    }
-    
-    // Clear all images and croppers
-    for (let i = 1; i <= 4; i++) {
-        if (croppers[i]) {
-            croppers[i].destroy();
-            croppers[i] = null;
+// Reset all images
+function resetAllImages() {
+    Swal.fire({
+        title: 'Reset All Images',
+        text: 'Are you sure you want to reset all images to their original state?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, reset all!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`hiddenImage${i}`).value = originalFormData[`image${i}`];
+                document.getElementById(`input${i}`).value = '';
+                document.getElementById(`imgView${i}`).src = originalFormData[`image${i}`] ? 
+                    `/uploads/re-image/${originalFormData[`image${i}`]}` : 
+                    '/uploads/re-image/placeholder.jpg';
+                
+                // Destroy cropper if active
+                if (activeCropper) {
+                    activeCropper.destroy();
+                    activeCropper = null;
+                    document.getElementById(`cropperContainer${i}`).style.display = 'none';
+                }
+            }
+            
+            // Update all file input states
+            updateFileInputStates();
+            
+            Swal.fire('Reset', 'All images have been reset to original.', 'success');
         }
-        clearImage(i);
-    }
-    
-    // Clear all error messages
-    clearErrorMessages();
-    
-    // Reset the form element
-    document.querySelector('form').reset();
-    
-    // Update thumbnails
-    updateThumbnailsPreview();
-    
-    // Scroll to top
-    window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
+    });
+}
+
+// Clear all changes
+function clearAllChanges() {
+    Swal.fire({
+        title: 'Clear All Changes',
+        text: 'Are you sure you want to discard all your changes?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, discard all!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Reset form fields
+            const form = document.getElementById('productForm');
+            form.productName.value = originalFormData.productName;
+            form.brand.value = originalFormData.brand;
+            form.descriptionData.value = originalFormData.descriptionData;
+            form.regularPrice.value = originalFormData.regularPrice;
+            form.salesPrice.value = originalFormData.salesPrice;
+            form.quantity.value = originalFormData.quantity;
+            form.category.value = originalFormData.category;
+            
+            // Reset all images
+            resetAllImages();
+            
+            // Clear error messages
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.innerHTML = '';
+            });
+            
+            Swal.fire('Cleared', 'All changes have been discarded.', 'success');
+        }
     });
 }
 
@@ -970,12 +1007,4 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize thumbnail container
     updateThumbnailsPreview();
 });
-<<<<<<< HEAD
 </script>
-
-
-
-
-=======
-</script>
->>>>>>> 334f225 (cart page added. working on profile page.)

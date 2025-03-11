@@ -541,44 +541,43 @@
         <div class="container">
             <div class="cart-content">
                 <div class="cart-items">
-                    <% if (data.length > 0) { %>
+                    <% if (cartData.length > 0) { %>
                         <% var x=0 %>
-                        <% for (let i=0; i < data.length; i++) { %>
+                        <% for (let i=0; i < cartData.length; i++) { %>
                             <div class="cart-item">
                                 <div class="item-image">
-                                    <img src="/uploads/re-image/<%= data[i].productDetails[0].productImage[0] %>" alt="<%= data[i].productDetails[0].productName %>">
+                                    <img src="/uploads/re-image/<%= cartData[i].productDetails[0].productImage[0] %>" alt="<%= cartData[i].productDetails[0].productName %>">
                                 </div>
                                 <div class="item-details">
                                     <h3 class="item-name">
-                                        <%= data[i].productDetails[0].productName %>
-                                        <% if (data[i].productDetails[0].isOnSale) { %>
+                                        <%= cartData[i].productDetails[0].productName %>
+                                        <% if (cartData[i].productDetails[0].isOnSale) { %>
                                             <span class="product-badge">Sale</span>
                                         <% } %>
                                     </h3>
-                                    <p class="item-meta"><%= data[i].productDetails[0].category %> | <%= data[i].productDetails[0].brand %></p>
+                                    <p class="item-meta"><%= cartData[i].categoryDetails[0].name %> | <%= cartData[i].brandDetails[0].brandName %></p>
                                     <div class="item-price">
                                         <span class="price-label">Price:</span>
-                                        <span class="price-value">₹<span id="price<%= data[i].productDetails[0].id %>"><%= data[i].productDetails[0].salePrice %></span></span>
+                                        <span class="price-value">₹<span id="price<%= cartData[i].productDetails[0].id %>"><%= cartData[i].productDetails[0].salesPrice %></span></span>
                                     </div>
                                 </div>
                                 <div class="item-quantity">
                                     <div class="quantity-wrapper">
-                                        <button class="qty-btn minus" onclick="changeQuantity('<%= data[i].productDetails[0]._id %>', '<%= data[i].quantity %>', -1, '<%= data[i].productDetails[0].salePrice %>', '<%= data[i].productDetails[0].id %>', '<%= data[i].productDetails[0].quantity%>')">−</button>
-                                        <input type="text" id="cartProductQuantity<%= data[i].productDetails[0].id %>" value="<%= data[i].quantity %>" readonly>
-                                        <button class="qty-btn plus" onclick="changeQuantity('<%= data[i].productDetails[0]._id %>', '<%= data[i].quantity %>', 1, '<%= data[i].productDetails[0].salePrice %>', '<%= data[i].productDetails[0].id %>', '<%= data[i].productDetails[0].quantity%>')">+</button>
-                                    </div>
+                                        <button class="qty-btn minus" onclick="changeQuantity('<%= cartData[i].productDetails[0]._id %>', '<%= cartData[i].products.quantity %>', -1, '<%= cartData[i].productDetails[0].salesPrice %>', '<%= cartData[i].productDetails[0].id %>', '<%= cartData[i].productDetails[0].quantity%>')">−</button>
+                                        <input type="text" id="cartProductQuantity<%= cartData[i].productDetails[0].id %>" value="<%= cartData[i].products.quantity %>" readonly>
+                                        <button class="qty-btn plus" onclick="changeQuantity('<%= cartData[i].productDetails[0]._id %>', '<%= cartData[i].products.quantity %>', 1, '<%= cartData[i].productDetails[0].salesPrice %>', '<%= cartData[i].productDetails[0].id %>', '<%= cartData[i].productDetails[0].quantity%>')">+</button>                                    </div>
                                 </div>
                                 <div class="item-subtotal">
                                     <span class="subtotal-label">Subtotal:</span>
-                                    <span class="subtotal-value">₹<span id="subTotal<%= data[i].productDetails[0].id %>"><%= data[i].productDetails[0].salePrice * data[i].quantity %></span></span>
+                                    <span class="subtotal-value">₹<span id="subTotal<%= cartData[i].productDetails[0].id %>"><%= cartData[i].productDetails[0].salesPrice * cartData[i].products.quantity %></span></span>
                                 </div>
                                 <div class="item-remove">
-                                    <button class="remove-btn" onclick="confirmRemove('<%= data[i].productDetails[0]._id %>')">
+                                    <button class="remove-btn" onclick="confirmRemove('<%= cartData[i].productDetails[0]._id %>')">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M17 6h5v2h-2v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8H2V6h5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3zm1 2H6v12h12V8zm-9 3h2v6H9v-6zm4 0h2v6h-2v-6zM9 4v2h6V4H9z"/></svg>
                                     </button>
                                 </div>
                             </div>
-                            <% x += data[i].productDetails[0].salePrice * data[i].quantity %>
+                            <% x += cartData[i].productDetails[0].salesPrice * cartData[i].quantity %>
                         <% } %>
                     <% } else { %>
                         <div class="empty-cart">
@@ -593,38 +592,47 @@
                     <input type="hidden" id="totalabc" value="<%= x %>">
                 </div>
     
-                <div class="cart-summary">
-                    <div class="summary-card">
-                        <h2 class="summary-title">Order Summary</h2>
-                        <div class="summary-items">
-                            <div class="summary-row">
-                                <span>Subtotal</span>
-                                <span>₹<span id="subtotal"><%= grandTotal %></span></span>
-                            </div>
-                            <div class="summary-row">
-                                <span>Shipping</span>
-                                <span class="free-shipping">FREE</span>
-                            </div>
-                            <div class="summary-row discount">
-                                <span>Discount</span>
-                                <span>₹0</span>
-                            </div>
-                        </div>
-                        <div class="summary-total">
-                            <span>Total</span>
-                            <span>₹<span id="total"><%= grandTotal %></span></span>
-                        </div>
-                        <% if (data && data.length > 0) { %>
-                            <a href="/checkout?userId=<%= user._id %>" class="checkout-btn">Proceed to Checkout</a>
-                        <% } else { %>
-                            <button disabled class="checkout-btn disabled">Proceed to Checkout</button>
-                        <% } %>
-                        <a href="/shop" class="continue-shopping">
-                            <span>Continue Shopping</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="none" d="M0 0h24v24H0z"/><path d="M13.172 12l-4.95-4.95 1.414-1.414L16 12l-6.364 6.364-1.414-1.414z"/></svg>
-                        </a>
-                    </div>
-                </div>
+                <!-- Order Summary Section -->
+<div class="summary-card">
+    <h2 class="summary-title">Order Summary</h2>
+    <div class="summary-items">
+        <div class="summary-row">
+            <span>Subtotal</span>
+            <span>₹<span id="subtotal">
+                <% 
+                let subtotal = 0;
+                if (cartData && cartData.length > 0) {
+                    cartData.forEach(item => {
+                        subtotal += item.productDetails[0].salesPrice * item.products.quantity;
+                    });
+                }
+                %>
+                <%= subtotal %>
+            </span></span>
+        </div>
+        <div class="summary-row">
+            <span>Shipping</span>
+            <span class="free-shipping">FREE</span>
+        </div>
+        <div class="summary-row discount">
+            <span>Discount</span>
+            <span>₹0</span>
+        </div>
+    </div>
+    <div class="summary-total">
+        <span>Total</span>
+        <span>₹<span id="total"><%= subtotal %></span></span>
+    </div>
+    <% if (cartData && cartData.length > 0) { %>
+        <a href="/checkout?userId=<%= user._id %>" class="checkout-btn">Proceed to Checkout</a>
+    <% } else { %>
+        <button disabled class="checkout-btn disabled">Proceed to Checkout</button>
+    <% } %>
+    <a href="/shop" class="continue-shopping">
+        <span>Continue Shopping</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="none" d="M0 0h24v24H0z"/><path d="M13.172 12l-4.95-4.95 1.414-1.414L16 12l-6.364 6.364-1.414-1.414z"/></svg>
+    </a>
+</div>
             </div>
         </div>
     </div>
@@ -644,32 +652,58 @@ function changeQuantity(productId, currentQuantity, change, price, elementId, ma
         return;
     }
 
-    // Update quantity in the UI
-    document.getElementById(`cartProductQuantity${elementId}`).value = newQuantity;
-
-    // Update subtotal
+    // Optimistic update for subtotal only
     const newSubtotal = newQuantity * price;
     document.getElementById(`subTotal${elementId}`).innerText = newSubtotal;
 
-    // Update total
-    updateTotal();
-
-    // Optionally, you can make an AJAX request to update the quantity in the backend
-}
-
-// Function to update the total price
-function updateTotal() {
-    let total = 0;
-    const subtotals = document.querySelectorAll('.subtotal-value > span');
-    subtotals.forEach(subtotal => {
-        total += parseFloat(subtotal.innerText);
+    // Send AJAX request to update server
+    $.ajax({
+    url: '/cart/changeQuantity',
+    method: 'POST',
+        data: {
+            productId: productId,
+            quantity: newQuantity
+        },
+        success: function(response) {
+    console.log('AJAX Success:', response); // This is logging correctly
+    if (response.status) {
+        document.getElementById(`cartProductQuantity${elementId}`).value = response.quantityInput;
+        document.getElementById(`subTotal${elementId}`).innerText = response.totalAmount;
+        document.getElementById('total').innerText = response.grandTotal;
+        document.getElementById('subtotal').innerText = response.grandTotal;
+                
+                // Add animation class
+                document.getElementById(`subTotal${elementId}`).classList.add('price-updated');
+                setTimeout(() => {
+                    document.getElementById(`subTotal${elementId}`).classList.remove('price-updated');
+                }, 800);
+            } else {
+                // Revert changes if server rejected
+                document.getElementById(`cartProductQuantity${elementId}`).value = currentQuantity;
+                document.getElementById(`subTotal${elementId}`).innerText = currentQuantity * price;
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: response.error || 'Failed to update quantity'
+                });
+            }
+        },
+        error: function(xhr, status, error) {
+            console.log('AJAX Error:', status, error); // Debug log
+            // Revert changes on error
+            document.getElementById(`cartProductQuantity${elementId}`).value = currentQuantity;
+            document.getElementById(`subTotal${elementId}`).innerText = currentQuantity * price;
+            
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to connect to server'
+            });
+        }
     });
-    document.getElementById('total').innerText = total;
-    document.getElementById('subtotal').innerText = total;
-    document.getElementById('totalabc').value = total;
 }
 
-// Function to confirm removal of a product from the cart
 function confirmRemove(productId) {
     Swal.fire({
         title: 'Are you sure?',
@@ -682,50 +716,51 @@ function confirmRemove(productId) {
         cancelButtonText: 'Cancel'
     }).then((result) => {
         if (result.isConfirmed) {
-            // Remove the item from the UI
-            document.querySelector(`.cart-item[data-product-id="${productId}"]`).remove();
-
-            // Update total
-            updateTotal();
-
-            // Optionally, you can make an AJAX request to remove the item from the backend
+            // Send DELETE request via AJAX
+            $.ajax({
+                url: `/cart/delete?id=${productId}`,
+                method: 'DELETE',
+                success: function(response) {
+                    if (response.status) {
+                        // Update UI after deletion
+                        location.reload();
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to remove item from the cart'
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to connect to server'
+                    });
+                }
+            });
         }
     });
 }
-
-// Example of how to use these functions
+ 
+// Update total when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    // Attach event listeners to quantity buttons
-    document.querySelectorAll('.qty-btn.plus').forEach(button => {
-        button.addEventListener('click', (event) => {
-            const productId = button.dataset.productId;
-            const currentQuantity = button.dataset.currentQuantity;
-            const price = button.dataset.price;
-            const elementId = button.dataset.elementId;
-            const maxQuantity = button.dataset.maxQuantity;
-            changeQuantity(productId, currentQuantity, 1, price, elementId, maxQuantity);
-        });
-    });
-
-    document.querySelectorAll('.qty-btn.minus').forEach(button => {
-        button.addEventListener('click', (event) => {
-            const productId = button.dataset.productId;
-            const currentQuantity = button.dataset.currentQuantity;
-            const price = button.dataset.price;
-            const elementId = button.dataset.elementId;
-            const maxQuantity = button.dataset.maxQuantity;
-            changeQuantity(productId, currentQuantity, -1, price, elementId, maxQuantity);
-        });
-    });
-
-    // Attach event listeners to remove buttons
-    document.querySelectorAll('.remove-btn').forEach(button => {
-        button.addEventListener('click', (event) => {
-            const productId = button.dataset.productId;
-            confirmRemove(productId);
-        });
-    });
+    updateTotal();
 });
+
+// Function to update the total price
+function updateTotal() {
+    let total = 0;
+    const subtotals = document.querySelectorAll('.subtotal-value > span');
+    subtotals.forEach(subtotal => {
+        total += parseFloat(subtotal.innerText);
+    });
+    document.getElementById('total').innerText = total.toFixed(2);
+    document.getElementById('subtotal').innerText = total.toFixed(2);
+}
     </script>
+
+
 
 <%- include('../../views/partials/user/footer') %>

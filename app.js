@@ -7,14 +7,13 @@ const passport = require("./config/passport");
 const db = require("./config/db");
 const userRouter = require("./routes/userRouter");
 const adminRouter = require("./routes/adminRouter");
+// Removed duplicate cartRouter import since cart routes should be in userRouter
 const app = express();
 const {errorHandler, adminErrorHandler} = require("./middlewares/errorHandler.js");
 
 
 // Connect to MongoDB
 db();
-
-// Error Handling Middleware
 
 // User Authentication Middleware
 const userAuth = (req, res, next) => {
@@ -98,6 +97,12 @@ app.use((req, res, next) => {
 app.set("view engine", "ejs");
 app.set("views", [path.join(__dirname, "views/user"), path.join(__dirname, "views/admin")]);
 
+app.use((req, res, next) => {
+  res.locals.viewsPaths = app.get('views');
+  res.locals.userData = req.session.user || null;
+  next();
+});
+
 // Serve Static Files
 app.use(express.static("public"));
 
@@ -107,12 +112,13 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes
+// Routes - Fixed routing to avoid conflicts
 app.use("/", userRouter);
 app.use("/admin", adminRouter);
+// Removed redundant cart router registration since those routes should be in userRouter
 
-// error handler
-app.use(errorHandler,adminErrorHandler);
+// Error handler
+app.use(errorHandler, adminErrorHandler);
 
 // Start Server
 const PORT = process.env.PORT || 4488;

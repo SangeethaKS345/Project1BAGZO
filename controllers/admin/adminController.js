@@ -4,43 +4,41 @@ const bcrypt = require("bcrypt");
 // Load Login Page
 const loadLogin = async (req, res, next) => {
     try {
-        if (req.session.admin) {
-            return res.redirect("/admin/dashboard");
-        }
-        return res.render("login");
+        console.log("Admin loadLogin called, rendering login.ejs");
+        return res.render("login", { message: "" }); // Renders views/login.ejs
     } catch (error) {
-        console.error("Error loading login page:", error);
-        next(error);  
+        next(error);
     }
 };
 
-// Admin Login
 const login = async (req, res, next) => {
-    console.log("login");
+    console.log("Admin login route hit");
     try {
         const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.render("login", { message: "Email and password are required" });
+        }
+
         const admin = await User.findOne({ email, isAdmin: true });
+        if (!admin) {
+            return res.render("login", { message: "Admin not found!" });
+        }
 
-        if (admin) {
-            const passwordMatch = await bcrypt.compare(password, admin.password);
-            
-            if (passwordMatch) {
-                req.session.admin = true;
-                console.log("Pass match");
-                return res.redirect("/admin/dashboard");  
-            } 
-            console.log("Pass not matched");
+        const passwordMatch = await bcrypt.compare(password, admin.password);
+        if (!passwordMatch) {
             return res.render("login", { message: "Incorrect password!" });
-        } 
+        }
 
-        console.log("Admin not found");
-        return res.render("login", { message: "Admin not found!" });
+        req.session.admin = admin._id.toString(); // ✅ Store admin's ObjectId instead of `true`
 
+        return res.redirect("/admin/dashboard");
     } catch (error) {
-        console.error("Login Error:", error);
-        next(error);  
+        console.error("Admin Login Error:", error);
+        next(error);
     }
 };
+
 
 // Load Admin Dashboard
 const loadDashboard = async (req, res, next) => {
@@ -56,6 +54,7 @@ const loadDashboard = async (req, res, next) => {
         next(error);
     }
 };
+
 
 // Logout Admin
 const logout = async (req, res, next) => {

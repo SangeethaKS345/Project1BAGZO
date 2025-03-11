@@ -22,7 +22,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="css/slicknav.min.css" type="text/css">
   <link rel="stylesheet" href="../../../css/style.css" type="text/css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <style>
     .dropdown {
       position: relative;
@@ -54,14 +53,11 @@
     .dropdown:hover .dropdown-content {
       display: block;
     }
-    header {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
 
-
+    .header {
+      position: relative;
+      z-index: 500;
+    }
 
     /* Style for Sign Up and Log In buttons */
     .sign-in-link {
@@ -105,19 +101,6 @@
       background-color: #ff0000;
       /* Darker green on hover */
     }
-  
-.header__logo img {
-  width: auto; /* Maintain aspect ratio */
-  height: 100%; /* Take full height of the header */
-  max-height: 80px; /* Adjust based on your header height */
-  object-fit: contain;
-  display: block;
-}
-
-
-
-  
-    
   </style>
 </head>
 
@@ -136,6 +119,8 @@
           
             <!-- Only show Shop link if user is logged in -->
             <li><a href="/shop">Shop</a></li>
+
+            <li><a href="/cart">Cart</a></li>
            
             <!-- <li><a href="/shop">Shop</a></li> -->
             <!-- <li><a href="#">Pages</a>
@@ -159,48 +144,22 @@
           <a href="/login">Log in</a>
           <% } else { %>
           <div class="dropdown">
-            <a href="#" class="sign-in-link"><%=userData.name %></a>
+            <a href="#" class="sign-in-link"><%=userData?.name || 'User' %></a>
             <div class="dropdown-content">
               <!-- <a href="/profile/<%=userData._id%>">Profile</a> -->
-              <a href="/profile"><i class="fa-solid fa-user"></i> Profile</a>
-              <a href="/logout"><i class="fa-solid fa-sign-out-alt"></i> Logout</a>
+              <a href="/profile">Profile</a>
+
+              <a href="/logout">Logout</a>
             </div>
 
-  <body>
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-3 col-md-3">
-          <div class="header__logo">
-            <a href="/"><img src="/img/BAGZO (3).png" alt="Logo"></a>
           </div>
-        </div>
-        <div class="col-lg-6 col-md-6">
-          <nav class="header__menu mobile-menu">
-            <ul>
-              <li class="active"><a href="/">Home</a></li>
-              <li><a href="/shop">Shop</a></li>
-              <li><a href="./contact.html">Contacts</a></li>
-              <li><a href="./cart">Cart</a></li>
-            </ul>
-          </nav>
-        </div>
-        <div class="col-lg-3 col-md-3">
-          <div class="header__nav__option ">
-            <% if (!userData) { %>
-            <a href="/signup" class="sign-in-link">Sign Up</a>
-            <a href="/login">Log in</a>
-            <% } else { %>
-            <div class="dropdown">
-              <a href="#" class="sign-in-link"><%= userData.name %></a>
-              <div class="dropdown-content">
-                <a href="/profile"><i class="fa-solid fa-user"></i> Profile</a>
-                <a href="/logout"><i class="fa-solid fa-sign-out-alt"></i> Logout</a>
-              </div>
-            </div>
-            <% } %>
-          </div>
+          <!-- <a href="/cart" class="sign-in-link">Cart</a> -->
+          <% } %>
         </div>
       </div>
-      <div class="canvas__open"><i class="fa fa-bars"></i></div>
     </div>
-  </body>
+    <div class="canvas__open"><i class="fa fa-bars"></i></div>
+  </div>
+</body>
+
+</html>

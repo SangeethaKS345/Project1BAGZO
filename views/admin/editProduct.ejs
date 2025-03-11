@@ -53,12 +53,17 @@
                             <div class="col-lg-4 mb-4">
                                 <label class="form-label">Brand</label>
                                 <select class="form-select border" name="brand">
-                                    <%for(let i=0; i<brand.length; i++) {%>
-                                        <option value="<%= brand[i].brandName %>" <%= product.brand === brand[i].brandName ? 'selected' : '' %>>
-                                            <%=brand[i].brandName%>
+                                    <% for(let i = 0; i < brand.length; i++) { %>
+                                        <option value="<%= brand[i].brandName %>" 
+                                            <% if (product.brand && product.brand.toString() === brand[i].brandName.toString()) { %> 
+                                                selected 
+                                            <% } %>
+                                        >
+                                            <%= brand[i].brandName %>
                                         </option>
-                                    <%}%>
+                                    <% } %>
                                 </select>
+                                
                                 <div id="brand-error" class="error-message"></div>
                             </div>
                             <div class="mb-4">
@@ -99,12 +104,17 @@
                                         <div class="col-sm-6 mb-3">
                                             <label class="form-label">Category</label>
                                             <select class="form-select border" style="width: 150px;" name="category">
-                                                <%for( let i=0;i<cat.length;i++){%>
-                                                    <option value="<%= cat[i].name%>" <%= product.category === cat[i].name ? 'selected' : '' %>>
-                                                        <%=cat[i].name%>
+                                                <% for(let i = 0; i < cat.length; i++) { %>
+                                                    <option value="<%= cat[i].name %>" 
+                                                        <% if (product.category && product.category.toString() === cat[i].name.toString()) { %> 
+                                                            selected 
+                                                        <% } %>
+                                                    >
+                                                        <%= cat[i].name %>
                                                     </option>
-                                                <%}%>
+                                                <% } %>
                                             </select>
+                                            
                                             <div id="category-error" class="error-message"></div>
                                         </div>
                                     </div>
@@ -260,22 +270,14 @@
             </div>
         </div>
     </section>
-
-<!-- Scripts -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<!-- Your custom JavaScript -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://unpkg.com/cropperjs/dist/cropper.css" rel="stylesheet"/>
 <!-- Your custom JavaScript -->
 <script>
-// Global variables to store croppers
+    // Global variables to store croppers
 const croppers = {};
 let originalFormData = {};
 
@@ -286,6 +288,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Set up event listeners
     setupEventListeners();
+    
+    // Initialize the file inputs based on current image state
+    updateFileInputStates();
 });
 
 function saveOriginalFormData() {
@@ -303,6 +308,24 @@ function saveOriginalFormData() {
         image3: form.hiddenImage3.value,
         image4: form.hiddenImage4.value
     };
+}
+
+function updateFileInputStates() {
+    // For each image slot, check if there's an existing image
+    for (let i = 1; i <= 4; i++) {
+        const hiddenImageValue = document.getElementById(`hiddenImage${i}`).value;
+        const fileInput = document.getElementById(`input${i}`);
+        const imgSrc = document.getElementById(`imgView${i}`).src;
+        
+        // If there's an image (not deleted and not placeholder), disable the file input
+        if (hiddenImageValue && hiddenImageValue !== 'deleted' && !imgSrc.includes('placeholder.jpg')) {
+            fileInput.disabled = true;
+            fileInput.classList.add('disabled-input');
+        } else {
+            fileInput.disabled = false;
+            fileInput.classList.remove('disabled-input');
+        }
+    }
 }
 
 function setupEventListeners() {
@@ -486,6 +509,10 @@ function deleteImage(imageId) {
                 document.getElementById(`cropperContainer${imageId}`).style.display = 'none';
             }
             
+            // Enable the file input now that the image is deleted
+            document.getElementById(`input${imageId}`).disabled = false;
+            document.getElementById(`input${imageId}`).classList.remove('disabled-input');
+            
             Swal.fire('Deleted!', 'The image has been deleted.', 'success');
         }
     });
@@ -502,9 +529,27 @@ function resetImage(imageId) {
     document.getElementById(`input${imageId}`).value = '';
     
     // Reset preview image
-    document.getElementById(`imgView${imageId}`).src = `/uploads/re-image/${originalImage}`;
+    document.getElementById(`imgView${imageId}`).src = originalImage ? `/uploads/re-image/${originalImage}` : '/uploads/re-image/placeholder.jpg';
+    
+    // Update file input state (disable if image exists)
+    updateFileInputState(imageId);
     
     Swal.fire('Reset', 'Image has been reset to original.', 'info');
+}
+
+// Update a single file input state
+function updateFileInputState(imageId) {
+    const hiddenImageValue = document.getElementById(`hiddenImage${imageId}`).value;
+    const fileInput = document.getElementById(`input${imageId}`);
+    const imgSrc = document.getElementById(`imgView${imageId}`).src;
+    
+    if (hiddenImageValue && hiddenImageValue !== 'deleted' && !imgSrc.includes('placeholder.jpg')) {
+        fileInput.disabled = true;
+        fileInput.classList.add('disabled-input');
+    } else {
+        fileInput.disabled = false;
+        fileInput.classList.remove('disabled-input');
+    }
 }
 
 // Reset all images
@@ -522,7 +567,9 @@ function resetAllImages() {
             for (let i = 1; i <= 4; i++) {
                 document.getElementById(`hiddenImage${i}`).value = originalFormData[`image${i}`];
                 document.getElementById(`input${i}`).value = '';
-                document.getElementById(`imgView${i}`).src = `/uploads/re-image/${originalFormData[`image${i}`]}`;
+                document.getElementById(`imgView${i}`).src = originalFormData[`image${i}`] ? 
+                    `/uploads/re-image/${originalFormData[`image${i}`]}` : 
+                    '/uploads/re-image/placeholder.jpg';
                 
                 // Destroy cropper if active
                 if (croppers[i]) {
@@ -531,6 +578,9 @@ function resetAllImages() {
                     document.getElementById(`cropperContainer${i}`).style.display = 'none';
                 }
             }
+            
+            // Update all file input states
+            updateFileInputStates();
             
             Swal.fire('Reset', 'All images have been reset to original.', 'success');
         }
@@ -555,7 +605,7 @@ function clearAllChanges() {
             form.brand.value = originalFormData.brand;
             form.descriptionData.value = originalFormData.descriptionData;
             form.regularPrice.value = originalFormData.regularPrice;
-            form.salesPrice.value = originalFormData.salsePrice;
+            form.salesPrice.value = originalFormData.salesPrice;
             form.quantity.value = originalFormData.quantity;
             form.category.value = originalFormData.category;
             
@@ -680,6 +730,16 @@ function cropExistingImage(index) {
 
 // Add context menu for cropping existing images
 document.addEventListener('DOMContentLoaded', function() {
+    // Add CSS for disabled inputs
+    const style = document.createElement('style');
+    style.textContent = `
+        .disabled-input {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
+    `;
+    document.head.appendChild(style);
+    
     for (let i = 1; i <= 4; i++) {
         const imgView = document.getElementById(`imgView${i}`);
         

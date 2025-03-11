@@ -257,6 +257,18 @@
             border: 1px solid #ffcdd2;
         }
         
+        .password-container {
+        position: relative;
+    }
+    
+    .password-toggle {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #666;
+    }
         
         /* Responsive */
         @media (max-width: 768px) {
@@ -296,12 +308,14 @@
                     <input type="text" id="phone" placeholder="Phone Number" name="phone" />
                     <div id="error3" class="error-message"></div>
                 </div>
-                <div class="input-container">
+                <div class="input-container password-container">
                     <input type="password" id="password" placeholder="Password" name="password"/>
+                    <i class="password-toggle fa fa-eye-slash" onclick="togglePasswordVisibility('password')"></i>
                     <div id="error4" class="error-message"></div>
                 </div>
-                <div class="input-container">
+                <div class="input-container password-container">
                     <input type="password" id="cPassword" placeholder="Confirm Password" name="cPassword" />
+                    <i class="password-toggle fa fa-eye-slash" onclick="togglePasswordVisibility('cPassword')"></i>
                     <div id="error5" class="error-message"></div>
                 </div>
                 <button type="button" id="submitBtn">Sign Up</button>
@@ -326,85 +340,104 @@
         </div>
     </div>
     
+    
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // Get URL parameters
-            const urlParams = new URLSearchParams(window.location.search);
-            const message = urlParams.get("message");
-            
-            // Show error message if present
-            if (message) {
-                const decodedMessage = decodeURIComponent(message);
-                const signupMessage = document.getElementById('signup-message');
-                signupMessage.textContent = decodedMessage;
-                signupMessage.style.display = "block";
-            }
+    document.addEventListener("DOMContentLoaded", function() {
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const message = urlParams.get("message");
+        
+        // Show error message if present
+        if (message) {
+            const decodedMessage = decodeURIComponent(message);
+            const signupMessage = document.getElementById('signup-message');
+            signupMessage.textContent = decodedMessage;
+            signupMessage.style.display = "block";
+        }
+    });
+    
+    // Function to toggle password visibility
+    function togglePasswordVisibility(inputId) {
+        const passwordInput = document.getElementById(inputId);
+        const icon = event.target;
+        
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            icon.classList.remove("fa-eye-slash");
+            icon.classList.add("fa-eye");
+        } else {
+            passwordInput.type = "password";
+            icon.classList.remove("fa-eye");
+            icon.classList.add("fa-eye-slash");
+        }
+    }
+    
+    // Sign Up form validation and submission
+    document.getElementById('submitBtn').addEventListener('click', function() {
+        // Clear previous error messages
+        document.querySelectorAll('.error-message').forEach(function(el) {
+            el.textContent = '';
+            el.style.display = 'none';
         });
-
-        // Sign Up form validation and submission
-        document.getElementById('submitBtn').addEventListener('click', function() {
-            // Clear previous error messages
-            document.querySelectorAll('.error-message').forEach(function(el) {
-                el.textContent = '';
-            });
-            document.getElementById('signup-message').style.display = 'none';
-            
-            // Perform validation
-            let isValid = true;
-            const fullName = document.getElementById('fullName').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const phone = document.getElementById('phone').value.trim();
-            const password = document.getElementById('password').value.trim();
-            const cPassword = document.getElementById('cPassword').value.trim();
-            
-            // Name validation
-            if (fullName === '') {
-                document.getElementById('error1').textContent = 'Full Name is required.';
-                isValid = false;
-            } else if (!/^[A-Za-z\s]+$/.test(fullName)) {
-                document.getElementById('error1').textContent = 'Name should contain only letters and spaces.';
-                isValid = false;
-            }
-            
-            // Email validation
-            if (email === '') {
-                document.getElementById('error2').textContent = 'Email is required.';
-                isValid = false;
-            } else if (!/\S+@\S+\.\S+/.test(email)) {
-                document.getElementById('error2').textContent = 'Please enter a valid email.';
-                isValid = false;
-            }
-            
-            // Phone validation
-            if (phone === '') {
-                document.getElementById('error3').textContent = 'Phone Number is required.';
-                isValid = false;
-            } else if (!/^\d{10}$/.test(phone)) {
-                document.getElementById('error3').textContent = 'Please enter a valid 10-digit phone number.';
-                isValid = false;
-            }
-            
-            // Password validation
-            const passwordPattern = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
-            if (password === '') {
-                document.getElementById('error4').textContent = 'Password is required.';
-                isValid = false;
-            } else if (!passwordPattern.test(password)) {
-                document.getElementById('error4').textContent = 'Password must be at least 8 characters with one uppercase letter, one number, and one special character.';
-                isValid = false;
-            }
-            
-            // Confirm password validation
-            if (cPassword === '') {
-                document.getElementById('error5').textContent = 'Confirm Password is required.';
-                isValid = false;
-            } else if (password !== cPassword) {
-                document.getElementById('error5').textContent = 'Passwords do not match.';
-                isValid = false;
-            }
-
-            if (isValid) {
-                // Show confirmation dialog
+        document.getElementById('signup-message').style.display = 'none';
+        
+        // Perform validation
+        let isValid = true;
+        const fullName = document.getElementById('fullName').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const cPassword = document.getElementById('cPassword').value.trim();
+        
+        // Name validation
+        if (fullName === '') {
+            showError('error1', 'Full Name is required.');
+            isValid = false;
+        } else if (!/^[A-Za-z\s]+$/.test(fullName)) {
+            showError('error1', 'Name should contain only letters and spaces.');
+            isValid = false;
+        }
+        
+        // Email validation
+        if (email === '') {
+            showError('error2', 'Email is required.');
+            isValid = false;
+        } else if (!/\S+@\S+\.\S+/.test(email)) {
+            showError('error2', 'Please enter a valid email.');
+            isValid = false;
+        }
+        
+        // Phone validation
+        if (phone === '') {
+            showError('error3', 'Phone Number is required.');
+            isValid = false;
+        } else if (!/^\d{10}$/.test(phone)) {
+            showError('error3', 'Please enter a valid 10-digit phone number.');
+            isValid = false;
+        }
+        
+        // Password validation
+        const passwordPattern = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+        if (password === '') {
+            showError('error4', 'Password is required.');
+            isValid = false;
+        } else if (!passwordPattern.test(password)) {
+            showError('error4', 'Password must be at least 8 characters with one uppercase letter, one lowercase letter, one number, and one special character.');
+            isValid = false;
+        }
+        
+        // Confirm password validation
+        if (cPassword === '') {
+            showError('error5', 'Confirm Password is required.');
+            isValid = false;
+        } else if (password !== cPassword) {
+            showError('error5', 'Passwords do not match.');
+            isValid = false;
+        }
+    
+        if (isValid) {
+            // Show confirmation dialog
+            if (typeof Swal !== 'undefined') {
                 Swal.fire({
                     title: 'Are you sure?',
                     text: "Do you want to proceed with the registration?",
@@ -424,88 +457,19 @@
                         document.getElementById('signUpForm').submit();
                     }
                 });
+            } else {
+                // Fallback if SweetAlert is not available
+                if (confirm("Do you want to proceed with the registration?")) {
+                    document.getElementById('signUpForm').submit();
+                }
             }
-        });
-
-        function showError(inputId, message) {
-    const errorDiv = document.getElementById(inputId);
-    errorDiv.innerText = message;
-    errorDiv.style.display = "block"; 
-    errorDiv.parentElement.style.marginBottom = "2px"; // Reduce space
-}
-
-function hideError(inputId) {
-    const errorDiv = document.getElementById(inputId);
-    errorDiv.innerText = "";
-    errorDiv.style.display = "none"; 
-    errorDiv.parentElement.style.marginBottom = "10px"; // Reset space
-}
-
-document.getElementById("submitBtn").addEventListener("click", function() {
-    let fullName = document.getElementById("fullName").value.trim();
-    let email = document.getElementById("email").value.trim();
-    let phone = document.getElementById("phone").value.trim();
-    let password = document.getElementById("password").value.trim();
-    let cPassword = document.getElementById("cPassword").value.trim();
-
-    let error1 = document.getElementById("error1");
-    let error2 = document.getElementById("error2");
-    let error3 = document.getElementById("error3");
-    let error4 = document.getElementById("error4");
-    let error5 = document.getElementById("error5");
-
-    let valid = true;
-
-    if (fullName === "") {
-        error1.innerText = "Full Name is required";
-        error1.style.display = "block";
-        valid = false;
-    } else {
-        error1.style.display = "none";
+        }
+    });
+    
+    function showError(elementId, message) {
+        const errorElement = document.getElementById(elementId);
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
     }
-
-    if (email === "") {
-        error2.innerText = "Email is required";
-        error2.style.display = "block";
-        valid = false;
-    } else if (!email.includes("@")) {
-        error2.innerText = "Enter a valid email";
-        error2.style.display = "block";
-        valid = false;
-    } else {
-        error2.style.display = "none";
-    }
-
-    if (phone === "" || isNaN(phone)) {
-        error3.innerText = "Enter a valid phone number";
-        error3.style.display = "block";
-        valid = false;
-    } else {
-        error3.style.display = "none";
-    }
-
-    if (password === "") {
-        error4.innerText = "Password is required";
-        error4.style.display = "block";
-        valid = false;
-    } else {
-        error4.style.display = "none";
-    }
-
-    if (cPassword !== password) {
-        error5.innerText = "Passwords do not match";
-        error5.style.display = "block";
-        valid = false;
-    } else {
-        error5.style.display = "none";
-    }
-
-    if (valid) {
-        document.getElementById("signUpForm").submit();
-    }
-});
-
-
     </script>
 </body>
-</html>

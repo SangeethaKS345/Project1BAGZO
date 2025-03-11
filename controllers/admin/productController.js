@@ -11,7 +11,7 @@ const getProductAddPage = async (req, res, next) => {
   try {
     const category = await Category.find({ isListed: true });
     const brand = await Brand.find({ isBlocked: false });
-    res.render("product-add", { cat: category, brand: brand });
+    res.render("productAdd", { cat: category, brand: brand });
   } catch (error) {
     next(error); // Pass error to middleware
   }
@@ -63,7 +63,7 @@ const addProducts = async (req, res, next) => {
     await newProduct.save();
     res.redirect("/admin/addProducts");
   } catch (error) {
-    next(error); // Pass error to middleware
+    next(error); 
   }
 };
 

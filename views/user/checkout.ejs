@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout Page</title>
+  <!-- SweetAlert2 CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.7.12/sweetalert2.min.css">
+ <style>
+  * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: #f8f8f8;
+  color: #FF4B2B;
+  line-height: 1.6;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+@media (max-width: 768px) {
+  .container {
+    grid-template-columns: 1fr;
+  }
+}
+
+h1, h2, h3 {
+  color: #DB4437;
+  margin-bottom: 20px;
+}
+
+.checkout-form, .order-summary {
+  background-color: white;
+  border-radius: 10px;
+  padding: 30px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  border: 1px solid #DB4437;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+input, select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: #DB4437;
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.card-details {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 15px;
+}
+
+.btn {
+  background: linear-gradient(to right, #FF4B2B, #FF416C);
+  color: white;
+  border: none;
+  padding: 15px 25px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.btn:hover {
+  background: #DB4437;
+  transform: translateY(-2px);
+}
+
+.order-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.item-image {
+  width: 80px;
+  height: 80px;
+  background-color: #f1f1f1;
+  border-radius: 5px;
+  margin-right: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #777;
+}
+
+.item-details {
+  flex-grow: 1;
+}
+
+.order-total {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 2px solid #DB4437;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.grand-total {
+  font-weight: 700;
+  font-size: 1.2em;
+  color: #DB4437;
+}
+
+.payment-methods {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.payment-icon {
+  background-color: #f5f5f5;
+  border-radius: 5px;
+  padding: 8px 15px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.payment-icon.active {
+  background-color: #DB4437;
+  color: white;
+}
+
+.item-quantity {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.quantity-btn {
+  width: 25px;
+  height: 25px;
+  background-color: #f1f1f1;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-weight: bold;
+  color: #DB4437;
+}
+
+.quantity-btn:hover {
+  background-color: #DB4437;
+  color: white;
+}
+
+.quantity-input {
+  width: 40px;
+  text-align: center;
+  margin: 0 5px;
+  padding: 2px;
+}
+
+.remove-item {
+  color: #DB4437;
+  cursor: pointer;
+  font-size: 12px;
+  margin-top: 5px;
+  display: inline-block;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.apply-coupon {
+  display: flex;
+  margin-top: 15px;
+}
+
+.apply-coupon input {
+  border-radius: 5px 0 0 5px;
+  border-right: none;
+}
+
+.apply-coupon button {
+  border-radius: 0 5px 5px 0;
+  padding: 0 15px;
+  background: linear-gradient(to right, #FF4B2B, #FF416C);
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.apply-coupon button:hover {
+  background: #DB4437;
+}
+
+.loader {
+  display: none;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top: 3px solid #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-left: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Custom styling for SweetAlert2 */
+.swal2-popup {
+  border: 2px solid #DB4437;
+}
+
+.swal2-title {
+  color: #DB4437 !important;
+}
+
+.swal2-confirm {
+  background: linear-gradient(to right, #FF4B2B, #FF416C) !important;
+}
+
+.swal2-confirm:hover {
+  background: #DB4437 !important;
+}
+ </style>
+</head>
+<body>
+  <div class="container">
+    <div class="checkout-form">
+      <h1>Checkout Details</h1>
+      
+      <h3>Shipping Information</h3>
+      <div class="form-group">
+        <label for="fullname">Full Name*</label>
+        <input type="text" id="fullname" placeholder="Enter your full name" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="email">Email Address*</label>
+        <input type="email" id="email" placeholder="Enter your email" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="phone">Phone Number*</label>
+        <input type="tel" id="phone" placeholder="Enter your phone number" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="address">Shipping Address*</label>
+        <input type="text" id="address" placeholder="Enter your address" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="city">City*</label>
+        <input type="text" id="city" placeholder="Enter your city" required>
+      </div>
+      
+      <div class="form-group">
+        <div class="two-col">
+          <div>
+            <label for="state">State*</label>
+            <select id="state" required>
+              <option value="">Select State</option>
+              <!-- States will be loaded dynamically -->
+            </select>
+          </div>
+          <div>
+            <label for="zipcode">PIN Code*</label>
+            <input type="text" id="zipcode" placeholder="PIN" required>
+          </div>
+        </div>
+      </div>
+      
+      <h3>Payment Details</h3>
+      <div class="payment-methods" id="payment-methods">
+        <!-- Payment methods will be loaded dynamically -->
+      </div>
+      
+      <div id="card-payment-form">
+        <div class="form-group">
+          <label for="cardholder">Cardholder Name*</label>
+          <input type="text" id="cardholder" placeholder="Name on card" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="cardnumber">Card Number*</label>
+          <input type="text" id="cardnumber" placeholder="1234 5678 9012 3456" maxlength="19" required>
+        </div>
+        
+        <div class="form-group card-details">
+          <div>
+            <label for="expiration">Expiration Date*</label>
+            <input type="text" id="expiration" placeholder="MM/YY" maxlength="5" required>
+          </div>
+          <div>
+            <label for="cvv">CVV*</label>
+            <input type="text" id="cvv" placeholder="123" maxlength="4" required>
+          </div>
+        </div>
+      </div>
+      
+      <div id="upi-payment-form" style="display: none;">
+        <div class="form-group">
+          <label for="upi-id">UPI ID*</label>
+          <input type="text" id="upi-id" placeholder="username@upi" required>
+        </div>
+      </div>
+      
+      <button class="btn" id="complete-purchase">
+        Complete Purchase
+        <span id="checkout-loader" class="loader"></span>
+      </button>
+    </div>
+    
+    <div class="order-summary">
+      <div class="section-header">
+        <h2>Order Summary</h2>
+        <span id="items-count">0 items</span>
+      </div>
+      
+      <div class="order-items" id="cart-items">
+        <!-- Cart items will be loaded dynamically -->
+      </div>
+      
+      <div class="apply-coupon">
+        <input type="text" id="coupon-code" placeholder="Coupon Code">
+        <button id="apply-coupon-btn">Apply</button>
+      </div>
+      
+      <div class="order-total">
+        <div class="total-row">
+          <span>Subtotal</span>
+          <span id="subtotal">₹0</span>
+        </div>
+        <div class="total-row">
+          <span>Shipping</span>
+          <span id="shipping">₹0</span>
+        </div>
+        <div class="total-row">
+          <span>GST (18%)</span>
+          <span id="tax">₹0</span>
+        </div>
+        <div class="total-row" id="discount-row" style="display: none;">
+          <span>Discount</span>
+          <span id="discount">₹0</span>
+        </div>
+        <div class="total-row grand-total">
+          <span>Total</span>
+          <span id="total">₹0</span>
+        </div>
+      </div>
+      
+      <button class="btn" id="checkout-btn">Complete Purchase</button>
+    </div>
+  </div>
+
+  <!-- SweetAlert2 JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.7.12/sweetalert2.all.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+  // Load state options
+  const states = [
+    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 
+    'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 
+    'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 
+    'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 
+    'Uttarakhand', 'West Bengal', 'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Puducherry', 
+    'Chandigarh', 'Andaman and Nicobar Islands', 'Dadra and Nagar Haveli and Daman and Diu', 
+    'Lakshadweep'
+  ];
+  
+  const stateSelect = document.getElementById('state');
+  states.forEach(state => {
+    const option = document.createElement('option');
+    option.value = state;
+    option.textContent = state;
+    stateSelect.appendChild(option);
+  });
+
+  // Load payment methods
+  const paymentMethodsDiv = document.getElementById('payment-methods');
+  const paymentMethods = [
+    { id: 'card', name: 'Credit/Debit Card', icon: 'credit-card.svg' },
+    { id: 'upi', name: 'UPI', icon: 'upi.svg' },
+    { id: 'netbanking', name: 'Net Banking', icon: 'bank.svg' },
+    { id: 'cod', name: 'Cash on Delivery', icon: 'cash.svg' }
+  ];
+
+  paymentMethods.forEach(method => {
+    const methodDiv = document.createElement('div');
+    methodDiv.className = 'payment-method';
+    methodDiv.dataset.method = method.id;
+    methodDiv.innerHTML = `
+      <div class="method-icon">
+        <img src="images/${method.icon}" alt="${method.name}">
+      </div>
+      <div class="method-name">${method.name}</div>
+    `;
+    paymentMethodsDiv.appendChild(methodDiv);
+  });
+
+  // Select first payment method by default
+  const paymentMethodDivs = document.querySelectorAll('.payment-method');
+  if (paymentMethodDivs.length > 0) {
+    paymentMethodDivs[0].classList.add('selected');
+  }
+
+  // Handle payment method selection
+  paymentMethodsDiv.addEventListener('click', function(e) {
+    const methodDiv = e.target.closest('.payment-method');
+    if (!methodDiv) return;
+    
+    // Deselect all methods
+    document.querySelectorAll('.payment-method').forEach(div => {
+      div.classList.remove('selected');
+    });
+    
+    // Select clicked method
+    methodDiv.classList.add('selected');
+    
+    // Show/hide appropriate payment form
+    const method = methodDiv.dataset.method;
+    document.getElementById('card-payment-form').style.display = method === 'card' ? 'block' : 'none';
+    document.getElementById('upi-payment-form').style.display = method === 'upi' ? 'block' : 'none';
+  });
+
+  // Sample cart data (in a real app, this would come from localStorage or API)
+  const cart = [
+    { id: 1, name: "Premium Handcrafted Watch", price: 12999, quantity: 1, image: "watch.jpg" },
+    { id: 2, name: "Leather Wallet", price: 1499, quantity: 2, image: "wallet.jpg" }
+  ];
+
+  // Load cart items
+  const cartItemsDiv = document.getElementById('cart-items');
+  let subtotal = 0;
+
+  cart.forEach(item => {
+    const itemTotal = item.price * item.quantity;
+    subtotal += itemTotal;
+    
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'order-item';
+    itemDiv.innerHTML = `
+      <div class="item-image">
+        <img src="images/${item.image}" alt="${item.name}">
+      </div>
+      <div class="item-details">
+        <div class="item-name">${item.name}</div>
+        <div class="item-price">₹${item.price.toLocaleString()}</div>
+        <div class="item-quantity">Qty: ${item.quantity}</div>
+      </div>
+      <div class="item-total">₹${itemTotal.toLocaleString()}</div>
+    `;
+    cartItemsDiv.appendChild(itemDiv);
+  });
+
+  // Update order summary
+  document.getElementById('items-count').textContent = `${cart.length} item${cart.length !== 1 ? 's' : ''}`;
+  document.getElementById('subtotal').textContent = `₹${subtotal.toLocaleString()}`;
+  
+  const shipping = subtotal > 5000 ? 0 : 499;
+  document.getElementById('shipping').textContent = shipping === 0 ? 'FREE' : `₹${shipping.toLocaleString()}`;
+  
+  const tax = Math.round(subtotal * 0.18);
+  document.getElementById('tax').textContent = `₹${tax.toLocaleString()}`;
+  
+  const total = subtotal + shipping + tax;
+  document.getElementById('total').textContent = `₹${total.toLocaleString()}`;
+
+  // Handle coupon code
+  document.getElementById('apply-coupon-btn').addEventListener('click', function() {
+    const couponCode = document.getElementById('coupon-code').value.trim().toUpperCase();
+    
+    // Sample coupon codes (in a real app, these would be validated via API)
+    const validCoupons = {
+      'WELCOME10': 10,
+      'SUMMER25': 25,
+      'FLAT500': 500
+    };
+    
+    if (couponCode in validCoupons) {
+      const discountValue = validCoupons[couponCode];
+      let discount = 0;
+      
+      if (discountValue < 100) {
+        // Percentage discount
+        discount = Math.round(subtotal * (discountValue / 100));
+      } else {
+        // Fixed amount discount
+        discount = discountValue;
+      }
+      
+      // Ensure discount doesn't exceed subtotal
+      discount = Math.min(discount, subtotal);
+      
+      document.getElementById('discount').textContent = `-₹${discount.toLocaleString()}`;
+      document.getElementById('discount-row').style.display = 'flex';
+      
+      const newTotal = subtotal + shipping + tax - discount;
+      document.getElementById('total').textContent = `₹${newTotal.toLocaleString()}`;
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'Coupon Applied!',
+        text: `Discount of ₹${discount.toLocaleString()} has been applied to your order.`,
+        timer: 2000,
+        showConfirmButton: false
+      });
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Coupon',
+        text: 'The coupon code you entered is invalid or expired.',
+        confirmButtonText: 'Try Again'
+      });
+    }
+  });
+
+  // Form validation
+  function validateForm() {
+    const requiredFields = document.querySelectorAll('input[required], select[required]');
+    let isValid = true;
+    
+    requiredFields.forEach(field => {
+      if (!field.value.trim()) {
+        field.classList.add('error');
+        isValid = false;
+      } else {
+        field.classList.remove('error');
+      }
+    });
+    
+    // Validate email format
+    const emailField = document.getElementById('email');
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (emailField.value && !emailPattern.test(emailField.value)) {
+      emailField.classList.add('error');
+      isValid = false;
+    }
+    
+    // Validate phone format (10 digits)
+    const phoneField = document.getElementById('phone');
+    const phonePattern = /^\d{10}$/;
+    if (phoneField.value && !phonePattern.test(phoneField.value.replace(/\D/g, ''))) {
+      phoneField.classList.add('error');
+      isValid = false;
+    }
+    
+    // Validate PIN code format (6 digits)
+    const zipField = document.getElementById('zipcode');
+    const zipPattern = /^\d{6}$/;
+    if (zipField.value && !zipPattern.test(zipField.value.replace(/\D/g, ''))) {
+      zipField.classList.add('error');
+      isValid = false;
+    }
+    
+    // Validate card details if payment method is card
+    const selectedMethod = document.querySelector('.payment-method.selected');
+    if (selectedMethod && selectedMethod.dataset.method === 'card') {
+      // Card number format (16 digits, possibly with spaces)
+      const cardField = document.getElementById('cardnumber');
+      const cardValue = cardField.value.replace(/\D/g, '');
+      if (cardValue.length !== 16) {
+        cardField.classList.add('error');
+        isValid = false;
+      }
+      
+      // Expiration date format (MM/YY)
+      const expField = document.getElementById('expiration');
+      const expPattern = /^(0[1-9]|1[0-2])\/\d{2}$/;
+      if (!expPattern.test(expField.value)) {
+        expField.classList.add('error');
+        isValid = false;
+      } else {
+        // Validate that expiration date is in the future
+        const [month, year] = expField.value.split('/');
+        const expDate = new Date(2000 + parseInt(year), parseInt(month) - 1);
+        const currentDate = new Date();
+        if (expDate <= currentDate) {
+          expField.classList.add('error');
+          isValid = false;
+        }
+      }
+      
+      // CVV format (3-4 digits)
+      const cvvField = document.getElementById('cvv');
+      const cvvValue = cvvField.value.replace(/\D/g, '');
+      if (cvvValue.length < 3 || cvvValue.length > 4) {
+        cvvField.classList.add('error');
+        isValid = false;
+      }
+    }
+    
+    // Validate UPI ID if payment method is UPI
+    if (selectedMethod && selectedMethod.dataset.method === 'upi') {
+      const upiField = document.getElementById('upi-id');
+      const upiPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9]+$/;
+      if (!upiPattern.test(upiField.value)) {
+        upiField.classList.add('error');
+        isValid = false;
+      }
+    }
+    
+    return isValid;
+  }
+
+  // Input formatting
+  document.getElementById('cardnumber').addEventListener('input', function(e) {
+    // Remove non-digit characters
+    let value = this.value.replace(/\D/g, '');
+    
+    // Add spaces after every 4 digits
+    if (value.length > 0) {
+      value = value.match(/.{1,4}/g).join(' ');
+    }
+    
+    // Limit to 16 digits plus spaces
+    this.value = value.substring(0, 19);
+  });
+
+  document.getElementById('expiration').addEventListener('input', function(e) {
+    // Remove non-digit and non-slash characters
+    let value = this.value.replace(/[^\d\/]/g, '');
+    
+    // Format as MM/YY
+    if (value.length > 0) {
+      if (value.length <= 2) {
+        // Only month entered
+      } else if (value.indexOf('/') === -1) {
+        // Add slash after month
+        value = value.substring(0, 2) + '/' + value.substring(2);
+      }
+    }
+    
+    this.value = value.substring(0, 5);
+  });
+
+  // Handle form submission
+  document.getElementById('complete-purchase').addEventListener('click', function() {
+    if (!validateForm()) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Incomplete Information',
+        text: 'Please fill in all required fields correctly.',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+    
+    // Show loading animation
+    this.classList.add('loading');
+    document.getElementById('checkout-loader').style.display = 'inline-block';
+    
+    // Simulate API call for processing order (in a real app, this would be an actual API call)
+    setTimeout(() => {
+      // Hide loading animation
+      this.classList.remove('loading');
+      document.getElementById('checkout-loader').style.display = 'none';
+      
+      // Show success message
+      Swal.fire({
+        icon: 'success',
+        title: 'Order Placed Successfully!',
+        html: 'Your order has been placed successfully.<br>Order confirmation has been sent to your email.',
+        confirmButtonText: 'View Order'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Redirect to order tracking page (in a real app)
+          // window.location.href = 'order-tracking.html';
+          console.log('Redirecting to order tracking page...');
+        }
+      });
+    }, 2000);
+  });
+
+  // Sync both checkout buttons
+  document.getElementById('checkout-btn').addEventListener('click', function() {
+    document.getElementById('complete-purchase').click();
+  });
+
+  // Handle input focus/blur for styling
+  const formInputs = document.querySelectorAll('input, select');
+  formInputs.forEach(input => {
+    input.addEventListener('focus', function() {
+      this.parentElement.classList.add('focused');
+    });
+    
+    input.addEventListener('blur', function() {
+      this.parentElement.classList.remove('focused');
+      
+      // Show error if field is required and empty
+      if (this.hasAttribute('required') && !this.value.trim()) {
+        this.classList.add('error');
+      } else {
+        this.classList.remove('error');
+      }
+    });
+  });
+});
+  </script>
+</body>
+</html>

@@ -1,4 +1,6 @@
-     <style>
+<%- include('../../views/partials/user/header') %>
+
+<style>
         /* Color Theme Variables */
 :root {
     --primary-red: #DB4437;
@@ -276,7 +278,9 @@
     }
 }
      </style>
-  <section class="hero">
+
+
+<section class="hero">
     <div class="hero__slider owl-carousel">
         <div class="hero__items set-bg" data-setbg="/img/banner/banner1.jpg">
             <div class="container">
@@ -333,7 +337,7 @@
                                 <a href="/addToWishList?id=<%=products[i]._id%>" class="wishlist-btn">
                                     <i class="fas fa-heart"></i>
                                 </a>
-                                <a href="/addToCart?id=<%=products[i]._id%>" class="cart-btn">
+                                <a href="javascript:void(0)" onclick="addToCart('<%= products[i]._id %>')" class="add-to-cart-btn">
                                     <i class="fas fa-shopping-cart"></i>
                                 </a>
                             </div>
@@ -350,7 +354,7 @@
                                 <% } %>
                                 <span class="current-price">₹<%=products[i].salesPrice%></span>
                             </div>
-                            <a href="/addToCart?id=<%=products[i]._id%>" class="add-to-cart-btn">Add to Cart</a>
+                            <a href="javascript:void(0)" onclick="addToCart('<%= products[i]._id %>')" class="add-to-cart-btn">Add to Cart</a>
                         </div>
                     </div>
                 </div>
@@ -358,16 +362,48 @@
         </div>
     </div>
   </section>
-  <script>
-    window.onpopstate = function () {
-        window.location.href = "/"; // Change this to your actual home route if different
-    };
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function addToCart(productId) {
+        fetch('/add-to-cart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId }) 
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message === "Product added to cart successfully!") {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Added to Cart!',
+                    text: data.message,
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops!',
+                    text: data.message
+                });
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Something went wrong. Try again!'
+            });
+        });
+    }
+
+    // window.onpopstate = function () {
+    //     window.location.href = "/"; // Change this to your actual home route if different
+    // };
 </script>
+ 
  <!-- Footer Section Begin -->
  <%- include('../../views/partials/user/footer') %>
 </body>
 </html>
-
-   
-
-    

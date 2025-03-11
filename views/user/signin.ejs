@@ -276,8 +276,9 @@
                     <input type="email" placeholder="Email" name="email" id="signin-email" />
                     <div id="signin-email-error" class="error-message"></div>
                 </div>
-                <div class="input-container">
+                <div class="input-container" style="position: relative;">
                     <input type="password" placeholder="Password" name="password" id="signin-password" />
+                    <i class="fas fa-eye" id="togglePassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer;"></i>
                     <div id="signin-password-error" class="error-message"></div>
                 </div>
                 
@@ -305,50 +306,76 @@
     </div>
     
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // Get URL parameters
-            const urlParams = new URLSearchParams(window.location.search);
-            const message = urlParams.get("message");
-            
-            // Show error message if present
-            if (message) {
-                const decodedMessage = decodeURIComponent(message);
-                const signinMessage = document.getElementById('signin-message');
-                signinMessage.textContent = decodedMessage;
+      document.addEventListener("DOMContentLoaded", function() {
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const message = urlParams.get("message");
+        
+        // Show error message from URL if present
+        if (message) {
+            showMessage(decodeURIComponent(message));
+        }
+
+        // Show message from server-side rendering
+        const serverMessage = "<%= typeof message !== 'undefined' ? message : '' %>";
+        if (serverMessage.trim()) {
+            showMessage(serverMessage);
+        }
+
+        // Password visibility toggle
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('signin-password');
+
+        if (togglePassword && passwordInput) {
+            togglePassword.addEventListener('click', function() {
+                const type = passwordInput.type === 'password' ? 'text' : 'password';
+                passwordInput.type = type;
+
+                // Toggle the eye icon
+                this.classList.toggle('fa-eye');
+                this.classList.toggle('fa-eye-slash');
+            });
+        }
+
+        // Function to display messages
+        function showMessage(msg) {
+            const signinMessage = document.getElementById('signin-message');
+            if (signinMessage) {
+                signinMessage.textContent = msg;
                 signinMessage.style.display = "block";
             }
-        });
-
-        // Sign In form validation and submission
-        document.getElementById('signinBtn').addEventListener('click', function() {
-            // Clear previous error messages
-            document.getElementById('signin-email-error').textContent = '';
-            document.getElementById('signin-password-error').textContent = '';
-            document.getElementById('signin-message').style.display = 'none';
-            
-            let isValid = true;
-            const email = document.getElementById('signin-email').value.trim();
-            const password = document.getElementById('signin-password').value.trim();
-            
-            // Email validation
-            if (email === '') {
-                document.getElementById('signin-email-error').textContent = 'Email is required.';
-                isValid = false;
-            } else if (!/\S+@\S+\.\S+/.test(email)) {
-                document.getElementById('signin-email-error').textContent = 'Please enter a valid email.';
-                isValid = false;
-            }
-            
-            // Password validation
-            if (password === '') {
-                document.getElementById('signin-password-error').textContent = 'Password is required.';
-                isValid = false;
-            }
-            
-            if (isValid) {
-                document.getElementById('signinForm').submit();
-            }
-        });
-    </script>
+        }
+    });
+// Sign In form validation and submission
+document.getElementById('signinBtn').addEventListener('click', function() {
+    // Clear previous error messages
+    document.getElementById('signin-email-error').textContent = '';
+    document.getElementById('signin-password-error').textContent = '';
+    document.getElementById('signin-message').style.display = 'none';
+    
+    let isValid = true;
+    const email = document.getElementById('signin-email').value.trim();
+    const password = document.getElementById('signin-password').value.trim();
+    
+    // Email validation
+    if (email === '') {
+        document.getElementById('signin-email-error').textContent = 'Email is required.';
+        isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+        document.getElementById('signin-email-error').textContent = 'Please enter a valid email.';
+        isValid = false;
+    }
+    
+    // Password validation
+    if (password === '') {
+        document.getElementById('signin-password-error').textContent = 'Password is required.';
+        isValid = false;
+    }
+    
+    if (isValid) {
+        document.getElementById('signinForm').submit();
+    }
+});
+</script>
 </body>
 </html>

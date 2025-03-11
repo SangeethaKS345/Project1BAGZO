@@ -91,39 +91,81 @@ a {
 </head>
 
 <body>
-    <div class="container">
-        <div class="row">
-          <div class="col-lg-3 col-md-3">
-            <div class="header__logo">
-              <a href="/"><img src="/img/BAGZO (3).png" alt="Logo"></a>
-            </div>
-          </div>
-          <div class="col-lg-6 col-md-6">
-            <nav class="header__menu mobile-menu">
-              <ul>
-                <li class="active"><a href="/">Home</a></li>
-                <li><a href="/shop">Shop</a></li>
-                <li><a href="./contact.html">Contacts</a></li>
-                <li><a href="./cart">Cart</a></li>
-              </ul>
-            </nav>
-          </div>
-          <div class="col-lg-3 col-md-3">
-            <div class="header__nav__option ">
-              <% if (!userData) { %>
-              <a href="/signup" class="sign-in-link">Sign Up</a>
-              <a href="/login">Log in</a>
-              <% } else { %>
-              <div class="dropdown">
-                <a href="#" class="sign-in-link"><%= userData.name %></a>
-                <div class="dropdown-content">
-                  <a href="/profile"><i class="fa-solid fa-user"></i> Profile</a>
-                  <a href="/logout"><i class="fa-solid fa-sign-out-alt"></i> Logout</a>
+    <div class="screen-overlay"></div>
+    <aside class="navbar-aside" id="offcanvas_aside">
+        <div class="aside-top">
+            <a href="/admin/users/" class="nav__logo">
+                <!-- New Logo Design -->
+                <div class="logo">
+                  <span class="">BAGZO</span><span class="zone"></span>
                 </div>
-              </div>
-              <% } %>
+              </a>
+            <div>
+                <button class="btn btn-icon btn-aside-minimize"> <i class="text-muted material-icons md-menu_open"></i>
+                </button>
             </div>
-          </div>
         </div>
-        <div class="canvas__open"><i class="fa fa-bars"></i></div>
-      </div>
+        <nav>
+            <ul class="menu-aside">
+                <li class="menu-item">
+                    <a class="menu-link" href="/admin/dashboard"> <i class="icon material-icons md-home"></i>
+                        <span class="text">Dashboard</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a class="menu-link" href="/admin/users/"> <i class="icon material-icons md-person"></i>
+                        <span class="text">Customers</span>
+                    </a>
+
+                </li>
+                <li class="menu-item">
+                    <a class="menu-link" href="/admin/category"> <i class="icon material-icons md-person"></i>
+                        <span class="text">Category</span>
+                    </a>
+
+                </li>
+                <li class="menu-item">
+                    <a class="menu-link" href="/admin/brands"> <i class="icon material-icons md-stars"></i>
+                        <span class="text">Brands</span> </a>
+                </li>
+                <li class="menu-item">
+                    <a class="menu-link" href="/admin/addProducts"> <i class="icon material-icons md-add_box"></i>
+                        <span class="text">Add product</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a class="menu-link" href="/admin/products"> <i class="icon material-icons md-shopping_bag"></i>
+                        <span class="text">Products</span>
+                    </a>
+                </li>
+
+                <li class="menu-item">
+                    <a class="menu-link" href="/admin/coupon"> <i class="icon material-icons md-class"></i>
+                        <span class="text">Coupon</span> </a>
+                </li>
+                <li class="menu-item">
+                    <a class="menu-link" href="/admin/banner"> <i
+                            class="icon material-icons md-photo_size_select_actual"></i>
+                        <span class="text">Banner</span> </a>
+                </li>
+
+                <li class="menu-item">
+                    <a class="menu-link" href="/admin/orders"> <i class="icon material-icons md-shopping_cart"></i>
+                        <span class="text">Orders</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+    <main class="main-wrap">
+        <header class="main-header navbar">
+            <div class="col-search">
+            </div>
+            <div class="col-nav">
+                <button class="btn btn-icon btn-mobile me-auto" data-trigger="#offcanvas_aside"> <i
+                    class="material-icons md-apps"></i> </button>
+                        <form action="/admin/logout" method="get">
+                            <button type="submit" class="btn btn-danger"><i class="material-icons md-exit_to_app"></i> Logout</button>
+                        </form>        
+            </div>
+        </header>

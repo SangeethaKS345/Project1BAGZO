@@ -1,64 +1,17 @@
-// const express = require('express');
-// const router = express.Router();
-// const userController= require("../controllers/user/userController");
-// const passport = require('passport');
-// const sendOTP  = require('../controllers/user/userController');
-// const productController = require('../controllers/user/productController')
 
-
-// router.get("/pageNotFound",userController.pageNotFound);
-
-// router.get("/pageNotFound",userController.pageNotFound);
-// router.get("/", userController.loadHomepage);
-// // router.get("/shop",userController.loadShopping);
-// router.get("/signup", userController.loadSignup);
-// router.post("/signup", userController.signup,);
-// router.post('/verify-otp', userController.verifyOtp);
-// router.post("/resend-otp", userController.resendOtp);
-
-// router.get("/auth/google", passport.authenticate('google', {scope : ['profile', 'email']}));
-
-// router.get("/auth/google/callback", passport.authenticate('google', {failureRedirect : "/signup"}), (req, res) => {
-//     res.redirect("/");
-// });
-
-// //router.get("/login", userController.loadLogin);
-// router.get("/login", (req, res) => {
-//     res.redirect("/signup?action=signup"); 
-// });
-
-// router.post("/signin", userController.login);
-
-
-
-// router.get("/logout", userController.logout);
-
-
-// //reset password
-// router.get("/forgotPassword", userController.forgotPasssword)
-// router.post("/resetPassword", userController.forgotPassswordSendLink);
-// router.get("/newPassword", userController.newPassword)
-// router.post("/newPassword",userController.changePassword)
-// // userRouter.js
-// router.get("/productDetails",productController.productDetails);  // Make sure this matches your controller export
-
-
-// //shop route
-// router.get('/shop', userController.loadShop);
-
-// router.get("/session-check", (req, res) => {
-//     res.json(req.session);
-//   });
-
-
-// module.exports = router;
 
 const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/user/userController");
 const passport = require("passport");
+const { userAuth, adminAuth, checkBlockStatus } = require("../middlewares/auth");
 const productController = require("../controllers/user/productController");
-const {errorHandler} = require("../middlewares/errorHandler");
+const cartController = require("../controllers/user/cartController");
+const shopController = require("../controllers/user/shopController");
+const profileController = require("../controllers/user/profileController");
+const addressController = require("../controllers/user/addressController");
+const orderController = require('../controllers/user/orderController');
+const { errorHandler } = require("../middlewares/errorHandler");
 //error handling middleware
 router.use(errorHandler);
 
@@ -68,7 +21,7 @@ router.get("/signup", userController.loadSignup);
 router.post("/signup", userController.signup);
 router.post("/verify-otp", userController.verifyOtp);
 router.post("/resend-otp", userController.resendOtp);
-router.get("/signin",userController.login)
+router.get("/signin",userController.loadLogin)
 router.post("/signin", userController.login)
 
 // Google OAuth Routes
@@ -104,7 +57,40 @@ router.post("/newPassword", userController.changePassword);
 router.get("/productDetails", productController.productDetails);
 
 // Shop Route
-router.get("/shop", userController.loadShop);
+router.get("/shop", shopController.loadShop);
+
+// Cart Routes
+router.get("/cart", userAuth, cartController.getCartPage);
+router.post("/add-to-cart", userAuth, cartController.addToCart);
+router.post("/cart/changeQuantity", userAuth, cartController.changeQuantity);
+router.delete("/cart/delete", userAuth, cartController.deleteProduct);
+
+//profile forgetPassword
+router.get("/forgot-password", profileController.getForgotPassword);
+router.post("forget-password", profileController.forgotEmailValid);
+router.post("verify-otp", profileController.verifyForgotPassOtp)
+router.get("/reset-password", profileController.getResetPassword);
+router.post("/reset-password", profileController.postNewPassword);
+router.post("/resend-otp", profileController.resendOtp);
+
+// User Profile Routes
+// Protected routes
+router.get("/profile", userAuth, profileController.userProfile);
+//router.get("/account", userAuth, profileController.getAccount);
+router.get("/editProfile", userAuth, profileController.getEditProfile);
+router.patch("/editProfile/update", userAuth, profileController.updateEditProfile);
+
+// Address routes (using userAuth middleware)
+router.get("/address", userAuth, addressController.getAddresses);
+router.get("/address/new", userAuth, addressController.addAddressForm);
+router.post("/address", userAuth, addressController.addAddress);
+router.get("/address/edit/:id", userAuth, addressController.editAddressForm);
+router.post("/address/edit/:id", userAuth, addressController.updateAddress);
+router.get("/address/delete/:id", userAuth, addressController.deleteAddress);
+
+//Order route
+router.get('/cart',orderController.getCartPage);
+router.get('/checkout',orderController.getCheckoutPage);
 
 // Debugging Route
 router.get("/session-check", (req, res) => {

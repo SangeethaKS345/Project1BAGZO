@@ -1,0 +1,365 @@
+<!-- views/editProfile.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Profile | BAGZO</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.0/css/bootstrap.min.css">
+  <style>
+    :root {
+      --primary-red: #DB4437;
+      --text-red: #FF4B2B;
+      --gradient-start: #FF4B2B;
+      --gradient-end: #FF416C;
+      --light-bg: #f8f9fa;
+      --dark-text: #333;
+      --border-radius: 8px;
+      --box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    body {
+      background-color: #f9f9f9;
+      color: #333;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .profile-container {
+      max-width: 650px;
+      margin: 50px auto;
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      padding: 30px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .profile-container:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+    }
+    
+    h2 {
+      color: var(--primary-red);
+      font-weight: 600;
+      margin-bottom: 25px;
+      font-size: 28px;
+    }
+    
+    .form-group {
+      margin-bottom: 25px;
+    }
+    
+    .form-group label {
+      font-weight: 500;
+      color: var(--dark-text);
+      margin-bottom: 8px;
+      display: block;
+    }
+    
+    .form-control {
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+      padding: 12px 15px;
+      height: auto;
+      font-size: 15px;
+      transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+      border-color: var(--primary-red);
+      box-shadow: 0 0 0 0.2rem rgba(219, 68, 55, 0.25);
+    }
+    
+    .password-section {
+      background-color: var(--light-bg);
+      padding: 20px;
+      border-radius: var(--border-radius);
+      margin-bottom: 25px;
+      border-left: 3px solid var(--primary-red);
+    }
+    
+    .password-section h4 {
+      color: var(--primary-red);
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
+    
+    .password-info {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 15px;
+    }
+    
+    .btn-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 30px;
+    }
+    
+    .gradient-btn {
+      background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: var(--border-radius);
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .gradient-btn:hover {
+      background: var(--primary-red);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(219, 68, 55, 0.3);
+    }
+    
+    .cancel-btn {
+      background: none;
+      color: #6c757d;
+      border: 1px solid #6c757d;
+      padding: 12px 25px;
+      border-radius: var(--border-radius);
+      font-weight: 500;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .cancel-btn:hover {
+      background: #f1f1f1;
+      color: #555;
+    }
+    
+    .alert {
+      border-radius: var(--border-radius);
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .section-divider {
+      margin: 30px 0;
+      border-top: 1px solid #eee;
+    }
+    
+    .field-icon {
+      color: var(--text-red);
+      width: 20px;
+      margin-right: 10px;
+    }
+    
+    /* Password visibility toggle */
+    .password-field {
+      position: relative;
+    }
+    
+    .toggle-password {
+      position: absolute;
+      right: 10px;
+      top: 12px;
+      color: #6c757d;
+      cursor: pointer;
+    }
+    
+    /* Loading spinner for form submission */
+    .spinner-border {
+      display: none;
+      margin-left: 10px;
+      width: 20px;
+      height: 20px;
+    }
+    
+    /* Success animation */
+    @keyframes successPulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    .success-animation {
+      animation: successPulse 0.5s ease-in-out;
+    }
+  </style>
+</head>
+<body>
+  <div class="profile-container">
+    <h2><i class="fas fa-user-edit"></i> Edit Profile</h2>
+    
+    <div id="error-message" class="alert alert-danger" style="display: none;"></div>
+    <div id="success-message" class="alert alert-success" style="display: none;">Profile updated successfully!</div>
+    
+    <% if (user) { %>
+      <form id="editProfileForm">
+        <div class="form-group">
+          <label for="name"><i class="fas fa-user field-icon"></i>Full Name:</label>
+          <input type="text" class="form-control" id="name" name="name" value="<%= user.name %>" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="phone"><i class="fas fa-phone-alt field-icon"></i>Phone Number:</label>
+          <input type="text" class="form-control" id="phone" name="phone" value="<%= user.phone || '' %>" placeholder="Enter your phone number">
+        </div>
+        
+        <div class="form-group">
+          <label for="email"><i class="fas fa-envelope field-icon"></i>Email Address:</label>
+          <input type="email" class="form-control" id="email" name="email" value="<%= user.email || '' %>" readonly>
+          <small class="form-text text-muted">Email address cannot be changed.</small>
+        </div>
+        
+        <div class="section-divider"></div>
+        
+        <% if (!user.googleId) { %>
+          <div class="password-section">
+            <h4><i class="fas fa-lock"></i> Change Password</h4>
+            <p class="password-info">Leave password fields empty if you don't want to change it.</p>
+            
+            <div class="form-group password-field">
+              <label for="currentpassword">Current Password:</label>
+              <input type="password" class="form-control" id="currentpassword" name="currentpassword">
+              <i class="far fa-eye toggle-password" data-toggle="currentpassword"></i>
+            </div>
+            
+            <div class="form-group password-field">
+              <label for="NewPassword">New Password:</label>
+              <input type="password" class="form-control" id="NewPassword" name="NewPassword">
+              <i class="far fa-eye toggle-password" data-toggle="NewPassword"></i>
+              <small class="form-text text-muted">Use at least 8 characters with a mix of letters, numbers & symbols.</small>
+            </div>
+            
+            <div class="form-group password-field">
+              <label for="Cpassword">Confirm New Password:</label>
+              <input type="password" class="form-control" id="Cpassword" name="Cpassword">
+              <i class="far fa-eye toggle-password" data-toggle="Cpassword"></i>
+            </div>
+          </div>
+        <% } else { %>
+          <div class="password-section">
+            <h4><i class="fas fa-google"></i> Google Login Account</h4>
+            <p class="password-info">Your account is linked with Google. Password management is handled through your Google account.</p>
+          </div>
+        <% } %>
+        
+        <div class="btn-container">
+          <a href="/profile" class="cancel-btn"><i class="fas fa-times"></i> Cancel</a>
+          <button type="submit" class="gradient-btn">
+            <i class="fas fa-save"></i> Save Changes
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          </button>
+        </div>
+      </form>
+    <% } else { %>
+      <div class="alert alert-danger">
+        <i class="fas fa-exclamation-circle"></i> Error: User data not available.
+        <a href="/profile" class="alert-link">Return to profile</a>
+      </div>
+    <% } %>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // Toggle password visibility
+      document.querySelectorAll('.toggle-password').forEach(icon => {
+        icon.addEventListener('click', function() {
+          const inputId = this.getAttribute('data-toggle');
+          const input = document.getElementById(inputId);
+          
+          if (input.type === 'password') {
+            input.type = 'text';
+            this.classList.remove('fa-eye');
+            this.classList.add('fa-eye-slash');
+          } else {
+            input.type = 'password';
+            this.classList.remove('fa-eye-slash');
+            this.classList.add('fa-eye');
+          }
+        });
+      });
+      
+      // Form submission
+      document.getElementById("editProfileForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        
+        // Show spinner
+        const spinner = document.querySelector('.spinner-border');
+        spinner.style.display = 'inline-block';
+        
+        // Hide any previous messages
+        document.getElementById("error-message").style.display = "none";
+        document.getElementById("success-message").style.display = "none";
+        
+        const form = event.target;
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData);
+        
+        // Validate passwords if being changed
+        if (data.NewPassword || data.currentpassword || data.Cpassword) {
+          if (!data.currentpassword) {
+            showError("Current password is required when changing password.");
+            return;
+          }
+          if (data.NewPassword !== data.Cpassword) {
+            showError("New password and confirm password do not match.");
+            return;
+          }
+          if (data.NewPassword && data.NewPassword.length < 8) {
+            showError("New password must be at least 8 characters long.");
+            return;
+          }
+        }
+        
+        try {
+          const response = await fetch("/editProfile/update", {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          });
+          
+          // Hide spinner
+          spinner.style.display = 'none';
+          
+          if (response.ok) {
+            // Show success message
+            const successMessage = document.getElementById("success-message");
+            successMessage.style.display = "block";
+            successMessage.classList.add('success-animation');
+            
+            // Redirect after a short delay
+            setTimeout(() => {
+              window.location.href = "/profile";
+            }, 1500);
+          } else {
+            const errorData = await response.json();
+            showError(errorData.error || "An error occurred.");
+          }
+        } catch (error) {
+          console.error("Fetch error:", error);
+          showError("A network error occurred. Please try again.");
+        }
+      });
+      
+      function showError(message) {
+        const errorDiv = document.getElementById("error-message");
+        errorDiv.textContent = message;
+        errorDiv.style.display = "block";
+        
+        // Hide spinner
+        document.querySelector('.spinner-border').style.display = 'none';
+        
+        // Scroll to error
+        errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+  </script>
+</body>
+</html>

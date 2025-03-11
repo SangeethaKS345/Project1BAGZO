@@ -466,35 +466,6 @@
 
   // Success toast notification (for when redirected back after an operation)
   document.addEventListener('DOMContentLoaded', function() {
-<<<<<<< HEAD
-    // Check for success or error messages in URL params
-    const urlParams = new URLSearchParams(window.location.search);
-    const successMsg = urlParams.get('success');
-    const errorMsg = urlParams.get('error');
-    
-    if (successMsg) {
-      Swal.fire({
-        icon: 'success',
-        title: 'Success!',
-        text: decodeURIComponent(successMsg),
-        timer: 2000,
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false
-      });
-    } else if (errorMsg) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error!',
-        text: decodeURIComponent(errorMsg),
-        timer: 3000,
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false
-      });
-    }
-  });
-=======
   const urlParams = new URLSearchParams(window.location.search);
   const successMsg = urlParams.get('success');
   const errorMsg = urlParams.get('error');
@@ -533,6 +504,5 @@
 // };
 
 // updateBrandNamesToLowercase();
->>>>>>> 334f225 (cart page added. working on profile page.)
 </script>
 <%- include("../../views/partials/admin/footer") %>

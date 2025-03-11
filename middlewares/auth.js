@@ -1,111 +1,82 @@
-// const User = require("../models/userSchema")
 
-// // userAuth.js
-// const userAuth = (req, res, next) => {
-//   if (req.path.startsWith('/public/') || req.path.startsWith('/assets/')) {
-//     return next();
-//   }
-  
-//   if (req.session && req.session.user) {
-//     User.findById(req.session.user)
-//       .then(data => {
-//         if (data && !data.isBlocked) {
-          
-//           req.user = data;
-          
-//           // Set cache control headers to prevent back button issues
-//           res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-//           res.setHeader('Pragma', 'no-cache');
-//           res.setHeader('Expires', '0');
-          
-//           next();
-//         } else {
-//           // Clear invalid session
-//           req.session.destroy(err => {
-//             if (err) console.error('Session destruction error:', err);
-//             res.redirect("/");
-//           });
-//         }
-//       })
-//       .catch(error => {
-//         console.error("Error in user authentication:", error);
-//         const err = new Error('Authentication error');
-//         err.statusCode = 500;
-//         next(err); // Pass to error handler
-//       });
-//   } else {
-//     res.redirect("/");
-//   }
-// };
-
-
-
-// const adminAuth = async (req, res, next) => {
-//     try {
-//         const admin = await User.findOne({ isAdmin: true });
-
-//         if (!admin) {
-//             if (req.headers.accept && req.headers.accept.includes("application/json")) {
-//                 return res.status(401).json({ error: "Unauthorized" });
-//             } else {
-//                 return res.redirect("/admin/login");
-//             }
-//         }
-
-//         next(); // Continue if admin exists
-//     } catch (error) {
-//         console.log("Error in adminAuth middleware", error);
-//         res.status(500).json({ error: "Internal Server Error" });
-//     }
-// };
-
-// module.exports = {
-//     userAuth,
-//     adminAuth
-// }
-
-
+const mongoose = require("mongoose");
 const User = require("../models/userSchema");
 
 const userAuth = (req, res, next) => {
-  if (req.session.user) {
-    User.findById(req.session.user)
-      .then((data) => {
-        if (data && !data.isBlocked) {
-          // Set the user data in req.user
-          req.user = data;
-          next();
-        } else {
-          console.error("User is not authenticated");
-          res.redirect("/login");
+  console.log("Authentication Middleware Started");
+  console.log("Full Session Object:", req.session);
+  console.log("Session User:", req.session.user);
+
+  if (!req.session || !req.session.user) {
+    console.log("No session or no user in session, redirecting to login");
+    return res.redirect("/login");
+  }
+
+  let userId;
+  try {
+    if (req.session.user.id) {
+      userId = req.session.user.id;
+    } else if (req.session.user._id) {
+      userId = req.session.user._id;
+    } else if (typeof req.session.user === 'string') {
+      userId = req.session.user;
+    } else {
+      console.error("CANNOT EXTRACT USER ID. Session user structure:", req.session.user);
+      return res.redirect("/login");
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      console.error("Invalid User ID format:", userId);
+      return res.redirect("/login");
+    }
+
+    User.findById(userId)
+      .then((user) => {
+        if (!user) {
+          console.log(`No user found with ID: ${userId}`);
+          return res.redirect("/login");
         }
+
+        req.user = user;
+        req.userId = userId;
+        res.locals.user = user;
+        res.locals.userData = user;
+
+        console.log("User authenticated successfully:", user.name || user.email);
+        next();
       })
-      .catch((error) => {
-        console.log("Error in user auth middleware", error);
-        res.status(500).send("Internal Server Error");
+      .catch((err) => {
+        console.error("Database lookup error:", err);
+        res.redirect("/login");
       });
-  } else {
+
+  } catch (error) {
+    console.error("Authentication middleware error:", error);
     res.redirect("/login");
   }
 };
 
-const adminAuth = (req, res, next) => {
-  if (req.session.admin) {
-    User.findOne({ isAdmin: true })
-      .then((data) => {
-        if (data) {
-          next();
-        } else {
-          res.redirect("/admin/login");
-        }
-      })
-      .catch((error) => {
-        res.status(500).send("Internal Server Error");
-      });
-  } else {
-    res.redirect("/admin/login");
+
+const adminAuth = async (req, res, next) => {
+  try {
+    if (!req.session.admin || !mongoose.Types.ObjectId.isValid(req.session.admin)) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findById(req.session.admin);
+
+    if (!admin || !admin.isAdmin) {
+      req.session.destroy(); // Destroy session if invalid admin
+      return res.redirect("/admin/login");
+    }
+
+    next(); // Proceed to the next middleware/route
+  } catch (error) {
+    console.error("Admin authentication error:", error);
+    res.status(500).send("Internal Server Error");
   }
 };
+
 
 
 

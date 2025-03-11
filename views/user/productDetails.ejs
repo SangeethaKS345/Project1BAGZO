@@ -360,105 +360,60 @@
 </head>
 
 <body>
-  
-        <%- include('../../views/partials/user/header', { userData: userData }) %>
-    
-        <div class="container">
-            <div class="breadcrumbs">
-                <a href="/">Home</a> > 
-                <a href="/shop">Shop</a> > 
-                <% if (product.category) { %>
-                    <a href="/shop?category=<%= product.category._id %>"><%= product.category.name %></a> >
-                <% } %>
-                <span><%= product.productName %></span>
-            </div>
-    
-            <div class="product-details">
-                <div class="product-image-container">
-                    <!-- Main Image with Amazon-style Zoom -->
-                    <div class="main-image-wrapper">
-                        <img id="mainImage" class="main-image"
-                            src="/uploads/re-image/<%= product.productImage[0] %>" 
-                            alt="<%= product.productName %>" />
-                        <div class="zoom-lens" id="zoomLens"></div>
-                        <div class="zoom-result" id="zoomResult"></div>
-                    </div>
-    
-                    <!-- Image Thumbnails -->
-                    <div class="image-thumbnails">
-                        <% product.productImage.forEach((image, index) => { %>
-                            <a href="/uploads/re-image/<%= image %>" 
-                               data-fancybox="gallery" 
-                               class="thumbnail-link <%= index === 0 ? 'active' : '' %>"
-                               data-image="/uploads/re-image/<%= image %>">
-                                <img src="/uploads/re-image/<%= image %>" alt="<%= product.productName %> thumbnail">
-                            </a>
-                        <% }) %>
-                    </div>
+    <%- include('../partials/user/header') %>
+
+    <div class="container">
+        <div class="breadcrumbs">
+            <a href="/">Home</a> > 
+            <a href="/shop">Shop</a> > 
+            <% if (product.category) { %>
+                <a href="/shop?category=<%= product.category._id %>"><%= product.category.name %></a> >
+            <% } %>
+            <span><%= product.productName %></span>
+        </div>
+
+        <div class="product-details">
+            <div class="product-image-container">
+                <!-- Main Image with Amazon-style Zoom -->
+                <div class="main-image-wrapper">
+                    <img id="mainImage" class="main-image"
+                        src="/uploads/re-image/<%= product.productImage[0] %>" 
+                        alt="<%= product.productName %>" />
+                    <div class="zoom-lens" id="zoomLens"></div>
+                    <div class="zoom-result" id="zoomResult"></div>
                 </div>
-    
-                <div class="product-info">
-                    <h1><%= product.productName %></h1>
-                    <p><%= product.description %></p>
-                    
-                    <p><strong>Brand:</strong> <%= product.brand ? product.brand.brandName : 'Not specified' %></p>
-                    <p><strong>Category:</strong> <%= product.category.name %></p>
-                    <p><strong>Color:</strong> <%= product.color || 'Not specified' %></p>
-                    
-                    <!-- Enhanced Price Display -->
-                    <div class="price-container">
-                        <% if (product.regularPrice > product.salesPrice) { %>
-                            <p class="regular-price">Regular Price: ₹<%= product.regularPrice.toFixed(2) %></p>
-                            <p class="price">Sale Price: ₹<%= product.salesPrice.toFixed(2) %>  
-                                <span class="discount">(<%= ((product.regularPrice - product.salesPrice) / product.regularPrice * 100).toFixed(1) %>% OFF)</span>
-                            </p>
-                        <% } else { %>
-                            <p class="price">Price: ₹<%= product.salesPrice.toFixed(2) %></p>
-                        <% } %>
-                    </div>
-                
-                    <p class="stock <%= product.quantity > 0 ? 'in-stock' : 'out-of-stock' %>">
-                        <% if (product.quantity > 0) { %>
-                            ✓ In Stock (<%= product.quantity %> available)
-                        <% } else { %>
-                            ✗ Out of Stock
-                        <% } %>
-                    </p>
-                    
-                    <p class="rating">⭐⭐⭐⭐☆ (4.5 / 5)</p>
-                
-                    <!-- Add to Cart Options -->
-                    <div class="quantity-selector">
-                        <label for="quantity">Quantity:</label>
-                        <div class="quantity-controls">
-                            <button class="quantity-btn minus">-</button>
-                            <input type="number" id="quantity" name="quantity" value="1" min="1" max="<%= product.quantity %>">
-                            <button class="quantity-btn plus">+</button>
-                        </div>
-                    </div>
-                
-                    <button class="btn" id="addToCartBtn" <%= product.quantity <= 0 ? 'disabled' : '' %>>
-                        Add to Cart
-                    </button>
-                    <button class="btn" id="wishlistBtn">
-                        Add to Wishlist
-                    </button>
+
+                <!-- Image Thumbnails -->
+                <div class="image-thumbnails">
+                    <% product.productImage.forEach((image, index) => { %>
+                        <a href="/uploads/re-image/<%= image %>" 
+                           data-fancybox="gallery" 
+                           class="thumbnail-link <%= index === 0 ? 'active' : '' %>"
+                           data-image="/uploads/re-image/<%= image %>">
+                            <img src="/uploads/re-image/<%= image %>" alt="<%= product.productName %> thumbnail">
+                        </a>
+                    <% }) %>
                 </div>
             </div>
-    
-            <div class="related-products-container">
-                <h3>You May Also Like</h3>
-                <div class="related-products-list">
-                    <% relatedProducts.forEach((related) => { %>
-                        <div class="related-product">
-                            <a href="/productDetails?id=<%= related._id %>">
-                                <img src="/uploads/re-image/<%= related.productImage[0] %>" 
-                                    alt="<%= related.productName %>">
-                                <h4><%= related.productName %></h4>
-                                <p>₹<%= related.salesPrice.toFixed(2) %></p>
-                            </a>
-                        </div>
-                    <% }); %>
+
+            <div class="product-info">
+                <h1><%= product.productName %></h1>
+                <p><%= product.description %></p>
+                
+                <p><strong>Brand:</strong> <%= product.brand ? product.brand.brandName : 'Not specified' %></p>
+                <p><strong>Category:</strong> <%= product.category.name %></p>
+                <p><strong>Color:</strong> <%= product.color || 'Not specified' %></p>
+                
+                <!-- Enhanced Price Display -->
+                <div class="price-container">
+                    <% if (product.regularPrice > product.salesPrice) { %>
+                        <p class="regular-price">Regular Price: ₹<%= product.regularPrice.toFixed(2) %></p>
+                        <p class="price">Sale Price: ₹<%= product.salesPrice.toFixed(2) %>  
+                            <span class="discount">(<%= ((product.regularPrice - product.salesPrice) / product.regularPrice * 100).toFixed(1) %>% OFF)</span>
+                        </p>
+                    <% } else { %>
+                        <p class="price">Price: ₹<%= product.salesPrice.toFixed(2) %></p>
+                    <% } %>
                 </div>
             
                 <p class="stock <%= product.quantity > 0 ? 'in-stock' : 'out-of-stock' %>">

@@ -163,8 +163,9 @@ const verifyOtp = async (req, res, next) => {
         req.session.userData = null;
         req.session.save();
 
+        console.log(`Sign up verification OTP :  ${otp}`);
         return res.json({ success: true, redirectUrl: "/" });
-        console.log
+   
     } catch (error) {
         console.error("Error verifying OTP:", error);
         next(error); 
@@ -187,13 +188,11 @@ const pageNotFound = (req, res, next) => {
 // Load Login Page
 const loadLogin = async (req, res, next) => {
     try {
+        console.log("User loadLogin called, rendering signin.ejs");
         if (!req.session.user) {
-            return res.render("login");
+            return res.render("signin"); // Renders views/signin.ejs
         }
-        if(req.session.user){
-            return res.redirect('/');
-        }
-        res.redirect("/");
+        return res.redirect("/");
     } catch (error) {
         next(error);
     }
@@ -201,44 +200,35 @@ const loadLogin = async (req, res, next) => {
 
 const login = async (req, res, next) => {
     try {
-        console.log("Signin route hit");
+        console.log("User login route hit");
         const { email, password } = req.body;
 
         if (!email || !password) {
-            return res.redirect(`/signup?form=signin&message=${encodeURIComponent("Email and password are required")}`);
+            return res.redirect("/signin?message=" + encodeURIComponent("Email and password are required"));
         }
 
-        // Log out user if already logged in
-        if (req.session.user) {
-            req.session.destroy();
-            return res.redirect("/signup"); 
-        }
-
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email, isAdmin: false });
         if (!user) {
-            return res.redirect(`/signup?form=signin&message=${encodeURIComponent("Email not found. Please sign up first.")}`);
+            return res.redirect("/signin?message=" + encodeURIComponent("Email not found. Please sign up."));
         }
 
-        // Check if user is blocked
         if (user.isBlocked) {
-            return res.redirect(`/signup?form=signin&message=${encodeURIComponent("Your account is blocked due to some issue. Please contact support at bagzosupport@gmail.com.")}`);
+            return res.redirect("/signin?message=" + encodeURIComponent("Your account is blocked. Contact support."));
         }
 
         const passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch) {
-            return res.redirect(`/signup?form=signin&message=${encodeURIComponent("Incorrect password. Please try again.")}`);
+            return res.redirect("/signin?message=" + encodeURIComponent("Incorrect password."));
         }
 
-        req.session.user = {
-           id: user._id,
-           name: user.name,
-        }
+        req.session.user = { id: user._id, name: user.name };
         res.redirect("/");
     } catch (error) {
-        console.error("Login Error:", error);
-        res.redirect(`/signup?form=signin&message=${encodeURIComponent("An error occurred. Please try again.")}`);
+        console.error("User Login Error:", error);
+        next(error);
     }
 };
+
 const resendOtp = async (req, res) => {
     try {
         if (!req.session.userData || !req.session.userData.email) {
@@ -361,50 +351,6 @@ const forgotPassword = async (req, res) => {
         // Check if user is logged in and get user data if they are
         if (req.session.user && req.session.user.id) {
             userData = await User.findById(req.session.user.id);
-=======
-  
-
-// const handleGoogleAuth = async (req, res, next) => {
-//     try {
-//         if (!req.googleProfile) {
-//             throw new Error("Google profile data is missing.");
-//         }
-
-//         const { email, name } = req.googleProfile;
-
-//         // Check if user exists
-//         const existingUser = await User.findOne({ email });
-
-//         if (!existingUser) {
-//             req.session.flashMessage = "No account found with this Gmail address. Please sign up first.";
-//             return res.redirect("/signup?form=signin");
-//         }
-
-//         // Check if the user is blocked
-//         if (existingUser.isBlocked) {
-//             req.session.flashMessage = "Your account is blocked. Please contact support.";
-//             return res.redirect("/signup?form=signin");
-//         }
-
-//         // Login successful
-//         req.session.user = {
-//             id: existingUser._id,
-//             name: existingUser.name
-//         };
-
-//         res.redirect("/");
-//     } catch (error) {
-//         console.error("Google Auth Error:", error);
-//         req.session.flashMessage = "Authentication failed. Please try again.";
-//         return res.redirect("/signup");
-//     }
-// };
-
-const handleGoogleAuth = async (req, res, next) => {
-    try {
-        if (!req.user) {
-            throw new Error("Google profile data is missing.");
->>>>>>> 334f225 (cart page added. working on profile page.)
         }
 
         const { email, name } = req.user;
