@@ -72,6 +72,11 @@ const placeOrder = async (req, res) => {
     const { addressId, paymentMethod } = req.body;
     const userId = req.user._id;
 
+    // Validate inputs
+    if (!addressId || !paymentMethod) {
+      return res.status(400).json({ success: false, error: 'Address and payment method are required' });
+    }
+
     // Fetch cart items
     const cartItems = await getCartDataForUser(userId);
     if (!cartItems || cartItems.length === 0) {
@@ -85,6 +90,7 @@ const placeOrder = async (req, res) => {
 
     // Create order
     const order = new Order({
+      userId: userId, 
       OrderItems: cartItems.map(item => ({
         product: item.productDetails._id,
         quantity: item.quantity,
@@ -105,10 +111,15 @@ const placeOrder = async (req, res) => {
       { $set: { products: [] } }
     );
 
-    res.json({ success: true, redirect: '/order-placed' });
+    // Send success response with redirect
+    res.json({ success: true, redirect: '/orderPlaced' });
   } catch (error) {
     console.error('Error placing order:', error);
-    res.status(500).json({ success: false, error: 'Failed to place order' });
+    // Provide more specific error message
+    res.status(500).json({ 
+      success: false, 
+      error: error.message || 'Failed to place order due to a server error' 
+    });
   }
 };
 

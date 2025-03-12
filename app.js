@@ -2,15 +2,13 @@ const express = require("express");
 const path = require("path");
 const dotenv = require("dotenv").config();
 const session = require("express-session");
-const MongoStore = require("connect-mongo"); // Store sessions in MongoDB
+const MongoStore = require("connect-mongo");
 const passport = require("./config/passport");
 const db = require("./config/db");
 const userRouter = require("./routes/userRouter");
 const adminRouter = require("./routes/adminRouter");
-// Removed duplicate cartRouter import since cart routes should be in userRouter
 const app = express();
 const {errorHandler, adminErrorHandler} = require("./middlewares/errorHandler.js");
-
 
 // Connect to MongoDB
 db();
@@ -22,17 +20,14 @@ const userAuth = (req, res, next) => {
   }
 
   if (req.session && req.session.user) {
-    const User = require("./models/User"); // Adjust path as needed
-
+    const User = require("./models/User");
     User.findById(req.session.user)
       .then((data) => {
         if (data && !data.isBlocked) {
           req.user = data;
-
           res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
           res.setHeader("Pragma", "no-cache");
           res.setHeader("Expires", "0");
-
           next();
         } else {
           req.session.destroy((err) => {
@@ -65,12 +60,12 @@ app.use(
     store: MongoStore.create({
       mongoUrl:
         process.env.MONGODB_URI || "mongodb://localhost:27017/your-db-name",
-      ttl: 24 * 60 * 60, // 1 day
+      ttl: 24 * 60 * 60,
     }),
     cookie: {
-      secure: process.env.NODE_ENV === "production", // Secure in production
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      maxAge: 24 * 60 * 60 * 1000,
     },
   })
 );
@@ -112,10 +107,9 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes - Fixed routing to avoid conflicts
+// Routes
 app.use("/", userRouter);
 app.use("/admin", adminRouter);
-// Removed redundant cart router registration since those routes should be in userRouter
 
 // Error handler
 app.use(errorHandler, adminErrorHandler);

@@ -11,6 +11,7 @@ const shopController = require("../controllers/user/shopController");
 const profileController = require("../controllers/user/profileController");
 const addressController = require("../controllers/user/addressController");
 const checkoutController = require('../controllers/user/checkoutControlller');
+const orderController = require("../controllers/user/orderController");
 const { errorHandler } = require("../middlewares/errorHandler");
 //error handling middleware
 router.use(errorHandler);
@@ -102,9 +103,8 @@ router.get('/user/cart-data', userAuth, checkoutController.getCartDataForUser);
 router.get('/checkout', userAuth, checkoutController.getCheckoutPage);
 router.post('/place-order', userAuth, checkoutController.placeOrder);
 
-// Debugging Route
-router.get("/session-check", (req, res) => {
-    res.json(req.session);
-});
+//Order management
+router.get("/orderPlaced", userAuth, orderController.getOrderPlaced);
+
 
 module.exports = router;

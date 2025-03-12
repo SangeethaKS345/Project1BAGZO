@@ -8,6 +8,11 @@ const orderSchema = new Schema({
     default: () => uuidv4(),
     unique: true
   },
+  userId: {  // Add this field
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
   OrderItems: [{
     product: {
       type: Schema.Types.ObjectId,
@@ -60,5 +65,4 @@ const orderSchema = new Schema({
   }
 });
 
-// Export the model, ensuring it’s compiled only once
 module.exports = mongoose.models.Order || mongoose.model('Order', orderSchema);

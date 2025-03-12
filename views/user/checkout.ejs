@@ -473,6 +473,7 @@ input {
   }
 }
   </style>
+  <%- include('../../views/partials/user/header') %>
 </head>
 <body>
    <!--=============== MAIN ===============-->
@@ -618,296 +619,253 @@ input {
       </div>
     </section>
   
-    <!--=============== NEWSLETTER ===============-->
-    <section class="newsletter section">
-      <div class="container">
-        <div class="newsletter__container">
-          <div class="newsletter__content">
-            <h3 class="newsletter__title">
-              <i class="fas fa-envelope newsletter__icon"></i>
-              Sign up for Newsletter
-            </h3>
-            <p class="newsletter__description">...and receive ₹25 coupon for first shopping.</p>
-          </div>
-          <form action="" class="newsletter__form">
-            <input type="email" placeholder="Enter Your Email" class="newsletter__input" />
-            <button type="submit" class="newsletter__btn">Subscribe</button>
-          </form>
-        </div>
-      </div>
-    </section>
+    
   </main>
 
   <script src="https://unpkg.com/izitoast/dist/js/iziToast.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      // Initialize the address selection
-      initAddressSelection();
+   document.addEventListener("DOMContentLoaded", function() {
+  // Initialize the address selection
+  initAddressSelection();
+  
+  // Initialize payment method selection
+  initPaymentMethodSelection();
+  
+  // Fetch cart items from the database
+  fetchCartItems();
+  
+  // Setup the order form submission
+  setupOrderForm();
+  
+  // Add any additional functionality
+  setupNewsletterForm();
+});
+
+function initAddressSelection() {
+  const addressRadios = document.querySelectorAll('input[name="address"]');
+  const selectedAddressInput = document.getElementById("selectedAddressId");
+  
+  // Set initial value from the first selected radio button
+  if (addressRadios.length > 0) {
+    // Find the checked radio or default to the first one
+    const checkedRadio = Array.from(addressRadios).find(radio => radio.checked) || addressRadios[0];
+    if (checkedRadio) {
+      selectedAddressInput.value = checkedRadio.value;
+      console.log("Initial addressId set to:", selectedAddressInput.value);
+    }
+  } else {
+    console.warn("No address radio buttons found!");
+  }
+  
+  // Add event listeners to all address radio buttons
+  addressRadios.forEach((radio) => {
+    radio.addEventListener("change", function() {
+      selectedAddressInput.value = this.value;
+      console.log("Address changed, new addressId:", selectedAddressInput.value);
       
-      // Initialize payment method selection
-      initPaymentMethodSelection();
-      
-      // Fetch cart items from the database
-      fetchCartItems();
-      
-      // Setup the order form submission
-      setupOrderForm();
-      
-      // Add any additional functionality
-      setupNewsletterForm();
+      // Add visual feedback
+      highlightSelectedAddress(this);
     });
+  });
+}
 
-    function initAddressSelection() {
-      const addressRadios = document.querySelectorAll('input[name="address"]');
-      const selectedAddressInput = document.getElementById("selectedAddressId");
-      
-      // Set initial value from the first selected radio button
-      if (addressRadios.length > 0) {
-        // Find the checked radio or default to the first one
-        const checkedRadio = Array.from(addressRadios).find(radio => radio.checked) || addressRadios[0];
-        if (checkedRadio) {
-          selectedAddressInput.value = checkedRadio.value;
-          console.log("Initial addressId set to:", selectedAddressInput.value);
-        }
-      } else {
-        console.warn("No address radio buttons found!");
-      }
-      
-      // Add event listeners to all address radio buttons
-      addressRadios.forEach((radio) => {
-        radio.addEventListener("change", function() {
-          selectedAddressInput.value = this.value;
-          console.log("Address changed, new addressId:", selectedAddressInput.value);
-          
-          // Add visual feedback
-          highlightSelectedAddress(this);
-        });
+function highlightSelectedAddress(selectedRadio) {
+  // Remove highlight class from all labels
+  document.querySelectorAll('.address__label').forEach(label => {
+    label.classList.remove('address__label--selected');
+  });
+  
+  // Add highlight class to the selected label
+  const selectedLabel = document.querySelector(`label[for="${selectedRadio.id}"]`);
+  if (selectedLabel) {
+    selectedLabel.classList.add('address__label--selected');
+  }
+}
+
+function initPaymentMethodSelection() {
+  const paymentRadios = document.querySelectorAll('input[name="paymentMethod"]');
+  const selectedPaymentMethodInput = document.getElementById("selectedPaymentMethod");
+  
+  // Add event listeners to payment method radio buttons
+  paymentRadios.forEach((radio) => {
+    if (!radio.disabled) {
+      radio.addEventListener("change", function() {
+        selectedPaymentMethodInput.value = this.value;
+        console.log("Payment method changed to:", selectedPaymentMethodInput.value);
       });
     }
+  });
+}
 
-    function highlightSelectedAddress(selectedRadio) {
-      // Remove highlight class from all labels
-      document.querySelectorAll('.address__label').forEach(label => {
-        label.classList.remove('address__label--selected');
-      });
-      
-      // Add highlight class to the selected label
-      const selectedLabel = document.querySelector(`label[for="${selectedRadio.id}"]`);
-      if (selectedLabel) {
-        selectedLabel.classList.add('address__label--selected');
-      }
-    }
+function fetchCartItems() {
+  // This function would typically make an AJAX call to get cart data
+  // For now, we'll assume the cart data is already rendered in the HTML
+  console.log("Cart items already displayed from server-side rendering");
+}
 
-    function initPaymentMethodSelection() {
-      const paymentRadios = document.querySelectorAll('input[name="paymentMethod"]');
-      const selectedPaymentMethodInput = document.getElementById("selectedPaymentMethod");
+function renderCartItems(cart) {
+  const cartItemsContainer = document.getElementById('cartItems');
+  if (!cartItemsContainer) return;
+  
+  // Clear existing items
+  cartItemsContainer.innerHTML = '';
+  
+  if (!cart || !cart.products || cart.products.length === 0) {
+    cartItemsContainer.innerHTML = '<p class="empty-cart-message">Your cart is empty</p>';
+    return;
+  }
+  
+  // Render each product
+  cart.products.forEach(item => {
+    const product = item.productId;
+    const imageSrc = product.images && product.images.length > 0 
+      ? product.images[0] 
+      : '/img/default-product.jpg';
       
-      // Add event listeners to payment method radio buttons
-      paymentRadios.forEach((radio) => {
-        if (!radio.disabled) {
-          radio.addEventListener("change", function() {
-            selectedPaymentMethodInput.value = this.value;
-            console.log("Payment method changed to:", selectedPaymentMethodInput.value);
-          });
-        }
-      });
-    }
-
-
-
-    function renderCartItems(cart) {
-      const cartItemsContainer = document.getElementById('cartItems');
-      if (!cartItemsContainer) return;
-      
-      // Clear existing items
-      cartItemsContainer.innerHTML = '';
-      
-      if (!cart || !cart.products || cart.products.length === 0) {
-        cartItemsContainer.innerHTML = '<p class="empty-cart-message">Your cart is empty</p>';
-        return;
-      }
-      
-      // Render each product
-      cart.products.forEach(item => {
-        const product = item.productId;
-        const imageSrc = product.images && product.images.length > 0 
-          ? product.images[0] 
-          : '/img/default-product.jpg';
-          
-        const cartItemHTML = `
-          <div class="cart-item">
-            <div class="cart-item__image">
-              <img src="${imageSrc}" alt="${product.name || 'Product'}">
-            </div>
-            <div class="cart-item__details">
-              <h4 class="cart-item__title">${product.name || 'Product'}</h4>
-              <p class="cart-item__price">₹${item.price ? item.price.toFixed(2) : '0.00'}</p>
-              <div class="cart-item__quantity">
-                <span>Quantity: ${item.quantity || 1}</span>
-              </div>
-            </div>
-            <div class="cart-item__total">
-              <p>₹${item.totalPrice ? item.totalPrice.toFixed(2) : '0.00'}</p>
-            </div>
+    const cartItemHTML = `
+      <div class="cart-item">
+        <div class="cart-item__image">
+          <img src="${imageSrc}" alt="${product.name || 'Product'}">
+        </div>
+        <div class="cart-item__details">
+          <h4 class="cart-item__title">${product.name || 'Product'}</h4>
+          <p class="cart-item__price">₹${item.price ? item.price.toFixed(2) : '0.00'}</p>
+          <div class="cart-item__quantity">
+            <span>Quantity: ${item.quantity || 1}</span>
           </div>
-        `;
-        
-        cartItemsContainer.innerHTML += cartItemHTML;
-      });
-    }
+        </div>
+        <div class="cart-item__total">
+          <p>₹${item.totalPrice ? item.totalPrice.toFixed(2) : '0.00'}</p>
+        </div>
+      </div>
+    `;
+    
+    cartItemsContainer.innerHTML += cartItemHTML;
+  });
+}
 
-    function updateOrderSummary(cart) {
-      const subtotalElement = document.getElementById('subtotal');
-      const totalElement = document.getElementById('total');
-      
-      if (!subtotalElement || !totalElement) return;
-      
-      let subtotal = 0;
-      
-      if (cart && cart.products && cart.products.length > 0) {
-        subtotal = cart.products.reduce((sum, item) => {
-          return sum + (item.totalPrice || 0);
-        }, 0);
-      }
-      
-      // Update the display
-      subtotalElement.textContent = `₹${subtotal.toFixed(2)}`;
-      totalElement.textContent = `₹${subtotal.toFixed(2)}`; // Same as subtotal since shipping is free
-    }
+function updateOrderSummary(cart) {
+  const subtotalElement = document.getElementById('subtotal');
+  const totalElement = document.getElementById('total');
+  
+  if (!subtotalElement || !totalElement) return;
+  
+  let subtotal = 0;
+  
+  if (cart && cart.products && cart.products.length > 0) {
+    subtotal = cart.products.reduce((sum, item) => {
+      return sum + (item.totalPrice || 0);
+    }, 0);
+  }
+  
+  // Update the display
+  subtotalElement.textContent = `₹${subtotal.toFixed(2)}`;
+  totalElement.textContent = `₹${subtotal.toFixed(2)}`; // Same as subtotal since shipping is free
+}
 
-    function setupOrderForm() {
-      const orderForm = document.getElementById('orderForm');
-      
-      if (!orderForm) {
-        console.error("Order form not found!");
-        return;
-      }
-      
-      orderForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        console.log("Form submission intercepted");
-        
-        const selectedAddressInput = document.getElementById("selectedAddressId");
-        const selectedPaymentMethodInput = document.getElementById("selectedPaymentMethod");
-        const addressId = selectedAddressInput.value;
-        const paymentMethod = selectedPaymentMethodInput.value;
-        
-        if (!addressId) {
-          showError('Please select a delivery address');
-          return;
-        }
-        
-        console.log("Submitting with addressId:", addressId, "and payment method:", paymentMethod);
-        
-        // Show loading state
-        const submitButton = this.querySelector('button[type="submit"]');
-        const originalButtonText = submitButton.innerHTML;
-        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-        submitButton.disabled = true;
-        
-        // Submit the order
-        submitOrder(addressId, paymentMethod, function() {
-          // Reset button state if needed (in case of error)
-          submitButton.innerHTML = originalButtonText;
-          submitButton.disabled = false;
+function setupOrderForm() {
+  const orderForm = document.getElementById('orderForm');
+  
+  if (!orderForm) {
+    console.error("Order form not found!");
+    return;
+  }
+  
+  orderForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    console.log("Form submission intercepted");
+    
+    const selectedAddressInput = document.getElementById("selectedAddressId");
+    const selectedPaymentMethodInput = document.getElementById("selectedPaymentMethod");
+    const addressId = selectedAddressInput.value;
+    const paymentMethod = selectedPaymentMethodInput.value;
+    
+    if (!addressId) {
+      showError('Please select a delivery address');
+      return;
+    }
+    
+    console.log("Submitting with addressId:", addressId, "and payment method:", paymentMethod);
+    
+    // Show loading state
+    const submitButton = this.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton.innerHTML;
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    submitButton.disabled = true;
+    
+    // Submit the order
+    submitOrder(addressId, paymentMethod, function() {
+      // Reset button state if needed (in case of error)
+      submitButton.innerHTML = originalButtonText;
+      submitButton.disabled = false;
+    });
+  });
+}
+
+function submitOrder(addressId, paymentMethod, callback) {
+  const formData = { 
+    addressId,
+    paymentMethod 
+  };
+
+  console.log("Submitting Order:", formData); // Debugging
+
+  fetch('/place-order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(formData)
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    console.log("Server Response:", data); // Debugging
+
+    if (data.success) {
+      showSuccess('Order Placed Successfully!', 'Your order has been placed successfully.')
+        .then(() => {
+          // Ensure redirect happens only after user acknowledges success
+          window.location.href = data.redirect || '/orderPlaced';
         });
-      });
+    } else {
+      showError(data.error || 'Failed to place order');
     }
 
-    function submitOrder(addressId, paymentMethod, callback) {
-      const formData = { 
-        addressId,
-        paymentMethod 
-      };
-      
-      fetch('/place-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          showSuccess('Order Placed Successfully!', 'Your order has been placed successfully.')
-            .then(() => {
-              window.location.href = data.redirect || '/order-placed';
-            });
-        } else {
-          showError(data.error || 'Failed to place order');
-          if (callback) callback();
-        }
-      })
-      .catch(error => {
-        showError('An error occurred while placing the order');
-        if (callback) callback();
-      });
-    }
+    if (callback) callback(); // Reset the button state
+  })
+  .catch(error => {
+    console.error("Order Submission Error:", error);
+    showError(`An error occurred while placing the order: ${error.message}`);
 
-    function showSuccess(title, text) {
-      return Swal.fire({
-        icon: 'success',
-        title: title,
-        text: text,
-        confirmButtonText: 'OK',
-        confirmButtonColor: '#DB4437'
-      });
-    }
+    if (callback) callback(); // Reset the button on error
+  });
+}
 
-    function showError(message) {
-      return Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: message,
-        confirmButtonColor: '#DB4437'
-      });
-    }
+function showSuccess(title, text) {
+  return Swal.fire({
+    icon: 'success',
+    title: title,
+    text: text,
+    confirmButtonText: 'OK',
+    confirmButtonColor: '#DB4437'
+  });
+}
 
-    function setupNewsletterForm() {
-      const newsletterForm = document.querySelector('.newsletter__form');
-      
-      if (newsletterForm) {
-        newsletterForm.addEventListener('submit', function(e) {
-          e.preventDefault();
-          
-          const emailInput = this.querySelector('.newsletter__input');
-          const email = emailInput.value.trim();
-          
-          if (!email) {
-            iziToast.error({
-              title: 'Error',
-              message: 'Please enter your email address',
-              position: 'topRight'
-            });
-            return;
-          }
-          
-          if (!isValidEmail(email)) {
-            iziToast.error({
-              title: 'Error',
-              message: 'Please enter a valid email address',
-              position: 'topRight'
-            });
-            return;
-          }
-          
-          // Simulate newsletter subscription
-          iziToast.success({
-            title: 'Success',
-            message: 'You have been subscribed to our newsletter!',
-            position: 'topRight'
-          });
-          
-          // Clear the input
-          emailInput.value = '';
-        });
-      }
-    }
+function showError(message) {
+  return Swal.fire({
+    icon: 'error',
+    title: 'Error',
+    text: message,
+    confirmButtonColor: '#DB4437'
+  });
+}
 
-    function isValidEmail(email) {
-      const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-      return re.test(String(email).toLowerCase());
-    }
+
   </script>
+  <%- include('../../views/partials/user/footer') %>
 </body>
 </html>
