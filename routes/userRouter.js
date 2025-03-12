@@ -81,9 +81,9 @@ router.get("/profile", userAuth, profileController.userProfile);
 router.get("/editProfile", userAuth, profileController.getEditProfile);
 router.patch("/editProfile/update", userAuth, profileController.updateEditProfile);
 
-// Address routes (using userAuth middleware)
-// Get Addresses
-router.get('/address', userAuth, addressController.getAddresses);
+// // Address routes (using userAuth middleware)
+// // Get Addresses
+// router.get('/address', userAuth, addressController.getAddresses);
 
 // Add Address Form
 router.get('/address', userAuth, addressController.getAddresses);
@@ -105,6 +105,7 @@ router.post('/place-order', userAuth, checkoutController.placeOrder);
 
 //Order management
 router.get("/orderPlaced", userAuth, orderController.getOrderPlaced);
+router.get("/my-orders", userAuth, orderController.loadMyOrders);
 
 
 module.exports = router;

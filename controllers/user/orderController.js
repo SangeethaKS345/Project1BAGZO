@@ -1,26 +1,20 @@
-
-
 const Order = require('../../models/orderSchema');
 
 const getOrderPlaced = async (req, res, next) => {
     try {
         console.log("Accessed /orderPlaced route");
-        console.log("req.user:", req.user);
         if (!req.user) throw new Error("User not authenticated");
 
-        console.log("Querying order for userId:", req.user._id);
         const order = await Order.findOne({ userId: req.user._id })
             .sort({ createdOn: -1 })
             .populate('OrderItems.product')
             .populate('address');
-        console.log("Order result:", order);
 
         if (!order) {
-            console.log("No order found for userId:", req.user._id);
             return res.render("orderPlaced", { message: "No recent order found." });
         }
 
-    const orderDetails = {
+        const orderDetails = {
             orderId: order.orderId,
             totalAmount: order.finalAmount,
             placedAt: order.createdOn.toLocaleString(),
@@ -31,14 +25,54 @@ const getOrderPlaced = async (req, res, next) => {
             })),
             shippingAddress: order.address
         };
-        console.log("Order details:", orderDetails);
 
-        res.render("orderPlaced", { order: orderDetails }); // Correct path
+        res.render("orderPlaced", { order: orderDetails });
     } catch (err) {
         console.error("Error in getOrderPlaced:", err);
         next(err);
     }
 };
 
-module.exports = { getOrderPlaced };
+const loadMyOrders = async (req, res, next) => {
+    try {
+        if (!req.user) throw new Error("User not authenticated");
 
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10; // Number of orders per page
+        const skip = (page - 1) * limit;
+
+        const orders = await Order.find({ userId: req.user._id })
+            .sort({ createdOn: -1 })
+            .skip(skip)
+            .limit(limit)
+            .populate('OrderItems.product');
+
+        const totalOrders = await Order.countDocuments({ userId: req.user._id });
+        const totalPages = Math.ceil(totalOrders / limit);
+
+        const formattedOrders = orders.map(order => ({
+            orderId: order.orderId,
+            product: order.OrderItems[0].product,
+            quantity: order.OrderItems[0].quantity,
+            totalAmount: order.finalAmount,
+            placedOn: order.createdOn.toLocaleString(),
+            status: order.status,
+            cancellation_reason: order.cancellation_reason,
+            return_reason: order.return_reason
+        }));
+
+        res.render("myOrder", {
+            orders: formattedOrders,
+            currentPage: page,
+            totalPages: totalPages
+        });
+    } catch (err) {
+        console.error("Error in loadMyOrders:", err);
+        next(err);
+    }
+};
+
+module.exports = { 
+    getOrderPlaced,
+    loadMyOrders
+};

@@ -3,7 +3,7 @@ const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
 const env = require("dotenv").config();
 const session = require("express-session");
-const Order = require("../../models/orderschema");
+const Order = require("../../models/orderSchema");
 const Address = require("../../models/addressSchema");
 const mongoose = require("mongoose");
 
