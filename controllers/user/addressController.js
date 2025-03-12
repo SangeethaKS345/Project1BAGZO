@@ -6,7 +6,7 @@ const getAddresses = async (req, res, next) => {
   try {
     console.log("Address page function called");
 
-    const userId = req.session.user._id;
+    const userId = req.session.user.id;
     const addressDoc = await Address.findOne({ userId });
 
     console.log("Rendering address page");
@@ -19,9 +19,11 @@ const getAddresses = async (req, res, next) => {
 // Add Address Form
 const addAddressForm = async (req, res, next) => {
   try {
-    const userId = req.session.user._id;
+    const userId = req.session.user.id;
+    const success = req.session.success;
+    req.session.success = false; // reset the success flag
 
-    res.render("addAddress", { user: req.session.user });
+    res.render("addAddress", { user: req.session.user, userId: userId, success: success });
   } catch (error) {
     next(error);
   }
@@ -33,12 +35,12 @@ const addAddress = async (req, res, next) => {
     console.log("Add Address function called.");
     console.log("Request Body:", req.body);
 
-    const userId = req.session.user._id;
+    const userId = req.body.userId || req.session.user.id;
     console.log("User ID:", userId);
 
     const { addressType, name, city, landMark, state, pincode, phone, altPhone } = req.body;
 
-    if (!addressType || !name || !city || !landMark || !state || !pincode || !phone || !altPhone) {
+    if (!userId || !addressType || !name || !city || !landMark || !state || !pincode || !phone || !altPhone) {
       console.log("Missing required fields. Redirecting to add address page...");
       return res.redirect("/address/new");
     }
@@ -65,8 +67,10 @@ const addAddress = async (req, res, next) => {
       });
     }
     console.log("Address added successfully. Redirecting to address page...");
-    
-    return res.redirect("/address");
+
+    // Set success flag
+    req.session.success = true;
+    return res.redirect("/address/new");
   } catch (error) {
     next(error);
   }
@@ -75,7 +79,7 @@ const addAddress = async (req, res, next) => {
 // Edit Address Form
 const editAddressForm = async (req, res, next) => {
   try {
-    const userId = req.session.user._id;
+    const userId = req.session.user.id;
     const addressId = req.params.id;
 
     const addressData = await Address.findOne({ userId, "address._id": addressId }, { "address.$": 1 });
@@ -127,14 +131,15 @@ const updateAddress = async (req, res, next) => {
 // Delete Address
 const deleteAddress = async (req, res, next) => {
   try {
+    const userId = req.session.user.id;
     const addressId = req.params.id;
 
-    const deletedAddress = await Address.updateOne(
-      {},
+    const updatedAddress = await Address.updateOne(
+      { userId },
       { $pull: { address: { _id: addressId } } }
     );
 
-    if (!deletedAddress.nModified) {
+    if (updatedAddress.nModified === 0) {
       return res.status(404).json({ success: false, message: "Address not found" });
     }
 

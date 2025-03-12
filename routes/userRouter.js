@@ -10,7 +10,7 @@ const cartController = require("../controllers/user/cartController");
 const shopController = require("../controllers/user/shopController");
 const profileController = require("../controllers/user/profileController");
 const addressController = require("../controllers/user/addressController");
-const orderController = require('../controllers/user/orderController');
+const checkoutController = require('../controllers/user/checkoutControlller');
 const { errorHandler } = require("../middlewares/errorHandler");
 //error handling middleware
 router.use(errorHandler);
@@ -81,16 +81,26 @@ router.get("/editProfile", userAuth, profileController.getEditProfile);
 router.patch("/editProfile/update", userAuth, profileController.updateEditProfile);
 
 // Address routes (using userAuth middleware)
-router.get("/address", userAuth, addressController.getAddresses);
-router.get("/address/new", userAuth, addressController.addAddressForm);
-router.post("/address", userAuth, addressController.addAddress);
-router.get("/address/edit/:id", userAuth, addressController.editAddressForm);
-router.post("/address/edit/:id", userAuth, addressController.updateAddress);
-router.get("/address/delete/:id", userAuth, addressController.deleteAddress);
+// Get Addresses
+router.get('/address', userAuth, addressController.getAddresses);
 
-//Order route
-router.get('/cart',orderController.getCartPage);
-router.get('/checkout',orderController.getCheckoutPage);
+// Add Address Form
+router.get('/address', userAuth, addressController.getAddresses);
+router.get('/address/new', userAuth, addressController.addAddressForm);
+router.post('/address', userAuth, addressController.addAddress);
+router.get('/address/edit/:id', userAuth, addressController.editAddressForm);
+router.post('/address/edit/:id', userAuth, addressController.updateAddress);
+router.delete('/address/:id', userAuth, addressController.deleteAddress);
+
+
+// Order routes
+// Order routes
+router.get('/cart', userAuth, checkoutController.getCartPage);
+router.get('/user/cart-data', userAuth, checkoutController.getCartDataForUser);
+
+//Checkout management
+router.get('/checkout', userAuth, checkoutController.getCheckoutPage);
+router.post('/place-order', userAuth, checkoutController.placeOrder);
 
 // Debugging Route
 router.get("/session-check", (req, res) => {

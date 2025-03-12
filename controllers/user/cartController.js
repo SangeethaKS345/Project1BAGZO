@@ -172,83 +172,65 @@ async function addToCart(req, res) {
 }
 
 // Change product quantity in cart
-function changeQuantity(productId, currentQuantity, change, price, elementId, maxQuantity) {
-    const newQuantity = parseInt(currentQuantity) + change;
-    if (newQuantity < 1 || newQuantity > maxQuantity) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Invalid Quantity',
-            text: `Quantity must be between 1 and ${maxQuantity}`,
-        });
-        return;
-    }
+const changeQuantity = async (req, res) => {
+    try {
+        const { productId, quantity } = req.body;
+        let userId;
 
-    // Send AJAX request to update server
-    $.ajax({
-        url: '/cart/changeQuantity',
-        method: 'POST',
-        data: {
-            productId: productId,
-            quantity: newQuantity
-        },
-        success: function(response) {
-            console.log('AJAX Success:', response);
-            console.log('Updating elementId:', elementId); // Debug elementId
-            if (response.status) {
-                // Update UI with server values
-                const qtyElement = document.getElementById(`cartProductQuantity${elementId}`);
-                const subTotalElement = document.getElementById(`subTotal${elementId}`);
-                const totalElement = document.getElementById('total');
-                const subtotalElement = document.getElementById('subtotal');
-
-                // Debug element existence
-                console.log('Qty Element:', qtyElement);
-                console.log('Subtotal Element:', subTotalElement);
-                console.log('Total Element:', totalElement);
-                console.log('Subtotal Element:', subtotalElement);
-
-                if (qtyElement) qtyElement.value = response.quantityInput;
-                if (subTotalElement) subTotalElement.innerText = response.totalAmount;
-                if (totalElement) totalElement.innerText = response.grandTotal;
-                if (subtotalElement) subtotalElement.innerText = response.grandTotal;
-
-                // Add animation if subtotal exists
-                if (subTotalElement) {
-                    subTotalElement.classList.add('price-updated');
-                    setTimeout(() => {
-                        subTotalElement.classList.remove('price-updated');
-                    }, 800);
-                }
-            } else {
-                // Revert changes if server rejected
-                const qtyElement = document.getElementById(`cartProductQuantity${elementId}`);
-                const subTotalElement = document.getElementById(`subTotal${elementId}`);
-                if (qtyElement) qtyElement.value = currentQuantity;
-                if (subTotalElement) subTotalElement.innerText = currentQuantity * price;
-                
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: response.error || 'Failed to update quantity'
-                });
-            }
-        },
-        error: function(xhr, status, error) {
-            console.log('AJAX Error:', status, error);
-            const qtyElement = document.getElementById(`cartProductQuantity${elementId}`);
-            const subTotalElement = document.getElementById(`subTotal${elementId}`);
-            if (qtyElement) qtyElement.value = currentQuantity;
-            if (subTotalElement) subTotalElement.innerText = currentQuantity * price;
-            
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Failed to connect to server'
-            });
+        if (typeof req.session.user === 'object' && req.session.user.id) {
+            userId = req.session.user.id;
+        } else {
+            userId = req.session.user;
         }
-    });
-}
 
+        if (!mongoose.Types.ObjectId.isValid(productId) || !mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ status: false, error: "Invalid ID format" });
+        }
+
+        const userObjectId = new mongoose.Types.ObjectId(userId);
+        const productObjectId = new mongoose.Types.ObjectId(productId);
+
+        const product = await Product.findById(productObjectId);
+        if (!product) {
+            return res.status(404).json({ status: false, error: "Product not found" });
+        }
+
+        if (quantity > product.quantity) {
+            return res.status(400).json({ status: false, error: `Only ${product.quantity} items available in stock` });
+        }
+
+        const cart = await Cart.findOne({ userId: userObjectId });
+        if (!cart) {
+            return res.status(404).json({ status: false, error: "Cart not found" });
+        }
+
+        const productInCart = cart.products.find(item => item.productId.equals(productObjectId));
+        if (!productInCart) {
+            return res.status(404).json({ status: false, error: "Product not in cart" });
+        }
+
+        productInCart.quantity = parseInt(quantity);
+        productInCart.totalPrice = productInCart.quantity * product.salesPrice;
+
+        await cart.save();
+
+        // Calculate grand total
+        let grandTotal = 0;
+        cart.products.forEach(item => {
+            grandTotal += item.totalPrice;
+        });
+
+        res.json({
+            status: true,
+            quantityInput: productInCart.quantity,
+            totalAmount: productInCart.totalPrice,
+            grandTotal: grandTotal
+        });
+    } catch (error) {
+        console.error("Error in changeQuantity:", error);
+        res.status(500).json({ status: false, error: "Server error" });
+    }
+};
 // Delete product from cart
 const deleteProduct = async (req, res) => {
     try {

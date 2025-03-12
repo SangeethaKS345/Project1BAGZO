@@ -652,26 +652,21 @@ function changeQuantity(productId, currentQuantity, change, price, elementId, ma
         return;
     }
 
-    // Optimistic update for subtotal only
-    const newSubtotal = newQuantity * price;
-    document.getElementById(`subTotal${elementId}`).innerText = newSubtotal;
-
-    // Send AJAX request to update server
     $.ajax({
-    url: '/cart/changeQuantity',
-    method: 'POST',
+        url: '/cart/changeQuantity',
+        method: 'POST',
         data: {
             productId: productId,
             quantity: newQuantity
         },
         success: function(response) {
-    console.log('AJAX Success:', response); // This is logging correctly
-    if (response.status) {
-        document.getElementById(`cartProductQuantity${elementId}`).value = response.quantityInput;
-        document.getElementById(`subTotal${elementId}`).innerText = response.totalAmount;
-        document.getElementById('total').innerText = response.grandTotal;
-        document.getElementById('subtotal').innerText = response.grandTotal;
-                
+            console.log('AJAX Success:', response);
+            if (response.status) {
+                document.getElementById(`cartProductQuantity${elementId}`).value = response.quantityInput;
+                document.getElementById(`subTotal${elementId}`).innerText = response.totalAmount;
+                document.getElementById('total').innerText = response.grandTotal;
+                document.getElementById('subtotal').innerText = response.grandTotal;
+
                 // Add animation class
                 document.getElementById(`subTotal${elementId}`).classList.add('price-updated');
                 setTimeout(() => {
@@ -690,7 +685,7 @@ function changeQuantity(productId, currentQuantity, change, price, elementId, ma
             }
         },
         error: function(xhr, status, error) {
-            console.log('AJAX Error:', status, error); // Debug log
+            console.log('AJAX Error:', status, error);
             // Revert changes on error
             document.getElementById(`cartProductQuantity${elementId}`).value = currentQuantity;
             document.getElementById(`subTotal${elementId}`).innerText = currentQuantity * price;
