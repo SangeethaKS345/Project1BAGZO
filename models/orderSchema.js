@@ -47,15 +47,11 @@ const orderSchema = new Schema({
   status: {
     type: String,
     required: true,
-    enum: ['Pending', 'Processing', 'Cancelled', 'Return Request', 'Returned']
+    enum: ['Pending', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled', 'Return Request', 'Returned']
   },
   createdOn: {
     type: Date,
     default: Date.now
-  },
-  couponApplied: {
-    type: Boolean,
-    default: false
   },
   paymentMethod: {
     type: String,
