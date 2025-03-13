@@ -1,581 +1,646 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Details</title>
-    
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Details</title>
 
-    <!-- Fancybox for gallery view -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-    <style>
-        /* General Styles */
-        body {
-            background-color: #f4f4f4;
-            color: #333;
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 0;
-        }
+  <!-- Fancybox for gallery view -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+  <style>
+    /* General Styles */
+    body {
+      background-color: #f4f4f4;
+      color: #333;
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
 
-        /* Breadcrumbs */
-        .breadcrumbs {
-            color: #333;
-            font-size: 14px;
-            margin-bottom: 20px;
-            padding: 10px 0;
-        }
-        .breadcrumbs a {
-            color: #DB4437;
-            text-decoration: none;
-        }
-        .breadcrumbs a:hover {
-            text-decoration: underline;
-        }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
 
-        /* Product Details */
-        .product-details {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 30px;
-            background: #fff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
-        }
+    /* Breadcrumbs */
+    .breadcrumbs {
+      color: #333;
+      font-size: 14px;
+      margin-bottom: 20px;
+      padding: 10px 0;
+    }
 
-        /* Amazon-style Zoom Functionality */
-        .product-image-container {
-            flex: 1;
-            min-width: 300px;
-            position: relative;
-        }
+    .breadcrumbs a {
+      color: #DB4437;
+      text-decoration: none;
+    }
 
-        .main-image-wrapper {
-            position: relative;
-            cursor: crosshair;
-            width: 100%;
-            max-width: 450px;
-        }
+    .breadcrumbs a:hover {
+      text-decoration: underline;
+    }
 
-        .main-image {
-            width: 100%;
-            height: auto;
-            border-radius: 8px;
-            display: block;
-        }
+    /* Product Details */
+    .product-details {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+    }
 
-        .zoom-lens {
-            position: absolute;
-            border: 1px solid #ccc;
-            background-color: rgba(255, 255, 255, 0.4);
-            width: 175px;
-            height: 175px;
-            display: none;
-            cursor: crosshair;
-            pointer-events: none;
-        }
+    /* Amazon-style Zoom Functionality */
+    .product-image-container {
+      flex: 1;
+      min-width: 300px;
+      position: relative;
+    }
 
-        .zoom-result {
-            position: absolute;
-            top: 0;
-            left: 105%; /* Position it to the right of the main image */
-            width: 450px;
-            height: 450px;
-            border: 1px solid #e0e0e0;
-            background-repeat: no-repeat;
-            background-color: #fff;
-            border-radius: 8px;
-            display: none;
-            z-index: 100;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
+    .main-image-wrapper {
+      position: relative;
+      cursor: crosshair;
+      width: 100%;
+      max-width: 450px;
+    }
 
-        .image-thumbnails {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 15px;
-            max-width: 450px;
-        }
+    .main-image {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      display: block;
+    }
 
-        .image-thumbnails a {
-            border: 2px solid transparent;
-            border-radius: 5px;
-            overflow: hidden;
-            transition: all 0.2s ease;
-        }
+    .zoom-lens {
+      position: absolute;
+      border: 1px solid #ccc;
+      background-color: rgba(255, 255, 255, 0.4);
+      width: 175px;
+      height: 175px;
+      display: none;
+      cursor: crosshair;
+      pointer-events: none;
+    }
 
-        .image-thumbnails a:hover, .image-thumbnails a.active {
-            border-color: #DB4437;
-        }
+    .zoom-result {
+      position: absolute;
+      top: 0;
+      left: 105%;
+      /* Position it to the right of the main image */
+      width: 450px;
+      height: 450px;
+      border: 1px solid #e0e0e0;
+      background-repeat: no-repeat;
+      background-color: #fff;
+      border-radius: 8px;
+      display: none;
+      z-index: 100;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
 
-        .image-thumbnails img {
-            width: 75px;
-            height: 75px;
-            object-fit: cover;
-        }
+    .image-thumbnails {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 15px;
+      max-width: 450px;
+    }
 
-        .product-info {
-            flex: 2;
-            min-width: 300px;
-        }
+    .image-thumbnails a {
+      border: 2px solid transparent;
+      border-radius: 5px;
+      overflow: hidden;
+      transition: all 0.2s ease;
+    }
 
-        .product-info h1 {
-            color: #DB4437;
-            font-size: 28px;
-            margin-top: 0;
-            margin-bottom: 15px;
-        }
+    .image-thumbnails a:hover,
+    .image-thumbnails a.active {
+      border-color: #DB4437;
+    }
 
-        .product-info p {
-            color: #555;
-            line-height: 1.6;
-            margin-bottom: 12px;
-        }
+    .image-thumbnails img {
+      width: 75px;
+      height: 75px;
+      object-fit: cover;
+    }
 
-        /* Price & Discount */
-        .price-container {
-            margin: 20px 0;
-            background: #f9f9f9;
-            padding: 15px;
-            border-radius: 8px;
-        }
+    .product-info {
+      flex: 2;
+      min-width: 300px;
+    }
 
-        .regular-price {
-            color: #777;
-            font-size: 16px;
-            text-decoration: line-through;
-            margin-bottom: 5px;
-        }
+    .product-info h1 {
+      color: #DB4437;
+      font-size: 28px;
+      margin-top: 0;
+      margin-bottom: 15px;
+    }
 
-        .price {
-            font-size: 24px;
-            font-weight: bold;
-            color: #FF4B2B;
-            margin: 5px 0;
-        }
+    .product-info p {
+      color: #555;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
 
-        .discount {
-            font-size: 16px;
-            font-weight: normal;
-            color: #FF4B2B;
-            margin-left: 10px;
-            background: rgba(255, 75, 43, 0.1);
-            padding: 3px 8px;
-            border-radius: 4px;
-        }
+    /* Price & Discount */
+    .price-container {
+      margin: 20px 0;
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 8px;
+    }
 
-        /* Stock & Rating */
-        .stock {
-            font-size: 16px;
-            font-weight: bold;
-            margin: 15px 0;
-        }
-        
-        .in-stock {
-            color: #28a745;
-        }
-        
-        .out-of-stock {
-            color: #dc3545;
-        }
+    .regular-price {
+      color: #777;
+      font-size: 16px;
+      text-decoration: line-through;
+      margin-bottom: 5px;
+    }
 
-        .rating {
-            color: #FFCC00;
-            font-size: 18px;
-            margin: 15px 0;
-        }
+    .price {
+      font-size: 24px;
+      font-weight: bold;
+      color: #FF4B2B;
+      margin: 5px 0;
+    }
 
-        /* Buttons */
-        .btn {
-            background: linear-gradient(45deg, #FF416C, #FF4B2B);
-            color: #fff;
-            padding: 12px 25px;
-            border: none;
-            cursor: pointer;
-            margin-top: 15px;
-            margin-right: 10px;
-            border-radius: 5px;
-            font-size: 16px;
-            transition: 0.3s;
-        }
+    .discount {
+      font-size: 16px;
+      font-weight: normal;
+      color: #FF4B2B;
+      margin-left: 10px;
+      background: rgba(255, 75, 43, 0.1);
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
 
-        .btn:hover {
-            background: #DB4437;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(219, 68, 55, 0.3);
-        }
-        
-        .btn:disabled {
-            background: #cccccc;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
+    /* Stock & Rating */
+    .stock {
+      font-size: 16px;
+      font-weight: bold;
+      margin: 15px 0;
+    }
 
-        /* Quantity Selector */
-        .quantity-selector {
-            display: flex;
-            align-items: center;
-            margin: 20px 0;
-        }
+    .in-stock {
+      color: #28a745;
+    }
 
-        .quantity-selector label {
-            margin-right: 15px;
-            font-weight: bold;
-        }
+    .out-of-stock {
+      color: #dc3545;
+    }
 
-        .quantity-controls {
-            display: flex;
-            align-items: center;
-            border: 1px solid #DB4437;
-            border-radius: 4px;
-            overflow: hidden;
-        }
+    .rating {
+      color: #FFCC00;
+      font-size: 18px;
+      margin: 15px 0;
+    }
 
-        .quantity-btn {
-            width: 35px;
-            height: 35px;
-            background: #FF4B2B;
-            color: #fff;
-            border: none;
-            cursor: pointer;
-            font-size: 18px;
-            font-weight: bold;
-            transition: 0.3s;
-        }
+    /* Buttons */
+    .btn {
+      background: linear-gradient(45deg, #FF416C, #FF4B2B);
+      color: #fff;
+      padding: 12px 25px;
+      border: none;
+      cursor: pointer;
+      margin-top: 15px;
+      margin-right: 10px;
+      border-radius: 5px;
+      font-size: 16px;
+      transition: 0.3s;
+    }
 
-        .quantity-btn:hover {
-            background: #DB4437;
-        }
+    .btn:hover {
+      background: #DB4437;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(219, 68, 55, 0.3);
+    }
 
-        #quantity {
-            width: 60px;
-            height: 35px;
-            text-align: center;
-            border: none;
-            border-left: 1px solid #DB4437;
-            border-right: 1px solid #DB4437;
-            font-size: 16px;
-        }
+    .btn:disabled {
+      background: #cccccc;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
 
-        /* Removing Number Input Arrows */
-        #quantity::-webkit-inner-spin-button, 
-        #quantity::-webkit-outer-spin-button { 
-            -webkit-appearance: none;
-            margin: 0;
-        }
+    /* Quantity Selector */
+    .quantity-selector {
+      display: flex;
+      align-items: center;
+      margin: 20px 0;
+    }
 
-        /* Related Products */
-        .related-products-container {
-            margin-top: 40px;
-        }
-        
-        .related-products-container h3 {
-            color: #DB4437;
-            font-size: 22px;
-            margin-bottom: 20px;
-        }
+    .quantity-selector label {
+      margin-right: 15px;
+      font-weight: bold;
+    }
 
-        .related-products-list {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
+    .quantity-controls {
+      display: flex;
+      align-items: center;
+      border: 1px solid #DB4437;
+      border-radius: 4px;
+      overflow: hidden;
+    }
 
-        .related-product {
-            background: #fff;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            width: calc(33.333% - 20px);
-            min-width: 200px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s;
-        }
+    .quantity-btn {
+      width: 35px;
+      height: 35px;
+      background: #FF4B2B;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: bold;
+      transition: 0.3s;
+    }
 
-        .related-product:hover {
-            transform: translateY(-5px);
-        }
+    .quantity-btn:hover {
+      background: #DB4437;
+    }
 
-        .related-product a {
-            text-decoration: none;
-            color: inherit;
-        }
+    #quantity {
+      width: 60px;
+      height: 35px;
+      text-align: center;
+      border: none;
+      border-left: 1px solid #DB4437;
+      border-right: 1px solid #DB4437;
+      font-size: 16px;
+    }
 
-        .related-product img {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
+    /* Removing Number Input Arrows */
+    #quantity::-webkit-inner-spin-button,
+    #quantity::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
 
-        .related-product h4 {
-            font-size: 16px;
-            color: #DB4437;
-            margin: 10px 0;
-        }
+    /* Related Products */
+    .related-products-container {
+      margin-top: 40px;
+    }
 
-        .related-product p {
-            font-size: 16px;
-            color: #FF4B2B;
-            font-weight: bold;
-            margin: 5px 0;
-        }
+    .related-products-container h3 {
+      color: #DB4437;
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
 
-        /* Responsive Styles */
-        @media (max-width: 992px) {
-            .zoom-result {
-                display: none !important; /* Hide on smaller screens */
-            }
-            
-            .main-image-wrapper {
-                cursor: default;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .product-details {
-                flex-direction: column;
-            }
-            
-            .related-product {
-                width: 100%;
-            }
-        }
-    </style>
+    .related-products-list {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .related-product {
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      width: calc(33.333% - 20px);
+      min-width: 200px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s;
+    }
+
+    .related-product:hover {
+      transform: translateY(-5px);
+    }
+
+    .related-product a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .related-product img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+
+    .related-product h4 {
+      font-size: 16px;
+      color: #DB4437;
+      margin: 10px 0;
+    }
+
+    .related-product p {
+      font-size: 16px;
+      color: #FF4B2B;
+      font-weight: bold;
+      margin: 5px 0;
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 992px) {
+      .zoom-result {
+        display: none !important;
+        /* Hide on smaller screens */
+      }
+
+      .main-image-wrapper {
+        cursor: default;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .product-details {
+        flex-direction: column;
+      }
+
+      .related-product {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 
 <body>
-    <%- include('../partials/user/header') %>
+  <%- include('../partials/user/header') %>
+<div class="container">
+    <div class="breadcrumbs">
+        <a href="/">Home</a> > 
+        <a href="/shop">Shop</a> > 
+        <% if (product.category) { %>
+            <a href="/shop?category=<%= product.category._id %>"><%= product.category.name %></a> >
+        <% } %>
+        <span><%= product.productName %></span>
+    </div>
 
-    <div class="container">
-        <div class="breadcrumbs">
-            <a href="/">Home</a> > 
-            <a href="/shop">Shop</a> > 
-            <% if (product.category) { %>
-                <a href="/shop?category=<%= product.category._id %>"><%= product.category.name %></a> >
-            <% } %>
-            <span><%= product.productName %></span>
-        </div>
-
-        <div class="product-details">
-            <div class="product-image-container">
-                <!-- Main Image with Amazon-style Zoom -->
-                <div class="main-image-wrapper">
-                    <img id="mainImage" class="main-image"
-                        src="/uploads/re-image/<%= product.productImage[0] %>" 
-                        alt="<%= product.productName %>" />
-                    <div class="zoom-lens" id="zoomLens"></div>
-                    <div class="zoom-result" id="zoomResult"></div>
-                </div>
-
-                <!-- Image Thumbnails -->
-                <div class="image-thumbnails">
-                    <% product.productImage.forEach((image, index) => { %>
-                        <a href="/uploads/re-image/<%= image %>" 
-                           data-fancybox="gallery" 
-                           class="thumbnail-link <%= index === 0 ? 'active' : '' %>"
-                           data-image="/uploads/re-image/<%= image %>">
-                            <img src="/uploads/re-image/<%= image %>" alt="<%= product.productName %> thumbnail">
-                        </a>
-                    <% }) %>
-                </div>
+    <div class="product-details">
+        <div class="product-image-container">
+            <!-- Main Image with Amazon-style Zoom -->
+            <div class="main-image-wrapper">
+                <img id="mainImage" class="main-image"
+                    src="/uploads/re-image/<%= product.productImage[0] %>" 
+                    alt="<%= product.productName %>" />
+                <div class="zoom-lens" id="zoomLens"></div>
+                <div class="zoom-result" id="zoomResult"></div>
             </div>
 
-            <div class="product-info">
-                <h1><%= product.productName %></h1>
-                <p><%= product.description %></p>
-                
-                <p><strong>Brand:</strong> <%= product.brand ? product.brand.brandName : 'Not specified' %></p>
-                <p><strong>Category:</strong> <%= product.category.name %></p>
-                <p><strong>Color:</strong> <%= product.color || 'Not specified' %></p>
-                
-                <!-- Enhanced Price Display -->
-                <div class="price-container">
-                    <% if (product.regularPrice > product.salesPrice) { %>
-                        <p class="regular-price">Regular Price: ₹<%= product.regularPrice.toFixed(2) %></p>
-                        <p class="price">Sale Price: ₹<%= product.salesPrice.toFixed(2) %>  
-                            <span class="discount">(<%= ((product.regularPrice - product.salesPrice) / product.regularPrice * 100).toFixed(1) %>% OFF)</span>
-                        </p>
-                    <% } else { %>
-                        <p class="price">Price: ₹<%= product.salesPrice.toFixed(2) %></p>
-                    <% } %>
+            <!-- Image Thumbnails -->
+            <div class="image-thumbnails">
+                <% product.productImage.forEach((image, index) => { %>
+                    <a href="/uploads/re-image/<%= image %>" 
+                       data-fancybox="gallery" 
+                       class="thumbnail-link <%= index === 0 ? 'active' : '' %>"
+                       data-image="/uploads/re-image/<%= image %>">
+                        <img src="/uploads/re-image/<%= image %>" alt="<%= product.productName %> thumbnail">
+                    </a>
+                <% }) %>
+            </div>
+        </div>
+
+        <div class="product-info">
+            <h1><%= product.productName %></h1>
+            <p><%= product.description %></p>
+            
+            <p><strong>Brand:</strong> <%= product.brand ? product.brand.brandName : 'Not specified' %></p>
+            <p><strong>Category:</strong> <%= product.category.name %></p>
+            <p><strong>Color:</strong> <%= product.color || 'Not specified' %></p>
+            
+            <!-- Enhanced Price Display -->
+            <div class="price-container">
+                <% if (product.regularPrice > product.salesPrice) { %>
+                    <p class="regular-price">Regular Price: ₹<%= product.regularPrice.toFixed(2) %></p>
+                    <p class="price">Sale Price: ₹<%= product.salesPrice.toFixed(2) %>  
+                        <span class="discount">(<%= ((product.regularPrice - product.salesPrice) / product.regularPrice * 100).toFixed(1) %>% OFF)</span>
+                    </p>
+                <% } else { %>
+                    <p class="price">Price: ₹<%= product.salesPrice.toFixed(2) %></p>
+                <% } %>
+            </div>
+        
+            <p class="stock <%= product.quantity > 0 ? 'in-stock' : 'out-of-stock' %>">
+                <% if (product.quantity > 0) { %>
+                    ✓ In Stock (<%= product.quantity %> available)
+                <% } else { %>
+                    ✗ Out of Stock
+                <% } %>
+            </p>
+            
+            <p class="rating">⭐⭐⭐⭐☆ (4.5 / 5)</p>
+        
+            <!-- Add to Cart Options -->
+            <div class="quantity-selector">
+                <label for="quantity">Quantity:</label>
+                <div class="quantity-controls">
+                    <button type="button" class="quantity-btn minus">-</button>
+                    <input type="number" id="quantity" name="quantity" value="1" min="1" max="<%= product.quantity %>">
+                    <button type="button" class="quantity-btn plus">+</button>
                 </div>
-            
-                <p class="stock <%= product.quantity > 0 ? 'in-stock' : 'out-of-stock' %>">
-                    <% if (product.quantity > 0) { %>
-                        ✓ In Stock (<%= product.quantity %> available)
-                    <% } else { %>
-                        ✗ Out of Stock
-                    <% } %>
-                </p>
-                
-                <p class="rating">⭐⭐⭐⭐☆ (4.5 / 5)</p>
-            
-                <!-- Add to Cart Options -->
-                <div class="quantity-selector">
-                    <label for="quantity">Quantity:</label>
-                    <div class="quantity-controls">
-                        <button class="quantity-btn minus">-</button>
-                        <input type="number" id="quantity" name="quantity" value="1" min="1" max="<%= product.quantity %>">
-                        <button class="quantity-btn plus">+</button>
-                    </div>
-                </div>
-            
-                <button class="btn" id="addToCartBtn" <%= product.quantity <= 0 ? 'disabled' : '' %>>
-                    Add to Cart
-                </button>
+            </div>
+        
+            <div style="display: flex; gap: 10px;">
+                <form id="addToCartForm" action="/add-to-cart" method="POST" style="margin: 0;">
+                    <input type="hidden" name="productId" value="<%= product._id %>">
+                    <input type="hidden" name="quantity" id="formQuantity">
+                    <button type="submit" class="btn" id="addToCartBtn" <%= product.quantity <= 0 ? 'disabled' : '' %>>
+                        Add to Cart
+                    </button>
+                </form>
                 <button class="btn" id="wishlistBtn">
                     Add to Wishlist
                 </button>
             </div>
         </div>
-
-        <div class="related-products-container">
-            <h3>You May Also Like</h3>
-            <div class="related-products-list">
-                <% relatedProducts.forEach((related) => { %>
-                    <div class="related-product">
-                        <a href="/productDetails?id=<%= related._id %>">
-                            <img src="/uploads/re-image/<%= related.productImage[0] %>" 
-                                alt="<%= related.productName %>">
-                            <h4><%= related.productName %></h4>
-                            <p>₹<%= related.salesPrice.toFixed(2) %></p>
-                        </a>
-                    </div>
-                <% }); %>
-            </div>
-        </div>
     </div>
 
-    <script>
+    <div class="related-products-container">
+        <h3>You May Also Like</h3>
+        <div class="related-products-list">
+            <% relatedProducts.forEach((related) => { %>
+                <div class="related-product">
+                    <a href="/productDetails?id=<%= related._id %>">
+                        <img src="/uploads/re-image/<%= related.productImage[0] %>" 
+                            alt="<%= related.productName %>">
+                        <h4><%= related.productName %></h4>
+                        <p>₹<%= related.salesPrice.toFixed(2) %></p>
+                    </a>
+                </div>
+            <% }); %>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
     document.addEventListener("DOMContentLoaded", () => {
-    const mainImage = document.getElementById("mainImage");
-    const lens = document.getElementById("zoomLens");
-    const result = document.getElementById("zoomResult");
-    const imageWrapper = document.querySelector(".main-image-wrapper");
-    let lensActive = false;
-
-    function getCssScale(img) {
-        const rect = img.getBoundingClientRect();
-        return {
-            x: result.offsetWidth / lens.offsetWidth,
-            y: result.offsetHeight / lens.offsetHeight,
-            imageWidth: rect.width,
-            imageHeight: rect.height
-        };
-    }
-
-    function moveLens(e) {
-        if (!lensActive) return;
-        e.preventDefault();
-        const pos = getCursorPos(e);
-        let positionLeft = Math.max(0, Math.min(pos.x - lens.offsetWidth / 2, mainImage.width - lens.offsetWidth));
-        let positionTop = Math.max(0, Math.min(pos.y - lens.offsetHeight / 2, mainImage.height - lens.offsetHeight));
-
-        lens.style.left = `${positionLeft}px`;
-        lens.style.top = `${positionTop}px`;
-        const scale = getCssScale(mainImage);
-        result.style.backgroundImage = `url('${mainImage.src}')`;
-        result.style.backgroundSize = `${mainImage.width * scale.x}px ${mainImage.height * scale.y}px`;
-        result.style.backgroundPosition = `-${positionLeft * scale.x}px -${positionTop * scale.y}px`;
-    }
-
-    function getCursorPos(e) {
-        const rect = mainImage.getBoundingClientRect();
-        return {
-            x: (e.pageX - rect.left - window.pageXOffset) / rect.width * mainImage.width,
-            y: (e.pageY - rect.top - window.pageYOffset) / rect.height * mainImage.height
-        };
-    }
-
-    imageWrapper.addEventListener("mouseenter", (e) => {
-        if (window.innerWidth < 992) return;
-        lens.style.display = "block";
-        result.style.display = "block";
-        lensActive = true;
-        moveLens(e);
-    });
-
-    imageWrapper.addEventListener("mouseleave", () => {
-        lens.style.display = "none";
-        result.style.display = "none";
-        lensActive = false;
-    });
-
-    imageWrapper.addEventListener("mousemove", moveLens);
-
-    document.querySelectorAll(".thumbnail-link").forEach(thumbnail => {
-        thumbnail.addEventListener("click", (e) => {
+        const mainImage = document.getElementById("mainImage");
+        const lens = document.getElementById("zoomLens");
+        const result = document.getElementById("zoomResult");
+        const imageWrapper = document.querySelector(".main-image-wrapper");
+        let lensActive = false;
+    
+        function getCssScale(img) {
+            const rect = img.getBoundingClientRect();
+            return {
+                x: result.offsetWidth / lens.offsetWidth,
+                y: result.offsetHeight / lens.offsetHeight,
+                imageWidth: rect.width,
+                imageHeight: rect.height
+            };
+        }
+    
+        function moveLens(e) {
+            if (!lensActive) return;
             e.preventDefault();
-            document.querySelectorAll(".thumbnail-link").forEach(el => el.classList.remove("active"));
-            thumbnail.classList.add("active");
-            mainImage.src = thumbnail.dataset.image;
+            const pos = getCursorPos(e);
+            let positionLeft = Math.max(0, Math.min(pos.x - lens.offsetWidth / 2, mainImage.width - lens.offsetWidth));
+            let positionTop = Math.max(0, Math.min(pos.y - lens.offsetHeight / 2, mainImage.height - lens.offsetHeight));
+    
+            lens.style.left = `${positionLeft}px`;
+            lens.style.top = `${positionTop}px`;
+            const scale = getCssScale(mainImage);
+            result.style.backgroundImage = `url('${mainImage.src}')`;
+            result.style.backgroundSize = `${mainImage.width * scale.x}px ${mainImage.height * scale.y}px`;
+            result.style.backgroundPosition = `-${positionLeft * scale.x}px -${positionTop * scale.y}px`;
+        }
+    
+        function getCursorPos(e) {
+            const rect = mainImage.getBoundingClientRect();
+            return {
+                x: (e.pageX - rect.left - window.pageXOffset) / rect.width * mainImage.width,
+                y: (e.pageY - rect.top - window.pageYOffset) / rect.height * mainImage.height
+            };
+        }
+    
+        imageWrapper.addEventListener("mouseenter", (e) => {
+            if (window.innerWidth < 992) return;
+            lens.style.display = "block";
+            result.style.display = "block";
+            lensActive = true;
+            moveLens(e);
+        });
+    
+        imageWrapper.addEventListener("mouseleave", () => {
+            lens.style.display = "none";
+            result.style.display = "none";
+            lensActive = false;
+        });
+    
+        imageWrapper.addEventListener("mousemove", moveLens);
+    
+        document.querySelectorAll(".thumbnail-link").forEach(thumbnail => {
+            thumbnail.addEventListener("click", (e) => {
+                e.preventDefault();
+                document.querySelectorAll(".thumbnail-link").forEach(el => el.classList.remove("active"));
+                thumbnail.classList.add("active");
+                mainImage.src = thumbnail.dataset.image;
+            });
+        });
+    
+        document.querySelector(".quantity-btn.plus").addEventListener("click", () => {
+            const quantityInput = document.getElementById("quantity");
+            const max = parseInt(quantityInput.getAttribute("max"));
+            let current = parseInt(quantityInput.value);
+            if (current < max) quantityInput.value = current + 1;
+        });
+    
+        document.querySelector(".quantity-btn.minus").addEventListener("click", () => {
+            const quantityInput = document.getElementById("quantity");
+            let current = parseInt(quantityInput.value);
+            if (current > 1) quantityInput.value = current - 1;
+        });
+    
+        document.getElementById("addToCartForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+    
+            const quantity = parseInt(document.getElementById("quantity").value);
+            if (isNaN(quantity) || quantity <= 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Quantity',
+                    text: 'Please enter a valid quantity.',
+                });
+                return;
+            }
+    
+            const userData = "<%= typeof userData !== 'undefined' && userData ? 'true' : 'false' %>";
+            if (userData === "false") {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Login Required',
+                    text: 'Please log in to add items to your cart.',
+                }).then(() => {
+                    window.location.href = "/login";
+                });
+                return;
+            }
+    
+            try {
+                const response = await fetch("/add-to-cart", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({ 
+                        productId: "<%= product._id %>", 
+                        quantity: quantity 
+                    })
+                });
+                
+                const result = await response.json();
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: result.message || "Product added to cart successfully!",
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+                
+            } catch (error) {
+                console.error("Error adding to cart:", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error adding product to cart.',
+                });
+            }
+        });
+    
+        document.getElementById("wishlistBtn").addEventListener("click", async () => {
+            try {
+                const response = await fetch("/addToWishlist", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({ productId: "<%= product._id %>" })
+                });
+                if (response.ok) {
+                    const result = await response.json();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Added',
+                        text: result.message || "Product added to wishlist!",
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                } else {
+                    throw new Error("Failed to add product.");
+                }
+            } catch (error) {
+                console.error("Error adding to wishlist:", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error adding product to wishlist.',
+                });
+            }
         });
     });
-
-    document.querySelector(".quantity-btn.plus").addEventListener("click", () => {
-        const quantityInput = document.getElementById("quantity");
-        const max = parseInt(quantityInput.getAttribute("max"));
-        let current = parseInt(quantityInput.value);
-        if (current < max) quantityInput.value = current + 1;
-    });
-
-    document.querySelector(".quantity-btn.minus").addEventListener("click", () => {
-        const quantityInput = document.getElementById("quantity");
-        let current = parseInt(quantityInput.value);
-        if (current > 1) quantityInput.value = current - 1;
-    });
-
-    document.getElementById("addToCartBtn").addEventListener("click", async () => {
-        const quantity = document.getElementById("quantity").value;
-        try {
-            const response = await fetch("/addToCart", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ productId: "<%= product._id %>", quantity })
-            });
-            if (response.ok) alert("Product added to cart!");
-            else throw new Error("Failed to add product.");
-        } catch (error) {
-            console.error("Error adding to cart:", error);
-            alert("Error adding product to cart.");
-        }
-    });
-
-    document.getElementById("wishlistBtn").addEventListener("click", async () => {
-        try {
-            const response = await fetch("/addToWishlist", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ productId: "<%= product._id %>" })
-            });
-            if (response.ok) alert("Product added to wishlist!");
-            else throw new Error("Failed to add product.");
-        } catch (error) {
-            console.error("Error adding to wishlist:", error);
-            alert("Error adding product to wishlist.");
-        }
-    });
-});
-
     </script>
-
-    <%- include('../../views/partials/user/footer') %>
+  <%- include('../../views/partials/user/footer') %>
 </body>
+
 </html>
- 

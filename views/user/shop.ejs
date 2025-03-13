@@ -448,49 +448,55 @@
   </div>
   
   <script>
-  function filterPrice(min, max) {
-    const currentUrl = new URL(window.location.href);
-    currentUrl.searchParams.set('minPrice', min);
-    if (max) {
-      currentUrl.searchParams.set('maxPrice', max);
-    } else {
-      currentUrl.searchParams.delete('maxPrice');
-    }
-    
-    // Preserve other parameters
-    if (currentUrl.searchParams.get('sort')) {
-      currentUrl.searchParams.set('sort', currentUrl.searchParams.get('sort'));
-    }
-    if (currentUrl.searchParams.get('search')) {
-      currentUrl.searchParams.set('search', currentUrl.searchParams.get('search'));
-    }
-    
-    window.location.href = currentUrl.toString();
-  }
-  
-  async function addToCart(productId) {
-    try {
-      const response = await fetch('/add-to-cart', {  // Updated route
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ productId }),
-      });
-
-      if (response.ok) {
-        alert('Product added to cart successfully!');
+    function filterPrice(min, max) {
+      const currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.set('minPrice', min);
+      if (max) {
+        currentUrl.searchParams.set('maxPrice', max);
       } else {
-        const errorData = await response.json();
-        alert('Failed to add product: ' + errorData.message);
+        currentUrl.searchParams.delete('maxPrice');
       }
-    } catch (error) {
-      console.error('Error adding to cart:', error);
-      alert('Error adding product to cart');
+      
+      if (currentUrl.searchParams.get('sort')) {
+        currentUrl.searchParams.set('sort', currentUrl.searchParams.get('sort'));
+      }
+      if (currentUrl.searchParams.get('search')) {
+        currentUrl.searchParams.set('search', currentUrl.searchParams.get('search'));
+      }
+      
+      window.location.href = currentUrl.toString();
     }
-}
-
   
+    async function addToCart(productId) {
+      console.log('Attempting to add product to cart:', productId); // Debug log
+      try {
+        const response = await fetch('/add-to-cart', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ productId }),
+          credentials: 'include' // Ensure session cookies are sent
+        });
+  
+        console.log('Response status:', response.status); // Debug log
+        console.log('Response redirected:', response.redirected); // Debug log
+  
+        if (response.ok) {
+          const data = await response.json();
+          alert(data.message || 'Product added to cart successfully!');
+        } else if (response.status === 401 || response.redirected) {
+          alert('Please log in to add items to your cart.');
+          window.location.href = '/login';
+        } else {
+          const errorData = await response.json();
+          console.error('Error data from server:', errorData); // Debug log
+          alert('Failed to add product: ' + (errorData.message || 'Unknown error'));
+        }
+      } catch (error) {
+        console.error('Fetch error:', error); // Detailed error log
+        alert('Error adding product to cart: ' + error.message);
+      }
+    }
   </script>
-
 <%- include('../../views/partials/user/footer') %>
