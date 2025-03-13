@@ -6,91 +6,134 @@ const Wishlist = require("../../models/wishListSchema");
 
 // Get Cart Page with data
 const getCartPage = async (req, res) => {
-  try {
-    // Log the session user to debug
-    console.log("Session user:", req.session.user);
-
-    let userId;
-    // Handle different possible formats of req.session.user
-    if (typeof req.session.user === 'string') {
-      userId = req.session.user; // If it's just the ID as a string
-    } else if (typeof req.session.user === 'object' && req.session.user.id) {
-      userId = req.session.user.id; // If it's an object with an 'id' field
-    } else if (typeof req.session.user === 'object' && req.session.user._id) {
-      userId = req.session.user._id; // If it's an object with an '_id' field
-    } else {
-      console.error("Invalid session user format:", req.session.user);
-      return res.redirect("/login"); // Redirect to login if user session is invalid
-    }
-
-    // Validate the userId
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      console.error("Invalid userId:", userId);
-      return res.redirect("/pageNotFound");
-    }
-
-    const objectId = new mongoose.Types.ObjectId(userId);
-    const user = await User.findById(objectId);
-    if (!user) {
-      console.error("User not found for ID:", userId);
-      return res.redirect("/pageNotFound");
-    }
-
-    const cartData = await Cart.aggregate([
-      { $match: { userId: objectId } },
-      { $unwind: "$products" },
-      {
-        $lookup: {
-          from: "products",
-          localField: "products.productId",
-          foreignField: "_id",
-          as: "productDetails",
+    try {
+      console.log("Session user:", req.session.user);
+  
+      let userId;
+      if (typeof req.session.user === 'string') {
+        userId = req.session.user;
+      } else if (typeof req.session.user === 'object' && req.session.user.id) {
+        userId = req.session.user.id;
+      } else if (typeof req.session.user === 'object' && req.session.user._id) {
+        userId = req.session.user._id;
+      } else {
+        console.error("Invalid session user format:", req.session.user);
+        return res.redirect("/login");
+      }
+  
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        console.error("Invalid userId:", userId);
+        return res.redirect("/pageNotFound");
+      }
+  
+      const objectId = new mongoose.Types.ObjectId(userId);
+      const user = await User.findById(objectId);
+      if (!user) {
+        console.error("User not found for ID:", userId);
+        return res.redirect("/pageNotFound");
+      }
+  
+      const cartData = await Cart.aggregate([
+        { $match: { userId: objectId } },
+        { $unwind: { path: "$products", preserveNullAndEmptyArrays: true } }, // Handle empty carts
+        {
+          $lookup: {
+            from: "products",
+            localField: "products.productId",
+            foreignField: "_id",
+            as: "productDetails",
+          },
         },
-      },
-      {
-        $lookup: {
-          from: "categories",
-          localField: "productDetails.category",
-          foreignField: "_id",
-          as: "categoryDetails",
+        // Filter out blocked products
+        {
+          $project: {
+            products: 1,
+            productDetails: {
+              $filter: {
+                input: "$productDetails",
+                cond: { $ne: ["$$this.isBlocked", true] },
+              },
+            },
+          },
         },
-      },
-      {
-        $lookup: {
-          from: "brands",
-          localField: "productDetails.brand",
-          foreignField: "_id",
-          as: "brandDetails",
+        { $match: { "productDetails.0": { $exists: true } } }, // Ensure product exists
+        {
+          $lookup: {
+            from: "categories",
+            localField: "productDetails.category",
+            foreignField: "_id",
+            as: "categoryDetails",
+          },
         },
-      },
-    ]);
-
-    let grandTotal = 0;
-    let totalQuantity = 0;
-
-    if (cartData.length > 0) {
-      cartData.forEach((item) => {
-        const price = item.productDetails[0].salesPrice;
-        const quantity = item.products.quantity;
-        grandTotal += price * quantity;
-        totalQuantity += quantity;
+        // Filter listed categories
+        {
+          $project: {
+            products: 1,
+            productDetails: 1,
+            categoryDetails: {
+              $filter: {
+                input: "$categoryDetails",
+                cond: { $eq: ["$$this.isListed", true] },
+              },
+            },
+          },
+        },
+        { $match: { "categoryDetails.0": { $exists: true } } }, // Ensure category exists
+        {
+          $lookup: {
+            from: "brands",
+            localField: "productDetails.brand",
+            foreignField: "_id",
+            as: "brandDetails",
+          },
+        },
+        // Filter unblocked brands
+        {
+          $project: {
+            products: 1,
+            productDetails: 1,
+            categoryDetails: 1,
+            brandDetails: {
+              $filter: {
+                input: "$brandDetails",
+                cond: { $ne: ["$$this.isBlocked", true] },
+              },
+            },
+          },
+        },
+        // Remove items where brandDetails is empty (i.e., brand is blocked)
+        { $match: { "brandDetails.0": { $exists: true } } },
+      ]);
+  
+      let grandTotal = 0;
+      let totalQuantity = 0;
+  
+      if (cartData.length > 0) {
+        cartData.forEach((item) => {
+          if (item.productDetails && item.productDetails.length > 0) {
+            const price = item.productDetails[0].salesPrice || 0;
+            const quantity = item.products.quantity || 0;
+            grandTotal += price * quantity;
+            totalQuantity += quantity;
+          }
+        });
+      }
+  
+      console.log("Cart Data:", JSON.stringify(cartData, null, 2));
+  
+      res.render("cart", {
+        data: cartData,
+        grandTotal: grandTotal,
+        totalQuantity: totalQuantity,
+        user: user,
+        cartData,
+        userData: req.user,
       });
+    } catch (error) {
+      console.error("Error in getCartPage:", error);
+      res.redirect("/pageNotFound");
     }
-
-    res.render("cart", {
-      data: cartData,
-      grandTotal: grandTotal,
-      totalQuantity: totalQuantity,
-      user: user,
-      cartData,
-      userData: req.user, // Pass userData to the template
-    });
-  } catch (error) {
-    console.error("Error in getCartPage:", error);
-    res.redirect("/pageNotFound");
-  }
-};
-
+  };
 // Add to cart function
 async function addToCart(req, res) {
     try {

@@ -15,16 +15,34 @@ const loadWishlistPage = async (req, res, next) => {
         const wishlist = await Wishlist.findOne({ userId: req.user._id })
             .populate({
                 path: 'products.productId',
-                select: 'productName description images salesPrice status combos isBlocked',
+                select: 'productName description productImage salesPrice status combos isBlocked category brand',
                 match: { 
-                    isBlocked: { $ne: true },    // Filter out blocked products
-                    status: { $ne: 'out of stock' }  // Filter out unavailable products
-                }
+                    isBlocked: { $ne: true },
+                    status: { $ne: 'out of stock' }
+                },
+                populate: [
+                    {
+                        path: 'category',
+                        select: 'isListed',
+                        match: { isListed: true }
+                    },
+                    {
+                        path: 'brand',
+                        select: 'isBlocked',
+                        match: { isBlocked: { $ne: true } }
+                    }
+                ]
             });
 
-        // Filter out null productId references and prepare for pagination
         const wishlistItems = wishlist && wishlist.products.length > 0 
-            ? wishlist.products.filter(item => item.productId && !item.productId.isBlocked)
+            ? wishlist.products.filter(item => 
+                item.productId && 
+                !item.productId.isBlocked && 
+                item.productId.category && 
+                item.productId.category.isListed && 
+                item.productId.brand && 
+                !item.productId.brand.isBlocked
+            )
             : [];
 
         const totalItems = wishlistItems.length;
