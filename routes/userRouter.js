@@ -13,6 +13,7 @@ const addressController = require("../controllers/user/addressController");
 const checkoutController = require('../controllers/user/checkoutControlller');
 const walletController = require("../controllers/user/walletController");
 const orderController = require("../controllers/user/orderController");
+const wishlistController = require("../controllers/user/wishlistController");
 const { errorHandler } = require("../middlewares/errorHandler");
 //error handling middleware
 router.use(errorHandler);
@@ -112,5 +113,14 @@ router.post('/cancel-order/:orderId', userAuth, orderController.cancelOrder);
 
 //Wallet Management
 router.get('/user/wallet', userAuth, walletController.loadWalletPage);
+
+// Wishlist Management
+router.get('/wishlist', userAuth, wishlistController.loadWishlistPage);
+// router.post('/wishlist/add/:productId', userAuth, wishlistController.addToWishlist);
+router.post('/wishlist/add/:productId([0-9a-fA-F]{24})', userAuth, wishlistController.addToWishlist);
+router.delete('/wishlist/remove/:productId', userAuth, wishlistController.removeFromWishlist);
+router.get('/wishlist/check-status', userAuth, wishlistController.checkWishlistStatus);
+router.post('/wishlist/toggle/:productId([0-9a-fA-F]{24})', userAuth, wishlistController.toggleWishlist);
+
 
 module.exports = router;

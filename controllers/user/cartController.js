@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const User = require("../../models/userSchema");
 const Product = require("../../models/productSchema");
 const Cart = require("../../models/cartSchema");
+const Wishlist = require("../../models/wishListSchema");
 
 // Get Cart Page with data
 const getCartPage = async (req, res) => {
@@ -94,13 +95,11 @@ const getCartPage = async (req, res) => {
 async function addToCart(req, res) {
     try {
         console.log("Received data:", req.body);
-        console.log("Session data:", req.session); // Debug log
+        console.log("Session data:", req.session);
 
         const { productId } = req.body;
 
-        // Check if user is authenticated
         if (!req.session || !req.session.user) {
-            console.log("No session or user found"); // Debug log
             return res.status(401).json({ message: "Please log in to add items to your cart" });
         }
 
@@ -112,19 +111,14 @@ async function addToCart(req, res) {
         } else if (typeof req.session.user === 'string') {
             userId = req.session.user;
         } else {
-            console.log("Invalid session user format:", req.session.user); // Debug log
             return res.status(401).json({ message: "Invalid session data. Please log in again." });
         }
 
-        console.log("Extracted userId:", userId); // Debug log
-
         if (!productId) {
-            console.log("Missing productId"); // Debug log
             return res.status(400).json({ message: "Product ID is required" });
         }
 
         if (!mongoose.Types.ObjectId.isValid(productId)) {
-            console.log("Invalid productId:", productId); // Debug log
             return res.status(400).json({ message: "Invalid Product ID" });
         }
 
@@ -133,45 +127,38 @@ async function addToCart(req, res) {
 
         const product = await Product.findById(productObjectId);
         if (!product) {
-            console.log("Product not found for ID:", productId); // Debug log
             return res.status(404).json({ message: "Product not found" });
         }
 
-        console.log("Product found:", product.productName); // Debug log
-
-        if (product.isBlocked || product.isUnlisted) {
-            console.log("Product unavailable:", product.productName); // Debug log
+        if (product.isBlocked || product.status === 'out of stock') {
             return res.status(400).json({ message: "This product is not available" });
         }
 
         if (product.quantity <= 0) {
-            console.log("Product out of stock:", product.productName); // Debug log
             return res.status(400).json({ message: "This product is out of stock" });
         }
 
         let cart = await Cart.findOne({ userId: userObjectId });
-        console.log("Cart found:", cart ? "Yes" : "No"); // Debug log
 
         if (!cart) {
             cart = new Cart({ userId: userObjectId, products: [] });
-            console.log("New cart created for user:", userId); // Debug log
         }
 
         if (cart.products.length >= 4 && !cart.products.some(item => item.productId.equals(productObjectId))) {
-            console.log("Cart limit exceeded"); // Debug log
             return res.status(400).json({ message: "Cart cannot contain more than 4 different products" });
         }
 
         const existingProduct = cart.products.find(item => item.productId.equals(productObjectId));
         if (existingProduct) {
             if (existingProduct.quantity + 1 > product.quantity) {
-                console.log("Stock limit reached for:", product.productName); // Debug log
                 return res.status(400).json({ message: "Cannot add more of this product. Maximum stock limit reached." });
+            }
+            if (existingProduct.quantity === 5) {
+                return res.status(400).json({ message: "Cannot add more of this product. Maximum stock" });
             }
             
             existingProduct.quantity += 1;
             existingProduct.totalPrice = existingProduct.quantity * product.salesPrice;
-            console.log("Updated quantity for:", product.productName); // Debug log
         } else {
             cart.products.push({
                 productId: productObjectId,
@@ -179,20 +166,21 @@ async function addToCart(req, res) {
                 price: product.salesPrice,
                 totalPrice: product.salesPrice
             });
-            console.log("Added new product to cart:", product.productName); // Debug log
-            
-            await User.updateOne(
-                { _id: userObjectId },
-                { $pull: { wishlist: productObjectId } }
-            );
         }
-  
+
+        // Save cart first
         await cart.save();
-        console.log("Cart saved successfully"); // Debug log
+
+        // Remove from wishlist after successful cart addition
+        await Wishlist.updateOne(
+            { userId: userObjectId },
+            { $pull: { products: { productId: productObjectId } } }
+        );
+
         return res.status(200).json({ message: "Product added to cart successfully!" });
 
     } catch (error) {
-        console.error("Error adding to cart:", error.stack); // Detailed stack trace
+        console.error("Error adding to cart:", error.stack);
         return res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 }
@@ -304,9 +292,6 @@ const deleteProduct = async (req, res) => {
         res.status(500).json({ status: false, error: "Server error" });
     }
 };
-
-
-
 
 
 module.exports = {

@@ -1,3 +1,5 @@
+
+<head>
 <!-- Previous styles remain the same, add these additional styles -->
 <!-- Add these updated styles -->
 <style>
@@ -281,6 +283,24 @@
   transform: translateY(-2px);
 }
 
+.wishlist-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+  .wishlist-btn .fa-heart {
+    font-size: 18px;
+    color: #ccc;
+    transition: color 0.3s;
+  }
+  .wishlist-btn.active .fa-heart {
+    color: #ff4444;
+  }
+
 /* No Products Message */
 .no-products {
   grid-column: 1 / -1;
@@ -339,9 +359,9 @@
   }
 }
 </style>
-  
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <%- include('../../views/partials/user/header') %>
-
+</head>
   
   <div class="main-container">
     <section class="shop-page">
@@ -439,6 +459,9 @@
                 <button class="add-to-cart-btn" onclick="addToCart('<%= product._id %>')">
                   Add to Cart
                 </button>
+                <button class="wishlist-btn" onclick="toggleWishlist('<%= product._id %>', this)" data-product-id="<%= product._id %>">
+                  <i class="fa fa-heart" aria-hidden="true"></i>
+                </button>
               </div>
             <% }) %>
           <% } %>
@@ -448,7 +471,7 @@
   </div>
   
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  
+
 <script>
     function filterPrice(min, max) {
       const currentUrl = new URL(window.location.href);
@@ -519,5 +542,78 @@
         });
       }
     }
+
+    // Load initial wishlist status when page loads
+document.addEventListener('DOMContentLoaded', async () => {
+  const wishlistButtons = document.querySelectorAll('.wishlist-btn');
+  wishlistButtons.forEach(async (btn) => {
+    const productId = btn.getAttribute('data-product-id');
+    try {
+      const response = await fetch(`/wishlist/check-status?productId=${productId}`, {
+        credentials: 'include'
+      });
+      const data = await response.json();
+      if (data.success && data.inWishlist) {
+        btn.classList.add('active');
+      }
+    } catch (error) {
+      console.error('Error checking wishlist status:', error);
+    }
+  });
+});
+
+async function toggleWishlist(productId, button) {
+  try {
+    const isActive = button.classList.contains('active');
+    const response = await fetch(`/wishlist/toggle/${productId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include'
+    });
+
+    const data = await response.json();
+    
+    if (response.ok) {
+      if (isActive) {
+        button.classList.remove('active');
+        Swal.fire({
+          icon: 'success',
+          title: 'Removed',
+          text: data.message || 'Product removed from wishlist!',
+          timer: 1500,
+          showConfirmButton: false
+        });
+      } else {
+        button.classList.add('active');
+        Swal.fire({
+          icon: 'success',
+          title: 'Added',
+          text: data.message || 'Product added to wishlist!',
+          timer: 1500,
+          showConfirmButton: false
+        });
+      }
+    } else if (response.status === 401) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Login Required',
+        text: 'Please log in to manage your wishlist.',
+      }).then(() => {
+        window.location.href = '/login';
+      });
+    } else {
+      throw new Error(data.error || 'Unknown error');
+    }
+  } catch (error) {
+    console.error('Wishlist toggle error:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Failed to update wishlist: ' + error.message,
+    });
+  }
+}
 </script>
 <%- include('../../views/partials/user/footer') %>
