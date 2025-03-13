@@ -470,9 +470,8 @@
               <% } %>
             </div>
           </div>
-
           <div class="order-details">
-            <img src="<%= order.product.image %>" alt="<%= order.product.name %>" class="product-image">
+            <img src="/uploads/re-image/<%= order.product.productImage[0] %>" alt="<%= order.product.name %>" class="product-image">
             <div class="product-info">
               <div class="status-tracker">
                 <div class="status-line <%= order.status >= 2 ? 'active' : '' %>"></div>
