@@ -11,6 +11,7 @@ const shopController = require("../controllers/user/shopController");
 const profileController = require("../controllers/user/profileController");
 const addressController = require("../controllers/user/addressController");
 const checkoutController = require('../controllers/user/checkoutControlller');
+const walletController = require("../controllers/user/walletController");
 const orderController = require("../controllers/user/orderController");
 const { errorHandler } = require("../middlewares/errorHandler");
 //error handling middleware
@@ -104,8 +105,12 @@ router.get('/checkout', userAuth, checkoutController.getCheckoutPage);
 router.post('/place-order', userAuth, checkoutController.placeOrder);
 
 //Order management
-router.get("/orderPlaced", userAuth, orderController.getOrderPlaced);
-router.get("/my-orders", userAuth, orderController.loadMyOrders);
+router.get('/orderPlaced', userAuth, orderController.getOrderPlaced);
+router.get('/my-orders', userAuth, orderController.loadMyOrders);
+router.post('/cancel-order/:orderId', userAuth, orderController.cancelOrder);
 
+
+//Wallet Management
+router.get('/user/wallet', userAuth, walletController.loadWalletPage);
 
 module.exports = router;

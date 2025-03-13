@@ -56,7 +56,7 @@ const loadMyOrders = async (req, res, next) => {
             quantity: order.OrderItems[0].quantity,
             totalAmount: order.finalAmount,
             placedOn: order.createdOn.toLocaleString(),
-            status: order.status,
+            status: getOrderStatus(order.status), 
             cancellation_reason: order.cancellation_reason,
             return_reason: order.return_reason
         }));
@@ -72,7 +72,86 @@ const loadMyOrders = async (req, res, next) => {
     }
 };
 
+function getOrderStatus(status) {
+    const statusMap = {
+      'Pending': 1,
+      'Pending COD': 1,
+      'Processing': 2,
+      'Shipped': 3,
+      'Delivered': 4,
+      'Return Request': 5,
+      'Returned': 6, 
+      'Cancelled': 0
+    };
+    return statusMap[status] || 0;
+  }
+
+  const cancelOrder = async (req, res) => {
+    try {
+      const { orderId } = req.params;
+      const userId = req.user._id; // Use req.user._id to match walletController
+      const { cancellationReason } = req.body || {}; // Default to empty object if req.body is undefined
+  
+      // Find the order and ensure it’s not delivered (status < 4 based on your status mapping)
+      const order = await Order.findOne({ orderId, userId });
+      
+      if (!order) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Order not found' 
+        });
+      }
+  
+      // Check if order is not delivered (use numeric status from getOrderStatus)
+      const currentStatus = getOrderStatus(order.status);
+      if (currentStatus >= 4) { // Assuming 4 is 'Delivered'
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Order cannot be cancelled after delivery' 
+        });
+      }
+  
+      // Update order status and store cancellation reason
+      order.status = 'Cancelled';
+      order.cancellation_reason = cancellationReason || 'No reason provided';
+      await order.save();
+  
+      // Restore product quantities
+      for (const item of order.orderedItems) {
+        const product = await Product.findById(item.product);
+        if (product) {
+          const combo = product.combos.find(combo => 
+            combo.color === item.color && // Assuming orderedItems has color/size fields; adjust if needed
+            combo.size === item.size
+          );
+          if (combo) {
+            combo.quantity += item.quantity;
+            await product.save();
+          }
+        }
+      }
+  
+      // Refund logic: If not COD, transfer amount to user's wallet using walletController
+      if (order.paymentMethod !== 'cod') {
+        await walletController.addToWallet({
+          user: userId, // Pass user ID as part of an object to match walletController's expected format
+          amount: order.finalAmount,
+          description: `Refund from order #${order.orderId}`
+        });
+      }
+  
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error in cancelOrder:', error); // Log the error for debugging
+      res.status(500).json({ success: false, message: 'Server error: ' + error.message });
+    }
+  };
+
+  
+  
+
 module.exports = { 
     getOrderPlaced,
-    loadMyOrders
+    loadMyOrders,
+    cancelOrder
 };

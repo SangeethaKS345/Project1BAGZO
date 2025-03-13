@@ -8,7 +8,7 @@ const orderSchema = new Schema({
     default: () => uuidv4(),
     unique: true
   },
-  userId: {  // Add this field
+  userId: {  
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true
