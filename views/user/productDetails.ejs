@@ -544,7 +544,16 @@
             const quantityInput = document.getElementById("quantity");
             const max = parseInt(quantityInput.getAttribute("max"));
             let current = parseInt(quantityInput.value);
-            if (current < max) quantityInput.value = current + 1;
+            
+            if (current < 5) {
+                quantityInput.value = current + 1;
+            } else {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Limit Reached',
+                    text: 'Only 5 products can be added to the cart at once.',
+                });
+            }
         });
     
         document.querySelector(".quantity-btn.minus").addEventListener("click", () => {
@@ -562,6 +571,15 @@
                     icon: 'error',
                     title: 'Invalid Quantity',
                     text: 'Please enter a valid quantity.',
+                });
+                return;
+            }
+    
+            if (quantity > 5) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Quantity Limit Exceeded',
+                    text: 'Only 5 products can be added to the cart at once.',
                 });
                 return;
             }
