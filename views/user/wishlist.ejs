@@ -354,6 +354,15 @@
       background-color: #f5f5f5;
     }
 
+   
+    .table-title-link:hover .table-title {
+  background: linear-gradient(to right, #FF4B2B, #FF416C);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  transition: all 0.3s ease;
+}
+
     @media (max-width: 576px) {
       .section-title {
         font-size: 24px;
@@ -411,17 +420,21 @@
               <% wishlistItems.forEach(item => { %>
               <tr>
                 <td>
-                    <img
-                    src="/uploads/re-image/<%= item.productId.productImage && item.productId.productImage.length > 0 ? item.productId.productImage[0] : 'default-image.png' %>"
-                    alt="<%= item.productId.productName || 'Product' %>"
-                    class="table-img"
-                  />
-                </td>
-                <td>
-                  <h3 class="table-title">
-                    <%= item.productId.productName || 'Unnamed Product' %>
-                  </h3>
-                </td>
+                    <a href="/productDetails?id=<%= item.productId._id %>">
+                      <img
+                        src="/uploads/re-image/<%= item.productId.productImage && item.productId.productImage.length > 0 ? item.productId.productImage[0] : 'default-image.png' %>"
+                        alt="<%= item.productId.productName || 'Product' %>"
+                        class="table-img"
+                      />
+                    </a>
+                  </td>
+                  <td>
+                    <a href="/productDetails?id=<%= item.productId._id %>" class="table-title-link">
+                      <h3 class="table-title">
+                        <%= item.productId.productName || 'Unnamed Product' %>
+                      </h3>
+                    </a>
+                  </td>
                 <td>
                   <span class="table-price">
                     ₹<%= item.productId.salesPrice || 'N/A' %>

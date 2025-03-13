@@ -1,3 +1,6 @@
+<%- include("../../views/partials/user/header") %>
+
+<!-- Use the provided CSS directly -->
 <style>
     /* Modern Cart Styling with Updated Colors */
     :root {
@@ -152,16 +155,40 @@
     }
     
     /* Item Details */
+.item-details {
+    padding-right: var(--space-md);
+}
+
+@media (max-width: 768px) {
     .item-details {
-        padding-right: var(--space-md);
+        grid-area: details;
+        padding-right: 0;
     }
-    
-    @media (max-width: 768px) {
-        .item-details {
-            grid-area: details;
-            padding-right: 0;
-        }
-    }
+}
+
+.item-name {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: var(--space-xs);
+}
+
+.item-name a {
+    color: var(--dark-gray); /* Default color: black-ish */
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.item-name a:hover {
+    background: var(--gradient); /* Gradient on hover */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.item-meta {
+    font-size: 13px;
+    color: var(--medium-gray);
+    margin: 0;
+}
     
     .item-name {
         font-size: 16px;
@@ -524,303 +551,292 @@
             font-size: 18px;
         }
     }
-    </style>
-    
-    <%- include("../../views/partials/user/header") %>
-    
-    <div class="cart-container">
-        <div class="cart-header">
-            <div class="container">
-                <h1>Shopping Cart</h1>
-                <div class="breadcrumb">
-                    <a href="/">Home</a> > <a href="/shop">Shop</a> > <span>Cart</span>
-                </div>
+</style>
+
+<div class="cart-container">
+    <div class="cart-header">
+        <div class="container">
+            <h1>Shopping Cart</h1>
+            <div class="breadcrumb">
+                <a href="/">Home</a> > <a href="/shop">Shop</a> > <span>Cart</span>
             </div>
         </div>
-    
-        <div class="container">
-            <div class="cart-content">
-                <div class="cart-items">
-                    <% if (cartData.length > 0) { %>
-                        <% var x=0 %>
-                        <% for (let i=0; i < cartData.length; i++) { %>
-                            <div class="cart-item">
-                                <div class="item-image">
+    </div>
+
+    <div class="container">
+        <div class="cart-content">
+            <div class="cart-items">
+                <% if (Array.isArray(cartData) && cartData.length > 0) { %>
+                    <% for (let i = 0; i < cartData.length; i++) { %>
+                        <div class="cart-item">
+                            <div class="item-image">
+                                <a href="/productDetails?id=<%= cartData[i].productDetails[0]._id %>">
                                     <img src="/uploads/re-image/<%= cartData[i].productDetails[0].productImage[0] %>" alt="<%= cartData[i].productDetails[0].productName %>">
-                                </div>
-                                <div class="item-details">
-                                    <h3 class="item-name">
+                                </a>
+                            </div>
+                            <div class="item-details">
+                                <h3 class="item-name">
+                                    <a href="/productDetails?id=<%= cartData[i].productDetails[0]._id %>">
                                         <%= cartData[i].productDetails[0].productName %>
                                         <% if (cartData[i].productDetails[0].isOnSale) { %>
                                             <span class="product-badge">Sale</span>
                                         <% } %>
-                                    </h3>
-                                    <p class="item-meta"><%= cartData[i].categoryDetails[0].name %> | <%= cartData[i].brandDetails[0].brandName %></p>
-                                    <div class="item-price">
-                                        <span class="price-label">Price:</span>
-                                        <span class="price-value">₹<span id="price<%= cartData[i].productDetails[0].id %>"><%= cartData[i].productDetails[0].salesPrice %></span></span>
-                                    </div>
-                                </div>
-                                <div class="item-quantity">
-                                    <div class="quantity-wrapper">
-                                        <button class="qty-btn minus" onclick="changeQuantity('<%= cartData[i].productDetails[0]._id %>', '<%= cartData[i].products.quantity %>', -1, '<%= cartData[i].productDetails[0].salesPrice %>', '<%= cartData[i].productDetails[0].id %>', '<%= cartData[i].productDetails[0].quantity%>')">−</button>
-                                        <input type="text" id="cartProductQuantity<%= cartData[i].productDetails[0].id %>" value="<%= cartData[i].products.quantity %>" readonly>
-                                        <button class="qty-btn plus" onclick="changeQuantity('<%= cartData[i].productDetails[0]._id %>', '<%= cartData[i].products.quantity %>', 1, '<%= cartData[i].productDetails[0].salesPrice %>', '<%= cartData[i].productDetails[0].id %>', '<%= cartData[i].productDetails[0].quantity%>')">+</button>                                    </div>
-                                </div>
-                                <div class="item-subtotal">
-                                    <span class="subtotal-label">Subtotal:</span>
-                                    <span class="subtotal-value">₹<span id="subTotal<%= cartData[i].productDetails[0].id %>"><%= cartData[i].productDetails[0].salesPrice * cartData[i].products.quantity %></span></span>
-                                </div>
-                                <div class="item-remove">
-                                    <button class="remove-btn" onclick="confirmRemove('<%= cartData[i].productDetails[0]._id %>')">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M17 6h5v2h-2v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8H2V6h5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3zm1 2H6v12h12V8zm-9 3h2v6H9v-6zm4 0h2v6h-2v-6zM9 4v2h6V4H9z"/></svg>
-                                    </button>
+                                    </a>
+                                </h3>
+                                <p class="item-meta"><%= cartData[i].categoryDetails[0].name %> | <%= cartData[i].brandDetails[0].brandName %></p>
+                                <div class="item-price">
+                                    <span class="price-label">Price:</span>
+                                    <span class="price-value">₹<span id="price<%= cartData[i].productDetails[0]._id %>"><%= cartData[i].productDetails[0].salesPrice %></span></span>
                                 </div>
                             </div>
-                            <% x += cartData[i].productDetails[0].salesPrice * cartData[i].quantity %>
-                        <% } %>
-                    <% } else { %>
-                        <div class="empty-cart">
-                            <div class="empty-cart-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="64" height="64"><path fill="none" d="M0 0h24v24H0z"/><path d="M4 16V4H2V2h3a1 1 0 0 1 1 1v12h12.438l2-8H8V5h13.72a1 1 0 0 1 .97 1.243l-2.5 10a1 1 0 0 1-.97.757H5a1 1 0 0 1-1-1zm2 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm12 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/></svg>
+                            <div class="item-quantity">
+                                <div class="quantity-wrapper">
+                                    <button class="qty-btn minus" onclick="changeQuantity('<%= cartData[i].productDetails[0]._id %>', '<%= cartData[i].products.quantity %>', -1, '<%= cartData[i].productDetails[0].salesPrice %>', '<%= cartData[i].productDetails[0]._id %>', '<%= cartData[i].productDetails[0].quantity %>')">−</button>
+                                    <input type="text" id="cartProductQuantity<%= cartData[i].productDetails[0]._id %>" value="<%= cartData[i].products.quantity %>" readonly>
+                                    <button class="qty-btn plus" onclick="changeQuantity('<%= cartData[i].productDetails[0]._id %>', '<%= cartData[i].products.quantity %>', 1, '<%= cartData[i].productDetails[0].salesPrice %>', '<%= cartData[i].productDetails[0]._id %>', '<%= cartData[i].productDetails[0].quantity %>')">+</button>
+                                </div>
                             </div>
-                            <h2>Your Cart is Empty</h2>
-                            <p>Looks like you haven't added any products to your cart yet.</p>
-                            <a href="/shop" class="shop-now-btn">Shop Now</a>
+                            <div class="item-subtotal">
+                                <span class="subtotal-label">Subtotal:</span>
+                                <span class="subtotal-value">₹<span id="subTotal<%= cartData[i].productDetails[0]._id %>"><%= cartData[i].productDetails[0].salesPrice * cartData[i].products.quantity %></span></span>
+                            </div>
+                            <div class="item-remove">
+                                <button class="remove-btn" onclick="confirmRemove('<%= cartData[i].productDetails[0]._id %>')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                                        <path fill="none" d="M0 0h24v24H0z"/>
+                                        <path d="M17 6h5v2h-2v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8H2V6h5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3zm1 2H6v12h12V8zm-9 3h2v6H9v-6zm4 0h2v6h-2v-6zM9 4v2h6V4H9z"/>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     <% } %>
-                    <input type="hidden" id="totalabc" value="<%= x %>">
+                <% } else { %>
+                    <div class="empty-cart">
+                        <div class="empty-cart-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="64" height="64">
+                                <path fill="none" d="M0 0h24v24H0z"/>
+                                <path d="M4 16V4H2V2h3a1 1 0 0 1 1 1v12h12.438l2-8H8V5h13.72a1 1 0 0 1 .97 1.243l-2.5 10a1 1 0 0 1-.97.757H5a1 1 0 0 1-1-1zm2 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm12 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/>
+                            </svg>
+                        </div>
+                        <h2>Your Cart is Empty</h2>
+                        <p>Looks like you haven't added any products to your cart yet.</p>
+                        <a href="/shop" class="shop-now-btn">Shop Now</a>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- Order Summary Section -->
+            <div class="summary-card">
+                <h2 class="summary-title">Order Summary</h2>
+                <div class="summary-items">
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span>₹<span id="subtotal">
+                            <% 
+                            let subtotal = 0;
+                            if (Array.isArray(cartData) && cartData.length > 0) {
+                                cartData.forEach(item => {
+                                    subtotal += item.productDetails[0].salesPrice * item.products.quantity;
+                                });
+                            }
+                            %>
+                            <%= subtotal %>
+                        </span></span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Shipping</span>
+                        <span class="free-shipping">FREE</span>
+                    </div>
+                    <div class="summary-row discount">
+                        <span>Discount</span>
+                        <span>₹0</span>
+                    </div>
                 </div>
-    
-                <!-- Order Summary Section -->
-<div class="summary-card">
-    <h2 class="summary-title">Order Summary</h2>
-    <div class="summary-items">
-        <div class="summary-row">
-            <span>Subtotal</span>
-            <span>₹<span id="subtotal">
-                <% 
-                let subtotal = 0;
-                if (cartData && cartData.length > 0) {
-                    cartData.forEach(item => {
-                        subtotal += item.productDetails[0].salesPrice * item.products.quantity;
-                    });
-                }
-                %>
-                <%= subtotal %>
-            </span></span>
-        </div>
-        <div class="summary-row">
-            <span>Shipping</span>
-            <span class="free-shipping">FREE</span>
-        </div>
-        <div class="summary-row discount">
-            <span>Discount</span>
-            <span>₹0</span>
-        </div>
-    </div>
-    <div class="summary-total">
-        <span>Total</span>
-        <span>₹<span id="total"><%= subtotal %></span></span>
-    </div>
-    <% if (cartData && cartData.length > 0) { %>
-        <a href="/checkout?userId=<%= user._id %>" class="checkout-btn">Proceed to Checkout</a>
-    <% } else { %>
-        <button disabled class="checkout-btn disabled">Proceed to Checkout</button>
-    <% } %>
-    <a href="/shop" class="continue-shopping">
-        <span>Continue Shopping</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="none" d="M0 0h24v24H0z"/><path d="M13.172 12l-4.95-4.95 1.414-1.414L16 12l-6.364 6.364-1.414-1.414z"/></svg>
-    </a>
-</div>
+                <div class="summary-total">
+                    <span>Total</span>
+                    <span>₹<span id="total"><%= subtotal %></span></span>
+                </div>
+                <% if (Array.isArray(cartData) && cartData.length > 0) { %>
+                    <a href="/checkout?userId=<%= user._id %>" class="checkout-btn">Proceed to Checkout</a>
+                <% } else { %>
+                    <button disabled class="checkout-btn disabled">Proceed to Checkout</button>
+                <% } %>
+                <a href="/shop" class="continue-shopping">
+                    <span>Continue Shopping</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16">
+                        <path fill="none" d="M0 0h24v24H0z"/>
+                        <path d="M13.172 12l-4.95-4.95 1.414-1.414L16 12l-6.364 6.364-1.414-1.414z"/>
+                    </svg>
+                </a>
             </div>
         </div>
     </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function changeQuantity(productId, currentQuantity, change, price, elementId, maxQuantity) {
+        const newQuantity = parseInt(currentQuantity) + change;
+        
+        if (newQuantity > 5) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Quantity Limit',
+                text: 'You cannot add more than 5 items of this product to your cart.',
+            });
+            return;
+        }
     
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        function changeQuantity(productId, currentQuantity, change, price, elementId, maxQuantity) {
-            const newQuantity = parseInt(currentQuantity) + change;
-            
-            if (newQuantity > 5) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Quantity Limit',
-                    text: 'You cannot add more than 5 items of this product to your cart.',
-                });
-                return;
-            }
-        
-            if (newQuantity < 1 || newQuantity > maxQuantity) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Invalid Quantity',
-                    text: `Quantity must be between 1 and ${maxQuantity}`,
-                });
-                return;
-            }
-        
-            $.ajax({
-                url: '/cart/changeQuantity',
-                method: 'POST',
-                data: {
-                    productId: productId,
-                    quantity: newQuantity
-                },
-                success: function(response) {
-                    console.log('AJAX Success:', response);
-                    if (response.status) {
-                        document.getElementById(`cartProductQuantity${elementId}`).value = response.quantityInput;
-                        document.getElementById(`subTotal${elementId}`).innerText = response.totalAmount;
-                        document.getElementById('total').innerText = response.grandTotal;
-                        document.getElementById('subtotal').innerText = response.grandTotal;
-        
-                        document.getElementById(`subTotal${elementId}`).classList.add('price-updated');
-                        setTimeout(() => {
-                            document.getElementById(`subTotal${elementId}`).classList.remove('price-updated');
-                        }, 800);
-                    } else {
-                        document.getElementById(`cartProductQuantity${elementId}`).value = currentQuantity;
-                        document.getElementById(`subTotal${elementId}`).innerText = currentQuantity * price;
-                        
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: response.error || 'Failed to update quantity'
-                        });
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.log('AJAX Error:', status, error);
+        if (newQuantity < 1 || newQuantity > maxQuantity) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Quantity',
+                text: `Quantity must be between 1 and ${maxQuantity}`,
+            });
+            return;
+        }
+    
+        $.ajax({
+            url: '/cart/changeQuantity',
+            method: 'POST',
+            data: {
+                productId: productId,
+                quantity: newQuantity
+            },
+            success: function(response) {
+                console.log('AJAX Success:', response);
+                if (response.status) {
+                    document.getElementById(`cartProductQuantity${elementId}`).value = response.quantityInput;
+                    document.getElementById(`subTotal${elementId}`).innerText = response.totalAmount;
+                    document.getElementById('total').innerText = response.grandTotal;
+                    document.getElementById('subtotal').innerText = response.grandTotal;
+    
+                    document.getElementById(`subTotal${elementId}`).classList.add('price-updated');
+                    setTimeout(() => {
+                        document.getElementById(`subTotal${elementId}`).classList.remove('price-updated');
+                    }, 800);
+                } else {
                     document.getElementById(`cartProductQuantity${elementId}`).value = currentQuantity;
                     document.getElementById(`subTotal${elementId}`).innerText = currentQuantity * price;
                     
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: 'Failed to connect to server'
+                        text: response.error || 'Failed to update quantity'
                     });
                 }
-            });
-        }
-        
-        function confirmRemove(productId) {
-            Swal.fire({
-                title: 'Are you sure?',
-                text: "Do you want to remove this item from the cart?",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Yes, remove it!',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: `/cart/delete?id=${productId}`,
-                        method: 'DELETE',
-                        success: function(response) {
-                            if (response.status) {
-                                location.reload();
-                            } else {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Error',
-                                    text: 'Failed to remove item from the cart'
-                                });
-                            }
-                        },
-                        error: function() {
+            },
+            error: function(xhr, status, error) {
+                console.log('AJAX Error:', status, error);
+                document.getElementById(`cartProductQuantity${elementId}`).value = currentQuantity;
+                document.getElementById(`subTotal${elementId}`).innerText = currentQuantity * price;
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to connect to server'
+                });
+            }
+        });
+    }
+    
+    function confirmRemove(productId) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you want to remove this item from the cart?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, remove it!',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: `/cart/delete?id=${productId}`,
+                    method: 'DELETE',
+                    success: function(response) {
+                        if (response.status) {
+                            location.reload();
+                        } else {
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Error',
-                                text: 'Failed to connect to server'
+                                text: 'Failed to remove item from the cart'
                             });
                         }
-                    });
-                }
-            });
-        }
-        
-        // Function to check all cart quantities
-        function checkCartQuantities() {
-            console.log('Checking cart quantities...');
-            const quantityInputs = document.querySelectorAll('input[id^="cartProductQuantity"]');
-            let exceedsLimit = false;
-            let excessProducts = [];
-        
-            quantityInputs.forEach(input => {
-                const quantity = parseInt(input.value);
-                console.log(`Input ID: ${input.id}, Quantity: ${quantity}`);
-                if (quantity > 5) {
-                    exceedsLimit = true;
-                    excessProducts.push(input.id.replace('cartProductQuantity', ''));
-                }
-            });
-        
-            console.log('Exceeds limit:', exceedsLimit, 'Excess products:', excessProducts);
-        
-            if (exceedsLimit) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Quantity Limit Exceeded',
-                    text: `You cannot checkout with more than 5 items per product. Please adjust quantities for item(s): ${excessProducts.join(', ')}.`,
-                });
-                return false; // Prevent checkout
-            }
-            return true; // Allow checkout
-        }
-        
-        // Update total and add checkout validation when page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            updateTotal();
-        
-            // Target checkout button
-            const checkoutButton = document.querySelector('#checkoutButton, .checkout-btn, button:contains("Proceed to Checkout")');
-            if (checkoutButton) {
-                checkoutButton.addEventListener('click', (e) => {
-                    console.log('Checkout button clicked');
-                    if (!checkCartQuantities()) {
-                        e.preventDefault();
-                        console.log('Checkout prevented due to quantity limit');
-                    } else {
-                        console.log('Proceeding to checkout');
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to connect to server'
+                        });
                     }
                 });
-            } else {
-                console.warn('Checkout button not found');
-            }
-        
-            // Target checkout form
-            const checkoutForm = document.querySelector('#checkoutForm, form[action*="/checkout"]');
-            if (checkoutForm) {
-                checkoutForm.addEventListener('submit', (e) => {
-                    console.log('Checkout form submitted');
-                    if (!checkCartQuantities()) {
-                        e.preventDefault();
-                        console.log('Form submission prevented due to quantity limit');
-                    } else {
-                        console.log('Form submission proceeding');
-                    }
-                });
-            } else {
-                console.warn('Checkout form not found');
             }
         });
-        
-        // Function to update the total price
-        function updateTotal() {
-            let total = 0;
-            const subtotals = document.querySelectorAll('.subtotal-value > span');
-            subtotals.forEach(subtotal => {
-                total += parseFloat(subtotal.innerText);
+    }
+    
+    // Function to check all cart quantities
+    function checkCartQuantities() {
+        console.log('Checking cart quantities...');
+        const quantityInputs = document.querySelectorAll('input[id^="cartProductQuantity"]');
+        let exceedsLimit = false;
+        let excessProducts = [];
+    
+        quantityInputs.forEach(input => {
+            const quantity = parseInt(input.value);
+            console.log(`Input ID: ${input.id}, Quantity: ${quantity}`);
+            if (quantity > 5) {
+                exceedsLimit = true;
+                excessProducts.push(input.id.replace('cartProductQuantity', ''));
+            }
+        });
+    
+        console.log('Exceeds limit:', exceedsLimit, 'Excess products:', excessProducts);
+    
+        if (exceedsLimit) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Quantity Limit Exceeded',
+                text: `You cannot checkout with more than 5 items per product. Please adjust quantities for item(s): ${excessProducts.join(', ')}.`,
             });
-            document.getElementById('total').innerText = total.toFixed(2);
-            document.getElementById('subtotal').innerText = total.toFixed(2);
+            return false; // Prevent checkout
         }
-        </script>
-
-
+        return true; // Allow checkout
+    }
+    
+    // Update total and add checkout validation when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+        updateTotal();
+    
+        // Target checkout button
+        const checkoutButton = document.querySelector('.checkout-btn:not(.disabled)');
+        if (checkoutButton) {
+            checkoutButton.addEventListener('click', (e) => {
+                console.log('Checkout button clicked');
+                if (!checkCartQuantities()) {
+                    e.preventDefault();
+                    console.log('Checkout prevented due to quantity limit');
+                } else {
+                    console.log('Proceeding to checkout');
+                }
+            });
+        }
+    });
+    
+    // Function to update the total price
+    function updateTotal() {
+        let total = 0;
+        const subtotals = document.querySelectorAll('.subtotal-value > span');
+        subtotals.forEach(subtotal => {
+            total += parseFloat(subtotal.innerText);
+        });
+        document.getElementById('total').innerText = total.toFixed(2);
+        document.getElementById('subtotal').innerText = total.toFixed(2);
+    }
+</script>
 
 <%- include('../../views/partials/user/footer') %>
