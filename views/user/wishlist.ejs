@@ -441,10 +441,10 @@
                   </span>
                 </td>
                 <td>
-                  <span class="table-stock <%= item.productId.status === 'Available' ? 'in-stock' : 'out-stock' %>">
-                    <%= item.productId.status || 'Unknown' %>
-                  </span>
-                </td>
+                    <span class="table-stock <%= (item.productId.status === 'Available' && item.productId.quantity > 0) ? 'in-stock' : 'out-stock' %>">
+                      <%= (item.productId.status === 'Available' && item.productId.quantity > 0) ? 'In Stock' : 'Out of Stock' %>
+                    </span>
+                  </td>
                 <td>
                   <button onclick="addToCart('<%= item.productId._id %>')" class="btn btn-sm" data-product="<%= item.productId._id %>" data-default-size="<%= item.productId.combos && item.productId.combos.length > 0 ? item.productId.combos[0].size : '' %>">
                     Add to Cart

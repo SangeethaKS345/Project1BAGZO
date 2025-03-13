@@ -15,10 +15,9 @@ const loadWishlistPage = async (req, res, next) => {
         const wishlist = await Wishlist.findOne({ userId: req.user._id })
             .populate({
                 path: 'products.productId',
-                select: 'productName description productImage salesPrice status combos isBlocked category brand',
+                select: 'productName description productImage salesPrice status quantity combos isBlocked category brand',
                 match: { 
-                    isBlocked: { $ne: true },
-                    status: { $ne: 'out of stock' }
+                    isBlocked: { $ne: true }
                 },
                 populate: [
                     {
@@ -59,6 +58,7 @@ const loadWishlistPage = async (req, res, next) => {
         next(error);
     }
 };
+
 const addToWishlist = async (req, res) => {
     if (req.method !== 'POST') {
         return res.status(405).json({ 
