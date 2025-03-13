@@ -447,7 +447,8 @@
     </section>
   </div>
   
-  <script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
     function filterPrice(min, max) {
       const currentUrl = new URL(window.location.href);
       currentUrl.searchParams.set('minPrice', min);
@@ -468,7 +469,7 @@
     }
   
     async function addToCart(productId) {
-      console.log('Attempting to add product to cart:', productId); // Debug log
+      console.log('Attempting to add product to cart:', productId);
       try {
         const response = await fetch('/add-to-cart', {
           method: 'POST',
@@ -476,27 +477,46 @@
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ productId }),
-          credentials: 'include' // Ensure session cookies are sent
+          credentials: 'include'
         });
   
-        console.log('Response status:', response.status); // Debug log
-        console.log('Response redirected:', response.redirected); // Debug log
+        console.log('Response status:', response.status);
+        console.log('Response redirected:', response.redirected);
   
         if (response.ok) {
           const data = await response.json();
-          alert(data.message || 'Product added to cart successfully!');
+          Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: data.message || 'Product added to cart successfully!',
+            timer: 1500,
+            showConfirmButton: false
+          });
         } else if (response.status === 401 || response.redirected) {
-          alert('Please log in to add items to your cart.');
-          window.location.href = '/login';
+          Swal.fire({
+            icon: 'warning',
+            title: 'Login Required',
+            text: 'Please log in to add items to your cart.',
+          }).then(() => {
+            window.location.href = '/login';
+          });
         } else {
           const errorData = await response.json();
-          console.error('Error data from server:', errorData); // Debug log
-          alert('Failed to add product: ' + (errorData.message || 'Unknown error'));
+          console.error('Error data from server:', errorData);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to add product: ' + (errorData.message || 'Unknown error'),
+          });
         }
       } catch (error) {
-        console.error('Fetch error:', error); // Detailed error log
-        alert('Error adding product to cart: ' + error.message);
+        console.error('Fetch error:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Error adding product to cart: ' + error.message,
+        });
       }
     }
-  </script>
+</script>
 <%- include('../../views/partials/user/footer') %>
