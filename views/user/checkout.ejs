@@ -474,6 +474,7 @@ input {
 }
   </style>
   <%- include('../../views/partials/user/header') %>
+  <link rel="stylesheet" href="/css/sweetalert2.min.css">
 </head>
 <body>
   <!--=============== MAIN ===============-->
@@ -771,87 +772,90 @@ input {
    }
    
    function setupOrderForm() {
-       const orderForm = document.getElementById('orderForm');
-   
-       if (!orderForm) {
-           console.error("Order form not found!");
-           return;
-       }
-   
-       orderForm.addEventListener('submit', function(e) {
-           console.log("Form submission intercepted");
+  const orderForm = document.getElementById('orderForm');
 
-           // Check cart quantities before proceeding
-           if (!checkCartQuantities()) {
-               e.preventDefault(); // Ensure form submission is stopped
-               return;
-           }
-   
-           const selectedAddressInput = document.getElementById("selectedAddressId");
-           const selectedPaymentMethodInput = document.getElementById("selectedPaymentMethod");
-           const addressId = selectedAddressInput.value;
-           const paymentMethod = selectedPaymentMethodInput.value;
-   
-           if (!addressId) {
-               e.preventDefault();
-               showError('Please select a delivery address');
-               return;
-           }
-   
-           console.log("Submitting with addressId:", addressId, "and payment method:", paymentMethod);
-   
-           const submitButton = this.querySelector('button[type="submit"]');
-           const originalButtonText = submitButton.innerHTML;
-           submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-           submitButton.disabled = true;
-   
-           submitOrder(addressId, paymentMethod, function() {
-               submitButton.innerHTML = originalButtonText;
-               submitButton.disabled = false;
-           });
-       });
-   }
+  if (!orderForm) {
+    console.error("Order form not found!");
+    return;
+  }
+
+  orderForm.addEventListener('submit', function(e) {
+    console.log("Form submission started");
+
+    if (!checkCartQuantities()) {
+      e.preventDefault();
+      console.log("Quantity check failed");
+      return;
+    }
+
+    const selectedAddressInput = document.getElementById("selectedAddressId");
+    const selectedPaymentMethodInput = document.getElementById("selectedPaymentMethod");
+    const addressId = selectedAddressInput.value;
+    const paymentMethod = selectedPaymentMethodInput.value;
+
+    if (!addressId) {
+      e.preventDefault();
+      console.log("No address selected");
+      showError('Please select a delivery address');
+      return;
+    }
+
+    console.log("Submitting with addressId:", addressId, "and payment method:", paymentMethod);
+
+    const submitButton = this.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton.innerHTML;
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    submitButton.disabled = true;
+
+    submitOrder(addressId, paymentMethod, function() {
+      submitButton.innerHTML = originalButtonText;
+      submitButton.disabled = false;
+      console.log("Submission callback executed");
+    });
+
+    e.preventDefault(); // Move this here if you want to handle submission fully via fetch
+  });
+}
    
    function submitOrder(addressId, paymentMethod, callback) {
-       const formData = { 
-           addressId,
-           paymentMethod 
-       };
-   
-       console.log("Submitting Order:", formData);
-   
-       fetch('/place-order', {
-           method: 'POST',
-           headers: { 'Content-Type': 'application/json' },
-           body: JSON.stringify(formData)
-       })
-       .then(response => {
-           if (!response.ok) {
-               throw new Error(`HTTP error! status: ${response.status}`);
-           }
-           return response.json();
-       })
-       .then(data => {
-           console.log("Server Response:", data);
-   
-           if (data.success) {
-               showSuccess('Order Placed Successfully!', 'Your order has been placed successfully.')
-                   .then(() => {
-                       window.location.href = data.redirect || '/orderPlaced';
-                   });
-           } else {
-               showError(data.error || 'Failed to place order');
-           }
-   
-           if (callback) callback();
-       })
-       .catch(error => {
-           console.error("Order Submission Error:", error);
-           showError(`An error occurred while placing the order: ${error.message}`);
-   
-           if (callback) callback();
-       });
-   }
+  const formData = { 
+    addressId,
+    paymentMethod 
+  };
+
+  console.log("Submitting Order:", formData);
+
+  fetch('/place-order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(formData)
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    console.log("Server Response:", data);
+
+    if (data.success) {
+      showSuccess('Order Placed Successfully!', 'Your order has been placed successfully.')
+        .then(() => {
+          window.location.href = data.redirect || '/orderPlaced';
+        });
+    } else {
+      showError(data.error || 'Failed to place order');
+    }
+
+    if (callback) callback();
+  })
+  .catch(error => {
+    console.error("Order Submission Error:", error);
+    showError(`An error occurred while placing the order: ${error.message}`);
+    if (callback) callback();
+  });
+}
    
    function showSuccess(title, text) {
        return Swal.fire({
@@ -872,9 +876,7 @@ input {
        });
    }
    
-   function setupNewsletterForm() {
-       console.log("Newsletter form setup (if applicable)");
-   }
+   
  </script>
  <%- include('../../views/partials/user/footer') %>
 </body>
