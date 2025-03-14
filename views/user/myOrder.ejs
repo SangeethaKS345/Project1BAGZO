@@ -1,3 +1,5 @@
+
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,412 +13,405 @@
   <!--=============== CSS ===============-->
   <style>
     /* My Orders Page Styling */
-    :root {
-      --primary-color: #FF4B2B;
-      --primary-gradient: linear-gradient(to right, #FF4B2B, #FF416C);
-      --secondary-color: #DB4437;
-      --text-color: #333333;
-      --text-light: #777777;
-      --border-color: #e0e0e0;
-      --background-light: #f9f9f9;
-      --shadow-color: rgba(0, 0, 0, 0.08);
-      --success-color: #28a745;
-      --warning-color: #ffc107;
-      --danger-color: #dc3545;
-      --info-color: #17a2b8;
-    }
+:root {
+  --primary-color: #FF4B2B;
+  --primary-gradient: linear-gradient(to right, #FF4B2B, #FF416C);
+  --secondary-color: #DB4437;
+  --text-color: #333333;
+  --text-light: #777777;
+  --border-color: #e0e0e0;
+  --background-light: #f9f9f9;
+  --shadow-color: rgba(0, 0, 0, 0.08);
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --danger-color: #dc3545;
+  --info-color: #17a2b8;
+}
 
-    .orders-container {
-      padding: 2rem;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
+.orders-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
 
-    .section__title {
-      color: var(--text-color);
-      font-size: 28px;
-      font-weight: 600;
-      margin-bottom: 1.5rem;
-      position: relative;
-      padding-bottom: 12px;
-    }
+.section__title {
+  color: var(--text-color);
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  position: relative;
+  padding-bottom: 12px;
+}
 
-    .section__title::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 60px;
-      height: 3px;
-      background: var(--primary-gradient);
-      border-radius: 3px;
-    }
+.section__title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: var(--primary-gradient);
+  border-radius: 3px;
+}
 
-    /* Order Card */
-    .order-card {
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      background-color: #fff;
-      box-shadow: 0 8px 20px var(--shadow-color);
-      transition: transform 0.3s ease;
-      overflow: hidden;
-      border: 1px solid var(--border-color);
-    }
+/* Order Card */
+.order-card {
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  background-color: #fff;
+  box-shadow: 0 8px 20px var(--shadow-color);
+  transition: transform 0.3s ease;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
 
-    .order-card:hover {
-      transform: translateY(-5px);
-    }
+.order-card:hover {
+  transform: translateY(-5px);
+}
 
-    .order-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 1.5rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid var(--border-color);
-    }
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
 
-    .order-header h3 {
-      color: var(--text-color);
-      font-size: 18px;
-      font-weight: 600;
-      margin: 0 0 8px;
-    }
+.order-header h3 {
+  color: var(--text-color);
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
 
-    .order-header p {
-      color: var(--text-light);
-      margin: 4px 0;
-      font-size: 14px;
-    }
+.order-header p {
+  color: var(--text-light);
+  margin: 4px 0;
+  font-size: 14px;
+}
 
-    .total-amount {
-      color: var(--primary-color) !important;
-      font-weight: 600 !important;
-      font-size: 16px !important;
-      margin-top: 8px !important;
-    }
+.total-amount {
+  color: var(--primary-color) !important;
+  font-weight: 600 !important;
+  font-size: 16px !important;
+  margin-top: 8px !important;
+}
 
-    /* Order Details */
-    .order-details {
-      display: flex;
-      gap: 2rem;
-      align-items: flex-start;
-    }
+/* Order Details */
+.order-details {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
 
-    .product-image {
-      width: 120px;
-      height: 120px;
-      object-fit: cover;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    }
+.product-image {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
 
-    .product-info {
-      flex: 1;
-    }
+.product-info {
+  flex: 1;
+}
 
-    /* Status Tracker */
-    .status-tracker {
-      display: flex;
-      justify-content: space-between;
-      margin: 1.5rem 0;
-      position: relative;
-      padding: 0 10px;
-    }
+/* Status Tracker */
+.status-tracker {
+  display: flex;
+  justify-content: space-between;
+  margin: 1.5rem 0;
+  position: relative;
+  padding: 0 10px;
+}
 
-    .status-line {
-      position: absolute;
-      top: 6px;
-      left: 40px;
-      right: 40px;
-      height: 3px;
-      background-color: var(--border-color);
-      z-index: 1;
-    }
+.status-line {
+  position: absolute;
+  top: 6px;
+  left: 40px;
+  right: 40px;
+  height: 3px;
+  background-color: var(--border-color);
+  z-index: 1;
+}
 
-    .status-line.active {
-      background: var(--primary-gradient);
-    }
+.status-line.active {
+  background: var(--primary-gradient);
+}
 
-    .status-step {
-      text-align: center;
-      position: relative;
-      z-index: 2;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding-top: 5px;
-    }
+.status-step {
+  text-align: center;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 5px;
+}
 
-    .status-step.active span {
-      color: var(--primary-color);
-      font-weight: 600;
-    }
+.status-step.active span {
+  color: var(--primary-color);
+  font-weight: 600;
+}
 
-    .status-dot {
-      width: 16px;
-      height: 16px;
-      background-color: var(--border-color);
-      border-radius: 50%;
-      margin-bottom: 8px; 
-      position: relative;
-      z-index: 2;
-      border: 3px solid white;
-      box-shadow: 0 0 0 1px var(--border-color);
-    }
+.status-dot {
+  width: 16px;
+  height: 16px;
+  background-color: var(--border-color);
+  border-radius: 50%;
+  margin-bottom: 8px; 
+  position: relative;
+  z-index: 2;
+  border: 3px solid white;
+  box-shadow: 0 0 0 1px var(--border-color);
+}
 
-    .status-dot.active {
-      background: var(--primary-gradient);
-      box-shadow: 0 0 0 1px var(--primary-color);
-    }
+.status-dot.active {
+  background: var(--primary-gradient);
+  box-shadow: 0 0 0 1px var(--primary-color);
+}
 
-    /* Buttons */
-    .btn {
-      padding: 8px 16px;
-      border-radius: 50px;
-      cursor: pointer;
-      border: none;
-      font-weight: 600;
-      font-size: 14px;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      text-align: center;
-    }
+/* Buttons */
+.btn {
+  padding: 8px 16px;
+  border-radius: 50px;
+  cursor: pointer;
+  border: none;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
 
-    .btn-primary {
-      background: var(--primary-gradient);
-      color: white;
-    }
+.btn-primary {
+  background: var(--primary-gradient);
+  color: white;
+}
 
-    .btn-primary:hover {
-      background: var(--secondary-color);
-      transform: translateY(-2px);
-    }
+.btn-primary:hover {
+  background: var(--secondary-color);
+  transform: translateY(-2px);
+}
 
-    .btn-danger {
-      background-color: var(--danger-color);
-      color: white;
-    }
+.btn-danger {
+  background-color: var(--danger-color);
+  color: white;
+}
 
-    .btn-danger:hover {
-      background-color: #c82333;
-      transform: translateY(-2px);
-    }
+.btn-danger:hover {
+  background-color: #c82333;
+  transform: translateY(-2px);
+}
 
-    .btn-warning {
-      background-color: var(--warning-color);
-      color: #212529;
-    }
+.btn-warning {
+  background-color: var(--warning-color);
+  color: #212529;
+}
 
-    .btn-secondary {
-      background-color: #6c757d;
-      color: white;
-    }
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
 
-    .btn-success {
-      background-color: var(--success-color);
-      color: white;
-    }
+.btn-success {
+  background-color: var(--success-color);
+  color: white;
+}
 
-    .action-buttons {
-      display: flex;
-      gap: 1rem;
-      margin-top: 1.5rem;
-    }
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
 
-    .action-buttons .btn {
-      min-width: 120px;
-    }
+.action-buttons .btn {
+  min-width: 120px;
+}
 
-    /* Pagination */
-    .pagination {
-      display: flex;
-      justify-content: center;
-      gap: 0.5rem;
-      margin-top: 2rem;
-    }
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+}
 
-    .pagination-btn {
-      padding: 8px 16px;
-      border: 1px solid var(--border-color);
-      border-radius: 50px;
-      cursor: pointer;
-      background-color: white;
-      transition: all 0.3s ease;
-      font-weight: 500;
-      color: var(--text-color);
-      text-decoration: none;
-    }
+.pagination-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 50px;
+  cursor: pointer;
+  background-color: white;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  color: var(--text-color);
+  text-decoration: none;
+}
 
-    .pagination-btn:hover {
-      background-color: var(--background-light);
-      border-color: var(--primary-color);
-      color: var(--primary-color);
-    }
+.pagination-btn:hover {
+  background-color: var(--background-light);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
 
-    .pagination-btn.active {
-      background: var(--primary-gradient);
-      color: white;
-      border-color: var(--primary-color);
-    }
+.pagination-btn.active {
+  background: var(--primary-gradient);
+  color: white;
+  border-color: var(--primary-color);
+}
 
-    /* Modals */
-    .modal {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-      width: 100%;
-      max-width: 400px;
-      min-height: auto;
-      max-height: 80vh;
-      overflow-y: auto;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 1000;
-    }
+/* Modals */
+.modal {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  width: 500px;
+  min-height: 300px;
+  z-index: 1000;
+}
 
-    .modal h3 {
-      color: var(--text-color);
-      font-size: 22px;
-      margin-top: 0;
-      margin-bottom: 5px;
-      font-weight: 600;
-    }
+.modal h3 {
+  color: var(--text-color);
+  font-size: 22px;
+  margin-top: 0;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
 
-    .modal p {
-      color: var(--text-light);
-      margin-bottom: 15px;
-    }
+.modal p {
+  color: var(--text-light);
+  margin-bottom: 15px;
+}
 
-    .modal textarea {
-      width: 100%;
-      min-height: 100px;
-      margin: 15px 0;
-      padding: 12px;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      font-family: inherit;
-      resize: vertical;
-      transition: border-color 0.3s;
-    }
+.modal textarea {
+  width: 100%;
+  min-height: 120px;
+  margin: 15px 0;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.3s;
+}
 
-    .modal textarea:focus {
-      outline: none;
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(255, 75, 43, 0.1);
-    }
+.modal textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(255, 75, 43, 0.1);
+}
 
-    .modal button {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 50px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.3s ease;
-    }
+.modal button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
 
-    .modal button#closeModal,
-    .modal button#closeReturnModal {
-      background-color: #f5f5f5;
-      color: var(--text-color);
-      margin-right: 10px;
-    }
+.modal button#closeModal,
+.modal button#closeReturnModal {
+  background-color: #f5f5f5;
+  color: var(--text-color);
+  margin-right: 10px;
+}
 
-    .modal button#confirmCancel,
-    .modal button#confirmReturn {
-      background: var(--primary-gradient);
-      color: white;
-    }
+.modal button#confirmCancel,
+.modal button#confirmReturn {
+  background: var(--primary-gradient);
+  color: white;
+}
 
-    .modal button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    }
+.modal button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
 
-    /* Breadcrumb */
-    .breadcrumb {
-      background-color: var(--background-light);
-      padding: 15px 0;
-      margin-bottom: 20px;
-      border-bottom: 1px solid var(--border-color);
-    }
+/* Breadcrumb */
+.breadcrumb {
+  background-color: var(--background-light);
+  padding: 15px 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border-color);
+}
 
-    .breadcrumb__list {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      align-items: center;
-    }
+.breadcrumb__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
 
-    .breadcrumb__link {
-      color: var(--text-light);
-      text-decoration: none;
-      padding: 0 5px;
-      font-size: 14px;
-    }
+.breadcrumb__link {
+  color: var(--text-light);
+  text-decoration: none;
+  padding: 0 5px;
+  font-size: 14px;
+}
 
-    .breadcrumb__list li:last-child .breadcrumb__link {
-      color: var(--primary-color);
-      font-weight: 500;
-    }
+.breadcrumb__list li:last-child .breadcrumb__link {
+  color: var(--primary-color);
+  font-weight: 500;
+}
 
-    /* Responsive Design */
-    @media (max-width: 768px) {
-      .orders-container {
-        padding: 1rem;
-      }
-      
-      .order-header {
-        flex-direction: column;
-      }
-      
-      .order-header button {
-        margin-top: 15px;
-        align-self: flex-start;
-      }
-      
-      .order-details {
-        flex-direction: column;
-        gap: 1rem;
-      }
-      
-      .product-image {
-        width: 100%;
-        height: auto;
-        max-height: 200px;
-      }
-      
-      .status-tracker {
-        padding: 0;
-      }
-      
-      .status-step span {
-        font-size: 12px;
-      }
-      
-      .status-line {
-        left: 20px;
-        right: 20px;
-      }
-      
-      .modal {
-        max-width: 90%;
-        padding: 15px;
-      }
-    }
-
-    
+/* Responsive Design */
+@media (max-width: 768px) {
+  .orders-container {
+    padding: 1rem;
+  }
+  
+  .order-header {
+    flex-direction: column;
+  }
+  
+  .order-header button {
+    margin-top: 15px;
+    align-self: flex-start;
+  }
+  
+  .order-details {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .product-image {
+    width: 100%;
+    height: auto;
+    max-height: 200px;
+  }
+  
+  .status-tracker {
+    padding: 0;
+  }
+  
+  .status-step span {
+    font-size: 12px;
+  }
+  
+  .status-line {
+    left: 20px;
+    right: 20px;
+  }
+  
+  .modal {
+    width: 90%;
+    padding: 20px;
+  }
+}
   </style>
 
-  <title>My Orders | BAGZO</title>
+ 
 
-  <%- include('../../views/partials/user/header') %>
+<title>My Orders | BAGZO</title>
+
+<%- include('../../views/partials/user/header') %>
 </head>
 
 <body>
@@ -536,7 +531,7 @@
   </div>
 
   <!-- Cancel Order Modal -->
-  <div id="cancelOrderModal" class="modal">
+  <div id="cancelOrderModal" class="modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 400px; max-width: 90%; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
     <h3>Cancel Order</h3>
     <p>Please provide a reason for cancellation</p>
     <textarea id="cancellationReason" placeholder="Enter your reason here..."></textarea>
@@ -551,7 +546,7 @@
   </div>
 
   <!-- Return Order Modal -->
-  <div id="returnOrderModal" class="modal">
+  <div id="returnOrderModal" class="modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 400px; max-width: 90%; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
     <h3>Return Order</h3>
     <p>Please provide a reason for return</p>
     <textarea id="returnReason" placeholder="Enter your reason here..."></textarea>
