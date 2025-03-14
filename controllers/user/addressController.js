@@ -101,11 +101,22 @@ const editAddressForm = async (req, res, next) => {
 // Update Address
 const updateAddress = async (req, res, next) => {
   try {
-    const { addressType, name, city, landMark, state, pincode, phone, altPhone } = req.body;
+    console.log(`[${req.method}] Update route hit:`, req.params.id, req.body);
+    const userId = req.session.user.id;
     const addressId = req.params.id;
+    const { addressType, name, city, landMark, state, pincode, phone, altPhone } = req.body;
+
+    if (!addressType || !name || !city || !landMark || !state || !pincode || !phone || !altPhone) {
+      console.log("Missing required fields.");
+      return res.status(400).render("editAddress", {
+        addressData: { _id: addressId, ...req.body },
+        user: req.session.user,
+        error: "All fields are required."
+      });
+    }
 
     const updatedAddress = await Address.updateOne(
-      { "address._id": addressId },
+      { userId, "address._id": addressId },
       {
         $set: {
           "address.$.addressType": addressType,
@@ -120,11 +131,17 @@ const updateAddress = async (req, res, next) => {
       }
     );
 
-    if (!updatedAddress.nModified) {
-      console.log("Address update failed.");
-      return res.redirect("/address");
+    if (updatedAddress.nModified === 0) {
+      console.log("Address update failed or address not found.");
+      return res.status(404).render("editAddress", {
+        addressData: { _id: addressId, ...req.body },
+        user: req.session.user,
+        error: "Address not found or no changes made."
+      });
     }
 
+    console.log("Address updated successfully.");
+    req.session.success = true;
     res.redirect("/address");
   } catch (error) {
     next(error);
