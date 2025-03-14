@@ -68,21 +68,22 @@ router.post("/add-to-cart", userAuth, cartController.addToCart);
 router.post("/cart/changeQuantity", userAuth, cartController.changeQuantity);
 router.delete("/cart/delete", userAuth, cartController.deleteProduct);
 
-//profile forgetPassword
+// Profile Forgot Password Routes
 router.get("/forgot-password", profileController.getForgotPassword);
-router.post("forget-password", profileController.forgotEmailValid);
-router.post("verify-otp", profileController.verifyForgotPassOtp)
+router.post("/forgot-password", profileController.forgotEmailValid); 
+router.post("/verify-otp", profileController.verifyForgotPassOtp);    
 router.get("/reset-password", profileController.getResetPassword);
 router.post("/reset-password", profileController.postNewPassword);
 router.post("/resend-otp", profileController.resendOtp);
 
-// User Profile Routes
-// Protected routes
+// User Profile Routes (Protected)
 router.get("/profile", userAuth, profileController.userProfile);
-//router.get("/account", userAuth, profileController.getAccount);
 router.get("/editProfile", userAuth, profileController.getEditProfile);
 router.patch("/editProfile/update", userAuth, profileController.updateEditProfile);
 
+// Email Verification Routes for Profile Editing
+router.post("/editProfile/send-otp", userAuth, profileController.sendEmailOtp);
+router.post("/editProfile/verify-otp", userAuth, profileController.verifyEmailOtp);
 // // Address routes (using userAuth middleware)
 // // Get Addresses
 // router.get('/address', userAuth, addressController.getAddresses);

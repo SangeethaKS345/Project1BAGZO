@@ -156,7 +156,6 @@
       margin-right: 10px;
     }
     
-    /* Password visibility toggle */
     .password-field {
       position: relative;
     }
@@ -169,7 +168,6 @@
       cursor: pointer;
     }
     
-    /* Loading spinner for form submission */
     .spinner-border {
       display: none;
       margin-left: 10px;
@@ -177,7 +175,6 @@
       height: 20px;
     }
     
-    /* Success animation */
     @keyframes successPulse {
       0% { transform: scale(1); }
       50% { transform: scale(1.05); }
@@ -187,6 +184,20 @@
     .success-animation {
       animation: successPulse 0.5s ease-in-out;
     }
+    
+    .profile-img {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--primary-red);
+    }
+    
+    .otp-timer {
+      color: #666;
+      font-size: 14px;
+      margin-right: 10px;
+    }
   </style>
 </head>
 <body>
@@ -194,10 +205,19 @@
     <h2><i class="fas fa-user-edit"></i> Edit Profile</h2>
     
     <div id="error-message" class="alert alert-danger" style="display: none;"></div>
-    <div id="success-message" class="alert alert-success" style="display: none;">Profile updated successfully!</div>
+    <div id="success-message" class="alert alert-success" style="display: none;"></div>
     
     <% if (user) { %>
       <form id="editProfileForm">
+        <div class="form-group">
+          <label><i class="fas fa-camera field-icon"></i>Profile Image:</label>
+          <div style="text-align: center; margin-bottom: 20px;">
+            <img src="<%= user.profileImage ? '/uploads/' + user.profileImage : '/images/default-profile.jpg' %>" 
+                 alt="Profile Image" 
+                 class="profile-img">
+          </div>
+        </div>
+
         <div class="form-group">
           <label for="name"><i class="fas fa-user field-icon"></i>Full Name:</label>
           <input type="text" class="form-control" id="name" name="name" value="<%= user.name %>" required>
@@ -210,8 +230,37 @@
         
         <div class="form-group">
           <label for="email"><i class="fas fa-envelope field-icon"></i>Email Address:</label>
-          <input type="email" class="form-control" id="email" name="email" value="<%= user.email || '' %>" readonly>
-          <small class="form-text text-muted">Email address cannot be changed.</small>
+          <div class="input-group">
+            <input type="email" class="form-control" id="email" name="email" value="<%= user.email || '' %>">
+            <div class="input-group-append">
+              <button type="button" id="verifyEmailBtn" class="btn gradient-btn" style="margin-left: 10px;">
+                Verify
+              </button>
+            </div>
+          </div>
+          <small class="form-text text-muted">Enter new email and verify with OTP if changing.</small>
+        </div>
+
+        <div id="otpVerificationSection" class="form-group" style="display: none;">
+          <label for="otpInput"><i class="fas fa-key field-icon"></i>Enter OTP:</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="otpInput" maxlength="6" pattern="\d*">
+            <div class="input-group-append">
+              <button type="button" id="submitOtpBtn" class="btn gradient-btn" style="margin-left: 10px;">
+                Submit OTP
+              </button>
+            </div>
+          </div>
+          <div style="margin-top: 10px;">
+            <span id="otpTimer" class="otp-timer">Time remaining: <span id="timerValue">60</span>s</span>
+            <button type="button" id="resendOtpBtn" class="btn btn-link" disabled>Resend OTP</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="profileImage"><i class="fas fa-image field-icon"></i>Update Profile Image:</label>
+          <input type="file" class="form-control" id="profileImage" name="profileImage" accept="image/*">
+          <small class="form-text text-muted">Accepted formats: JPG, PNG (Max size: 5MB, 100x100 to 2000x2000 px)</small>
         </div>
         
         <div class="section-divider"></div>
@@ -265,101 +314,299 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      // Toggle password visibility
-      document.querySelectorAll('.toggle-password').forEach(icon => {
-        icon.addEventListener('click', function() {
-          const inputId = this.getAttribute('data-toggle');
-          const input = document.getElementById(inputId);
-          
-          if (input.type === 'password') {
-            input.type = 'text';
-            this.classList.remove('fa-eye');
-            this.classList.add('fa-eye-slash');
-          } else {
-            input.type = 'password';
-            this.classList.remove('fa-eye-slash');
-            this.classList.add('fa-eye');
-          }
+  document.addEventListener("DOMContentLoaded", function() {
+    let timer = 60;
+    let timerInterval;
+    let emailVerified = false;
+
+    // Toggle password visibility
+    document.querySelectorAll('.toggle-password').forEach(icon => {
+      icon.addEventListener('click', function() {
+        const inputId = this.getAttribute('data-toggle');
+        const input = document.getElementById(inputId);
+        if (input.type === 'password') {
+          input.type = 'text';
+          this.classList.remove('fa-eye');
+          this.classList.add('fa-eye-slash');
+        } else {
+          input.type = 'password';
+          this.classList.remove('fa-eye-slash');
+          this.classList.add('fa-eye');
+        }
+      });
+    });
+
+    // Email verification button
+    document.getElementById('verifyEmailBtn').addEventListener('click', async () => {
+      const email = document.getElementById('email').value;
+      const originalEmail = '<%= user.email %>';
+      
+      if (email === originalEmail) {
+        showError("This is already your current email.");
+        return;
+      }
+
+      try {
+        const response = await fetch('/editProfile/send-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
         });
-      });
-      
-      // Form submission
-      document.getElementById("editProfileForm").addEventListener("submit", async (event) => {
-        event.preventDefault();
         
-        // Show spinner
-        const spinner = document.querySelector('.spinner-border');
-        spinner.style.display = 'inline-block';
-        
-        // Hide any previous messages
-        document.getElementById("error-message").style.display = "none";
-        document.getElementById("success-message").style.display = "none";
-        
-        const form = event.target;
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData);
-        
-        // Validate passwords if being changed
-        if (data.NewPassword || data.currentpassword || data.Cpassword) {
-          if (!data.currentpassword) {
-            showError("Current password is required when changing password.");
-            return;
-          }
-          if (data.NewPassword !== data.Cpassword) {
-            showError("New password and confirm password do not match.");
-            return;
-          }
-          if (data.NewPassword && data.NewPassword.length < 8) {
-            showError("New password must be at least 8 characters long.");
-            return;
-          }
+        const data = await response.json();
+        if (response.ok) {
+          document.getElementById('otpVerificationSection').style.display = 'block';
+          startOtpTimer();
+          showSuccess("OTP sent to your email!");
+        } else {
+          showError(data.error || "Failed to send OTP");
         }
-        
-        try {
-          const response = await fetch("/editProfile/update", {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-          });
-          
-          // Hide spinner
-          spinner.style.display = 'none';
-          
-          if (response.ok) {
-            // Show success message
-            const successMessage = document.getElementById("success-message");
-            successMessage.style.display = "block";
-            successMessage.classList.add('success-animation');
-            
-            // Redirect after a short delay
-            setTimeout(() => {
-              window.location.href = "/profile";
-            }, 1500);
-          } else {
-            const errorData = await response.json();
-            showError(errorData.error || "An error occurred.");
-          }
-        } catch (error) {
-          console.error("Fetch error:", error);
-          showError("A network error occurred. Please try again.");
-        }
-      });
-      
-      function showError(message) {
-        const errorDiv = document.getElementById("error-message");
-        errorDiv.textContent = message;
-        errorDiv.style.display = "block";
-        
-        // Hide spinner
-        document.querySelector('.spinner-border').style.display = 'none';
-        
-        // Scroll to error
-        errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } catch (error) {
+        showError("Network error while sending OTP");
       }
     });
+
+    // OTP submission
+    document.getElementById('submitOtpBtn').addEventListener('click', async () => {
+      const otp = document.getElementById('otpInput').value;
+      
+      try {
+        const response = await fetch('/editProfile/verify-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ otp })
+        });
+        
+        const data = await response.json();
+        if (response.ok) {
+          emailVerified = true;
+          clearInterval(timerInterval);
+          document.getElementById('otpVerificationSection').style.display = 'none';
+          document.getElementById('verifyEmailBtn').disabled = true;
+          showSuccess("Email verified successfully!");
+        } else {
+          showError(data.error || "Invalid OTP");
+        }
+      } catch (error) {
+        showError("Network error while verifying OTP");
+      }
+    });
+
+    // Resend OTP
+    document.getElementById('resendOtpBtn').addEventListener('click', async () => {
+      const email = document.getElementById('email').value;
+      try {
+        const response = await fetch('/editProfile/send-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        
+        if (response.ok) {
+          timer = 60;
+          startOtpTimer();
+          showSuccess("OTP resent successfully!");
+        }
+      } catch (error) {
+        showError("Network error while resending OTP");
+      }
+    });
+
+    // Form submission
+    document.getElementById("editProfileForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      
+      const spinner = document.querySelector('.spinner-border');
+      spinner.style.display = 'inline-block';
+      
+      document.getElementById("error-message").style.display = "none";
+      document.getElementById("success-message").style.display = "none";
+      
+      const form = event.target;
+      const formData = new FormData(form);
+      const email = formData.get('email');
+      const originalEmail = '<%= user.email %>';
+      
+      if (email !== originalEmail && !emailVerified) {
+        showError("Please verify your new email address first.");
+        return;
+      }
+
+      // Password validation
+      const newPassword = formData.get('NewPassword');
+      const currentPassword = formData.get('currentpassword');
+      const confirmPassword = formData.get('Cpassword');
+      
+      if (newPassword || currentPassword || confirmPassword) {
+        if (!currentPassword) {
+          showError("Current password is required when changing password.");
+          return;
+        }
+        if (newPassword !== confirmPassword) {
+          showError("New password and confirm password do not match.");
+          return;
+        }
+        if (newPassword && newPassword.length < 8) {
+          showError("New password must be at least 8 characters long.");
+          return;
+        }
+      }
+      
+      // Image validation
+      const fileInput = document.getElementById('profileImage');
+      if (fileInput && fileInput.files[0]) {
+        const file = fileInput.files[0];
+        const fileSizeMB = file.size / 1024 / 1024;
+        if (fileSizeMB > 5) {
+          showError("Profile image must be less than 5MB.");
+          return;
+        }
+        const validTypes = ['image/jpeg', 'image/png'];
+        if (!validTypes.includes(file.type)) {
+          showError("Profile image must be JPG or PNG format.");
+          return;
+        }
+        try {
+          const dimensionsValid = await validateImageDimensions(file);
+          if (!dimensionsValid) {
+            showError("Image dimensions must be between 100x100 and 2000x2000 pixels.");
+            return;
+          }
+        } catch (error) {
+          showError("Error validating image dimensions.");
+          return;
+        }
+      }
+      
+      try {
+        const response = await fetch("/editProfile/update", {
+          method: "PATCH",
+          body: formData
+        });
+        
+        spinner.style.display = 'none';
+        
+        if (response.ok) {
+          const successMessage = document.getElementById("success-message");
+          successMessage.style.display = "block";
+          successMessage.classList.add('success-animation');
+          
+          if (fileInput && fileInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+              document.querySelector('.profile-img').src = e.target.result;
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+          }
+          
+          setTimeout(() => {
+            window.location.href = "/profile";
+          }, 1500);
+        } else {
+          const errorData = await response.json();
+          showError(errorData.error || "An error occurred while updating profile.");
+        }
+      } catch (error) {
+        console.error("Fetch error:", error);
+        spinner.style.display = 'none';
+        showError("A network error occurred. Please try again.");
+      }
+    });
+
+    // Image preview
+    const fileInput = document.getElementById('profileImage');
+    if (fileInput) {
+      fileInput.addEventListener('change', async function(e) {
+        if (e.target.files && e.target.files[0]) {
+          const file = e.target.files[0];
+          const fileSizeMB = file.size / 1024 / 1024;
+          if (fileSizeMB > 5) {
+            showError("Selected image must be less than 5MB.");
+            this.value = '';
+            return;
+          }
+          const validTypes = ['image/jpeg', 'image/png'];
+          if (!validTypes.includes(file.type)) {
+            showError("Selected image must be JPG or PNG format.");
+            this.value = '';
+            return;
+          }
+          try {
+            const dimensionsValid = await validateImageDimensions(file);
+            if (!dimensionsValid) {
+              showError("Selected image dimensions must be between 100x100 and 2000x2000 pixels.");
+              this.value = '';
+              return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+              document.querySelector('.profile-img').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+          } catch (error) {
+            showError("Error loading image preview.");
+            this.value = '';
+          }
+        }
+      });
+    }
+
+    function validateImageDimensions(file) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = function() {
+          const width = this.width;
+          const height = this.height;
+          const minDimension = 100;
+          const maxDimension = 2000;
+          resolve(
+            width >= minDimension && 
+            height >= minDimension && 
+            width <= maxDimension && 
+            height <= maxDimension
+          );
+        };
+        img.onerror = function() {
+          resolve(false);
+        };
+        img.src = URL.createObjectURL(file);
+      });
+    }
+
+    function startOtpTimer() {
+      clearInterval(timerInterval);
+      timer = 60;
+      document.getElementById('timerValue').textContent = timer;
+      document.getElementById('resendOtpBtn').disabled = true;
+      
+      timerInterval = setInterval(() => {
+        timer--;
+        document.getElementById('timerValue').textContent = timer;
+        if (timer <= 0) {
+          clearInterval(timerInterval);
+          document.getElementById('resendOtpBtn').disabled = false;
+        }
+      }, 1000);
+    }
+
+    function showError(message) {
+      const errorDiv = document.getElementById("error-message");
+      errorDiv.textContent = message;
+      errorDiv.style.display = "block";
+      document.querySelector('.spinner-border').style.display = 'none';
+      errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function showSuccess(message) {
+      const successDiv = document.getElementById("success-message");
+      successDiv.textContent = message;
+      successDiv.style.display = "block";
+      successDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => {
+        successDiv.style.display = "none";
+      }, 3000);
+    }
+  });
   </script>
 </body>
 </html>
