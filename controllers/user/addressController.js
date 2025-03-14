@@ -7,10 +7,13 @@ const getAddresses = async (req, res, next) => {
     console.log("Address page function called");
 
     const userId = req.session.user.id;
+    // Fetch full user data
+    const user = await User.findById(userId);
     const addressDoc = await Address.findOne({ userId });
 
+    console.log("Full user data:", user);
     console.log("Rendering address page");
-    res.render("address", { addressDoc, user: req.session.user });
+    res.render("address", { addressDoc, user });
   } catch (error) {
     next(error);
   }
