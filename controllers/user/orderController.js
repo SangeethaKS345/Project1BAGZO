@@ -93,63 +93,115 @@ function getOrderStatus(status) {
 
 const cancelOrder = async (req, res) => {
   try {
-      const { orderId } = req.params;
-      const userId = req.user._id;
-      const { cancellationReason } = req.body || {};
+    const { orderId } = req.params;
+    const userId = req.user._id;
+    const { cancellationReason } = req.body || {};
 
-      const order = await Order.findOne({ orderId, userId });
+    if (!cancellationReason) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cancellation reason is required',
+      });
+    }
 
-      if (!order) {
-          return res.status(400).json({
-              success: false,
-              message: 'Order not found',
-          });
+    const order = await Order.findOne({ orderId, userId });
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found',
+      });
+    }
+
+    const currentStatus = getOrderStatus(order.status);
+    if (currentStatus === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Order is already cancelled',
+      });
+    }
+    if (currentStatus >= 4) {
+      return res.status(400).json({
+        success: false,
+        message: 'Order cannot be cancelled after delivery',
+      });
+    }
+
+    order.status = 'Cancelled';
+    order.cancellation_reason = cancellationReason;
+    await order.save();
+
+    for (const item of order.OrderItems) {
+      const product = await Product.findById(item.product);
+      if (product) {
+        product.quantity += item.quantity;
+        await product.save();
       }
+    }
 
-      const currentStatus = getOrderStatus(order.status);
-      if (currentStatus === 0) {
-          return res.status(400).json({
-              success: false,
-              message: 'Order is already cancelled',
-          });
-      }
-      if (currentStatus >= 4) {
-          return res.status(400).json({
-              success: false,
-              message: 'Order cannot be cancelled after delivery',
-          });
-      }
+    if (order.paymentMethod !== 'cod') {
+      await walletController.addToWallet({
+        user: userId,
+        amount: order.finalAmount,
+        description: `Refund from order #${order.orderId}`,
+      });
+    }
 
-      order.status = 'Cancelled';
-      order.cancellation_reason = cancellationReason || 'No reason provided';
-      await order.save();
-
-      for (const item of order.OrderItems) {
-          const product = await Product.findById(item.product);
-          if (product) {
-              product.quantity += item.quantity;
-              await product.save();
-          } else {
-              console.warn(`Product not found for ID: ${item.product}`);
-          }
-      }
-
-      if (order.paymentMethod !== 'cod') {
-          await walletController.addToWallet({
-              user: userId,
-              amount: order.finalAmount,
-              description: `Refund from order #${order.orderId}`,
-          });
-      }
-
-      res.json({ success: true });
+    res.json({ success: true });
   } catch (error) {
-      console.error('Error in cancelOrder:', error);
-      res.status(500).json({ success: false, message: 'Server error: ' + error.message });
+    console.error('Error in cancelOrder:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error: ' + error.message 
+    });
   }
 };
+const returnOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const userId = req.user._id;
+    const { returnReason } = req.body || {};
+
+    const order = await Order.findOne({ orderId, userId });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found',
+      });
+    }
+
+    if (order.status !== 'Delivered') {
+      return res.status(400).json({
+        success: false,
+        message: 'Only delivered orders can be returned',
+      });
+    }
+
+    if (order.return_reason) {
+      return res.status(400).json({
+        success: false,
+        message: 'Return already requested',
+      });
+    }
+
+    order.status = 'Return Request';
+    order.return_reason = returnReason || 'No reason provided';
+    await order.save();
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error in returnOrder:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error: ' + error.message 
+    });
+  }
+};
+
+// Update exports
 module.exports = { 
-    getOrderPlaced,
-    loadMyOrders,
-    cancelOrder
+  getOrderPlaced,
+  loadMyOrders,
+  cancelOrder,
+  returnOrder
 };

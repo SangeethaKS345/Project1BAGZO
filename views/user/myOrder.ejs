@@ -407,9 +407,11 @@
 }
   </style>
 
-  <title>My Orders | BAGZO</title>
-  
-  <%- include('../../views/partials/user/header') %>
+ 
+
+<title>My Orders | BAGZO</title>
+
+<%- include('../../views/partials/user/header') %>
 </head>
 
 <body>
@@ -447,7 +449,11 @@
             </div>
             
             <div>
-              <% if (order.status === 4 && !order.return_reason) { %>
+              <% if (order.cancellation_reason) { %>
+                <button class="btn btn-secondary cancel-order-btn" data-order-id="<%= order.orderId %>" disabled>
+                  <i class="fas fa-ban"></i> Cancelled
+                </button>
+              <% } else if (order.status === 4 && !order.return_reason) { %>
                 <button class="btn btn-warning return-order-btn" data-order-id="<%= order.orderId %>">
                   <i class="fas fa-undo"></i> Return Order
                 </button>
@@ -459,11 +465,7 @@
                 <button class="btn btn-success return-order-btn" data-order-id="<%= order.orderId %>" disabled>
                   <i class="fas fa-check-circle"></i> Returned
                 </button>
-              <% } else if (order.cancellation_reason) { %>
-                <button class="btn btn-secondary cancel-order-btn" data-order-id="<%= order.orderId %>" disabled>
-                  <i class="fas fa-ban"></i> Cancelled
-                </button>
-              <% } else { %>
+              <% } else if (order.status < 4) { %>
                 <button class="btn btn-danger cancel-order-btn" data-order-id="<%= order.orderId %>">
                   <i class="fas fa-times-circle"></i> Cancel Order
                 </button>
@@ -499,9 +501,6 @@
             <button class="btn btn-primary buy-again-btn" data-product-id="<%= order.product._id %>">
               <i class="fas fa-shopping-cart"></i> Buy Again
             </button>
-            <a href="/track-order/<%= order.orderId %>" class="btn btn-secondary">
-              <i class="fas fa-map-marker-alt"></i> Track Order
-            </a>
           </div>
         </div>
       <% }) %>
@@ -528,7 +527,7 @@
   </div>
 
   <!-- Cancel Order Modal -->
-  <div id="cancelOrderModal" class="modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
+  <div id="cancelOrderModal" class="modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 400px; max-width: 90%; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
     <h3>Cancel Order</h3>
     <p>Please provide a reason for cancellation</p>
     <textarea id="cancellationReason" placeholder="Enter your reason here..."></textarea>
@@ -543,7 +542,7 @@
   </div>
 
   <!-- Return Order Modal -->
-  <div id="returnOrderModal" class="modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
+  <div id="returnOrderModal" class="modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 400px; max-width: 90%; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
     <h3>Return Order</h3>
     <p>Please provide a reason for return</p>
     <textarea id="returnReason" placeholder="Enter your reason here..."></textarea>
@@ -688,7 +687,8 @@ document.querySelectorAll('.return-order-btn').forEach(button => {
           Swal.fire('Error', data.message || 'Failed to process return request', 'error');
         }
       } catch (error) {
-        Swal.fire('Error', 'Something went wrong', 'error');
+        console.error('Return Order Error:', error);
+        Swal.fire('Error', 'Something went wrong: ' + error.message, 'error');
       }
     });
   });

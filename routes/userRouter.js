@@ -109,7 +109,7 @@ router.post('/place-order', userAuth, checkoutController.placeOrder);
 router.get('/orderPlaced', userAuth, orderController.getOrderPlaced);
 router.get('/my-orders', userAuth, orderController.loadMyOrders);
 router.post('/cancel-order/:orderId', userAuth, orderController.cancelOrder);
-
+router.post('/return-order/:orderId', userAuth, orderController.returnOrder);
 
 //Wallet Management
 router.get('/user/wallet', userAuth, walletController.loadWalletPage);
