@@ -35,62 +35,6 @@ const getOrderPlaced = async (req, res, next) => {
     }
 };
 
-const loadMyOrders = async (req, res, next) => {
-  try {
-      if (!req.user) throw new Error("User not authenticated");
-
-      const page = parseInt(req.query.page) || 1;
-      const limit = 10;
-      const skip = (page - 1) * limit;
-
-      const orders = await Order.find({ userId: req.user._id })
-          .sort({ createdOn: -1 })
-          .skip(skip)
-          .limit(limit)
-          .populate('OrderItems.product');
-
-      const totalOrders = await Order.countDocuments({ userId: req.user._id });
-      const totalPages = Math.ceil(totalOrders / limit);
-
-      const formattedOrders = orders.map(order => ({
-          orderId: order.orderId,
-          product: order.OrderItems[0].product,
-          quantity: order.OrderItems.reduce((sum, item) => sum + item.quantity, 0),
-          totalAmount: order.finalAmount,
-          placedOn: order.createdOn.toLocaleString(),
-          status: getOrderStatus(order.status),
-          cancellation_reason: order.cancellation_reason,
-          return_reason: order.return_reason
-      }));
-
-      // Log to verify data
-      console.log('Formatted Orders:', formattedOrders);
-
-      res.render("myOrder", {
-          orders: formattedOrders,
-          currentPage: page,
-          totalPages: totalPages
-      });
-  } catch (err) {
-      console.error("Error in loadMyOrders:", err);
-      next(err);
-  }
-};
-
-function getOrderStatus(status) {
-  const statusMap = {
-      'Pending': 1,
-      'Pending COD': 1,
-      'Processing': 2,
-      'Shipped': 3,
-      'Delivered': 4,
-      'Return Request': 5,
-      'Returned': 6, 
-      'Cancelled': 0
-  };
-  return statusMap[status] || 0;
-}
-
 const cancelOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -127,7 +71,7 @@ const cancelOrder = async (req, res) => {
     }
 
     order.status = 'Cancelled';
-    order.cancellation_reason = cancellationReason;
+    order.cancellation_reason = cancellationReason; // Always set this
     await order.save();
 
     for (const item of order.OrderItems) {
@@ -155,6 +99,65 @@ const cancelOrder = async (req, res) => {
     });
   }
 };
+
+const loadMyOrders = async (req, res, next) => {
+  try {
+    if (!req.user) throw new Error("User not authenticated");
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const skip = (page - 1) * limit;
+
+    const orders = await Order.find({ userId: req.user._id })
+      .sort({ createdOn: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('OrderItems.product');
+
+    const totalOrders = await Order.countDocuments({ userId: req.user._id });
+    const totalPages = Math.ceil(totalOrders / limit);
+
+    const formattedOrders = orders.map(order => {
+      const statusNumber = getOrderStatus(order.status);
+      console.log(`Order #${order.orderId} - Status: ${order.status} (Mapped: ${statusNumber})`);
+      return {
+        orderId: order.orderId,
+        product: order.OrderItems[0].product,
+        quantity: order.OrderItems.reduce((sum, item) => sum + item.quantity, 0),
+        totalAmount: order.finalAmount,
+        placedOn: order.createdOn.toLocaleString(),
+        status: statusNumber, // Use numeric status
+        cancellation_reason: order.cancellation_reason,
+        return_reason: order.return_reason
+      };
+    });
+
+    res.render("myOrder", {
+      orders: formattedOrders,
+      currentPage: page,
+      totalPages: totalPages
+    });
+  } catch (err) {
+    console.error("Error in loadMyOrders:", err);
+    next(err);
+  }
+};
+
+function getOrderStatus(status) {
+  const statusMap = {
+      'Pending': 1,
+      'Pending COD': 1,
+      'Processing': 2,
+      'Shipped': 3,
+      'Delivered': 4,
+      'Return Request': 5,
+      'Returned': 6, 
+      'Cancelled': 0
+  };
+  return statusMap[status] || 0;
+}
+
+
 const returnOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
