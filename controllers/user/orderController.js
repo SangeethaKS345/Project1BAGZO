@@ -162,7 +162,14 @@ const returnOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
     const userId = req.user._id;
-    const { returnReason } = req.body || {};
+    const { returnReason } = req.body;
+
+    if (!returnReason) {
+      return res.status(400).json({
+        success: false,
+        message: 'Return reason is required',
+      });
+    }
 
     const order = await Order.findOne({ orderId, userId });
 
@@ -180,7 +187,7 @@ const returnOrder = async (req, res) => {
       });
     }
 
-    if (order.return_reason) {
+    if (order.returnReason) {
       return res.status(400).json({
         success: false,
         message: 'Return already requested',
@@ -188,7 +195,7 @@ const returnOrder = async (req, res) => {
     }
 
     order.status = 'Return Request';
-    order.return_reason = returnReason || 'No reason provided';
+    order.returnReason = returnReason;
     await order.save();
 
     res.json({ success: true });

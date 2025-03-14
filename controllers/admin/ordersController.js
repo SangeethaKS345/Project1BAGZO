@@ -52,18 +52,19 @@ const getAllOrders = async (req, res) => {
 const getOrderDetails = async (req, res) => {
     try {
         const order = await Order.findOne({ orderId: req.params.orderId })
-            .populate('userId', 'name email mobile_number')
-            .populate('OrderItems.product')
-            .populate('address');
+            .populate('userId', 'name email phone')
+            .populate('OrderItems.product') // Populate address reference
+            console.log('order:', order);
 
         if (!order) {
-            console.log('Order not found');
             return res.status(404).json({ error: 'Order not found' });
         }
 
+        
         const shippingAddress = order.address && order.address.address && order.address.address.length > 0 
             ? order.address.address[0] 
             : {};
+            console.log('shippingAddress:', shippingAddress);
 
         const formattedOrder = {
             _id: order.orderId,
@@ -71,13 +72,13 @@ const getOrderDetails = async (req, res) => {
             payment: order.paymentMethod,
             total: order.finalAmount,
             customer: {
-                name: order.userId.name,
-                email: order.userId.email,
-                phone: order.userId.mobile_number || 'N/A'
+                name: order.userId?.name || 'N/A',
+                email: order.userId?.email || 'N/A',
+                phone: order.userId?.phone || 'N/A'
             },
             shippingAddress: {
                 fullName: shippingAddress.name || 'N/A',
-                address: shippingAddress.addressType || 'N/A',
+                address: shippingAddress.address || 'N/A',
                 landMark: shippingAddress.landMark || 'N/A',
                 city: shippingAddress.city || 'N/A',
                 state: shippingAddress.state || 'N/A',
@@ -146,7 +147,7 @@ const getReturnRequests = async (req, res) => {
                 quantity: item.quantity
             })),
             total: order.finalAmount,
-            return_reason: order.return_reason,
+            returnReason: order.returnReason || 'Not specified', // Ensure it’s always present
             status: order.status
         }));
 

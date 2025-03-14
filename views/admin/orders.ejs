@@ -1,333 +1,344 @@
-
 <head>
-<!-- SweetAlert2 CSS -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-<!-- Bootstrap CSS -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<style>
+  <!-- SweetAlert2 CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
     .product-item {
-        display: flex;
-        align-items: center;
-        gap: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
+
     .product-info {
-        font-size: 0.9em;
+      font-size: 0.9em;
     }
+
     .status-select {
-        min-width: 150px;
+      min-width: 150px;
     }
+
     .img-xs {
-        object-fit: cover;
+      object-fit: cover;
     }
+
     .modal-content {
-        border: none;
-        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      border: none;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
     }
+
     .address-box {
-        border: 1px solid #3d3d3d;
+      border: 1px solid #3d3d3d;
     }
+
     .table-dark {
-        background-color: #1f1f1f;
-        color: #fff;
+      background-color: #1f1f1f;
+      color: #fff;
     }
+
     .table-dark thead th {
-        border-color: #3d3d3d;
+      border-color: #3d3d3d;
     }
+
     .table-dark td {
-        border-color: #3d3d3d;
+      border-color: #3d3d3d;
     }
-</style>
-<%- include("../../views/partials/admin/header") %>
+  </style>
+  <%- include("../../views/partials/admin/header") %>
 </head>
 
 <section class="content-main">
-    <div class="content-header">
-        <div>
-            <h2 class="content-title card-title">Order Management</h2>
-        </div>
-        <div>
-            <input type="text" placeholder="Search by Product Name" class="form-control bg-white" id="searchInput">
-        </div>
-        <div>
-            <button class="btn btn-primary" id="returnRequestsBtn">Return Requests</button>
-        </div>
+  <div class="content-header">
+    <div>
+      <h2 class="content-title card-title">Order Management</h2>
     </div>
+    <div>
+      <input type="text" placeholder="Search by Product Name" class="form-control bg-white" id="searchInput">
+    </div>
+    <div>
+      <button class="btn btn-primary" id="returnRequestsBtn">Return Requests</button>
+    </div>
+  </div>
 
-    <div class="card mb-4">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Order ID</th>
-                            <th>Date</th>
-                            <th>Customer</th>
-                            <th>Products</th>
-                            <th>Total</th>
-                            <th>Payment</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <% orders.forEach(order => { %>
-                        <tr>
-                            <td><%= order._id %></td>
-                            <td><%= new Date(order.date).toLocaleDateString() %></td>
-                            <td><%= order.customer %></td>
-                            <td>
-                                <% order.products.forEach(product => { %>
-                                <div class="product-item mb-2">
-                                    <img src="<%= product.image %>" alt="<%= product.name %>" width="40" class="img-xs">
-                                    <div class="product-info">
-                                        <span><%= product.name %></span><br>
-                                        <small>Color: <%= product.color %> | Qty: <%= product.quantity %></small>
-                                    </div>
-                                </div>
-                                <% }) %>
-                            </td>
-                            <td>₹<%= order.total %></td>
-                            <td>
-                                <span class="badge rounded-pill <%= order.payment === 'cod' ? 'bg-warning' : 'bg-success' %>">
-                                    <%= order.payment %>
-                                </span>
-                            </td>
-                            <td>
-                                <select class="form-select status-select" data-order-id="<%= order._id %>" <%= (order.status === 'Returned' || order.status === 'Cancelled') ? 'disabled' : '' %>>
-                                    <option value="Pending" <%= order.status === 'Pending' ? 'selected' : '' %>>Pending</option>
-                                    <option value="Processing" <%= order.status === 'Processing' ? 'selected' : '' %>>Processing</option>
-                                    <option value="Shipped" <%= order.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
-                                    <option value="Out for Delivery" <%= order.status === 'Out for Delivery' ? 'selected' : '' %>>Out for Delivery</option>
-                                    <option value="Delivered" <%= order.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
-                                    <option value="Cancelled" <%= order.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
-                                    <option value="Returned" <%= order.status === 'Returned' ? 'selected' : '' %>>Returned</option>
-                                </select>
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-warning" onclick="viewDetails('<%= order._id %>')">View Details</button>
-                            </td>
-                        </tr>
-                        <% }) %>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>Products</th>
+              <th>Total</th>
+              <th>Payment</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% orders.forEach(order => { %>
+            <tr>
+              <td><%= order._id %></td>
+              <td><%= new Date(order.date).toLocaleDateString() %></td>
+              <td><%= order.customer %></td>
+              <td>
+                <% order.products.forEach(product => { %>
+                <div class="product-item mb-2">
+                  <img src="<%= product.image %>" alt="<%= product.name %>" width="40" class="img-xs">
+                  <div class="product-info">
+                    <span><%= product.name %></span><br>
+                    <small>Color: <%= product.color %> | Qty: <%= product.quantity %></small>
+                  </div>
+                </div>
+                <% }) %>
+              </td>
+              <td>₹<%= order.total %></td>
+              <td>
+                <span class="badge rounded-pill <%= order.payment === 'cod' ? 'bg-warning' : 'bg-success' %>">
+                  <%= order.payment %>
+                </span>
+              </td>
+              <td>
+                <select class="form-select status-select" data-order-id="<%= order._id %>" <%= (order.status === 'Returned' || order.status === 'Cancelled') ? 'disabled' : '' %>>
+                  <option value="Pending" <%= order.status === 'Pending' ? 'selected' : '' %>>Pending</option>
+                  <option value="Processing" <%= order.status === 'Processing' ? 'selected' : '' %>>Processing</option>
+                  <option value="Shipped" <%= order.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
+                  <option value="Out for Delivery" <%= order.status === 'Out for Delivery' ? 'selected' : '' %>>Out for Delivery</option>
+                  <option value="Delivered" <%= order.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+                  <option value="Cancelled" <%= order.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                  <option value="Returned" <%= order.status === 'Returned' ? 'selected' : '' %>>Returned</option>
+                </select>
+              </td>
+              <td>
+                <button class="btn btn-sm btn-warning" onclick="viewDetails('<%= order._id %>')">View Details</button>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
     </div>
+  </div>
 
-    <div class="container mt-4">
-        <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center">
-                <% for (let i = 1; i <= totalPages; i++) { %>
-                <li class="page-item <%= (i === currentPage) ? 'active' : '' %>">
-                    <a class="page-link" href="?page=<%= i %>"><%= i %></a>
-                </li>
-                <% } %>
-            </ul>
-        </nav>
-    </div>
-    
+  <div class="container mt-4">
+    <nav aria-label="Page navigation">
+      <ul class="pagination justify-content-center">
+        <% for (let i = 1; i <= totalPages; i++) { %>
+        <li class="page-item <%= (i === currentPage) ? 'active' : '' %>">
+          <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+        </li>
+        <% } %>
+      </ul>
+    </nav>
+  </div>
+
 </section>
 
 <!-- Modal for order details -->
 <div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content" style="background-color: #2b2b2b; color: #fff;">
-            <div class="modal-header" style="border-bottom: 1px solid #3d3d3d;">
-                <h5 class="modal-title" id="orderDetailsModalLabel">Order Details</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <!-- Order Information -->
-                    <div class="col-md-6">
-                        <h6 class="text-warning mb-3">Order Information</h6>
-                        <p><strong>Order ID:</strong> <span id="modalOrderId"></span></p>
-                        <p><strong>Order Date:</strong> <span id="modalOrderDate"></span></p>
-                        <p><strong>Payment Method:</strong> <span id="modalPaymentMethod"></span></p>
-                        <p><strong>Total Amount:</strong> ₹<span id="modalTotalAmount"></span></p>
-                    </div>
-                    
-                    <!-- Customer Information -->
-                    <div class="col-md-6">
-                        <h6 class="text-warning mb-3">Customer Information</h6>
-                        <p><strong>Name:</strong> <span id="modalCustomerName"></span></p>
-                        <p><strong>Email:</strong> <span id="modalCustomerEmail"></span></p>
-                        <p><strong>Phone:</strong> <span id="modalCustomerPhone"></span></p>
-                    </div>
-                </div>
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content" style="background-color: #2b2b2b; color: #fff;">
+      <div class="modal-header" style="border-bottom: 1px solid #3d3d3d;">
+        <h5 class="modal-title" id="orderDetailsModalLabel">Order Details</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <!-- Order Information -->
+          <div class="col-md-6">
+            <h6 class="text-warning mb-3">Order Information</h6>
+            <p><strong>Order ID:</strong> <span id="modalOrderId"></span></p>
+            <p><strong>Order Date:</strong> <span id="modalOrderDate"></span></p>
+            <p><strong>Payment Method:</strong> <span id="modalPaymentMethod"></span></p>
+            <p><strong>Total Amount:</strong> ₹<span id="modalTotalAmount"></span></p>
+          </div>
 
-                <!-- Shipping Address -->
-                <div class="shipping-address mt-4">
-                    <h6 class="text-warning mb-3">Shipping Address</h6>
-                    <div class="address-box p-3" style="background-color: #8e8484; border-radius: 8px;">
-                        <p><strong>Name:</strong> <span id="modalShippingName"></span></p>
-                        <p><strong>Street:</strong> <span id="modalStreet"></span></p>
-                        <p><strong>Landmark:</strong> <span id="modalLandmark"></span></p>
-                        <p><strong>City:</strong> <span id="modalCity"></span></p>
-                        <p><strong>State:</strong> <span id="modalState"></span></p>
-                        <p><strong>Pincode:</strong> <span id="modalPincode"></span></p>
-                        <p><strong>Mobile:</strong> <span id="modalMobile"></span></p>
-                        <p><strong>Alternative Phone:</strong> <span id="modalAltPhone"></span></p>
-                    </div>
-                </div>
-
-                <!-- Order Items -->
-                <div class="order-items mt-4">
-                    <h6 class="text-warning mb-3">Order Items</h6>
-                    <div class="table-responsive">
-                        <table class="table table-dark">
-                            <thead>
-                                <tr>
-                                    <th>Product</th>
-                                    <th>Price</th>
-                                    <th>Quantity</th>
-                                    <th>Status</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody id="modalOrderItems">
-                                <!-- Order items will be inserted here dynamically -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer" style="border-top: 1px solid #3d3d3d;">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
+          <!-- Customer Information -->
+          <div class="col-md-6">
+            <h6 class="text-warning mb-3">Customer Information</h6>
+            <p><strong>Name:</strong> <span id="modalCustomerName"></span></p>
+            <p><strong>Email:</strong> <span id="modalCustomerEmail"></span></p>
+            <p><strong>Phone:</strong> <span id="modalCustomerPhone"></span></p>
+          </div>
         </div>
+
+        <!-- Shipping Address -->
+        <div class="shipping-address mt-4">
+          <h6 class="text-warning mb-3">Shipping Address</h6>
+          <div class="address-box p-3" style="background-color: #8e8484; border-radius: 8px;">
+            <p><strong>Name:</strong> <span id="modalShippingName"></span></p>
+            <p><strong>Address:</strong> <span id="modalStreet"></span></p>
+            <p><strong>Landmark:</strong> <span id="modalLandmark"></span></p>
+            <p><strong>City:</strong> <span id="modalCity"></span></p>
+            <p><strong>State:</strong> <span id="modalState"></span></p>
+            <p><strong>Pincode:</strong> <span id="modalPincode"></span></p>
+            <p><strong>Phone:</strong> <span id="modalMobile"></span></p>
+            <p><strong>Alternative Phone:</strong> <span id="modalAltPhone"></span></p>
+          </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="order-items mt-4">
+          <h6 class="text-warning mb-3">Order Items</h6>
+          <div class="table-responsive">
+            <table class="table table-dark">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Price</th>
+                  <th>Quantity</th>
+                  <th>Status</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody id="modalOrderItems">
+                <!-- Order items will be inserted here dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="border-top: 1px solid #3d3d3d;">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
     </div>
+  </div>
 </div>
 
 <!-- Return Requests Modal -->
+<!-- Return Requests Modal -->
 <div class="modal fade" id="returnRequestsModal" tabindex="-1" aria-labelledby="returnRequestsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="returnRequestsModalLabel">Return Requests</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Product Name</th>
-                                <th>Customer Name</th>
-                                <th>Quantity</th>
-                                <th>Amount</th>
-                                <th>Reason</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="returnRequestsTable">
-                            <!-- Return requests will be populated here via JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="returnRequestsModalLabel">Return Requests</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Product Name</th>
+                <th>Customer Name</th>
+                <th>Quantity</th>
+                <th>Amount</th>
+                <th>Return Reason</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="returnRequestsTable">
+              <!-- Return requests will be populated here via JavaScript -->
+            </tbody>
+          </table>
         </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
     </div>
+  </div>
 </div>
 
 
 
 <script>
-    // Status update handling
-    document.querySelectorAll('.status-select').forEach(select => {
+  // Status update handling
+  document.querySelectorAll('.status-select').forEach(select => {
     select.addEventListener('change', async function() {
-        const orderId = this.dataset.orderId;
-        const newStatus = this.value;
-        
-        try {
-            const response = await fetch(`/admin/orders/update-status/${orderId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ status: newStatus })
-            });
-            
-            if (response.ok) {
-                Swal.fire({
-                    title: 'Success!',
-                    text: 'Order status updated successfully',
-                    icon: 'success',
-                    confirmButtonText: 'OK'
-                });
-            } else {
-                // Parse the error message from the response
-                const errorData = await response.json();
-                Swal.fire({
-                    title: 'Error!',
-                    text: errorData.error || 'Failed to update order status',
-                    icon: 'error',
-                    confirmButtonText: 'OK'
-                });
-                
-                // Revert the select to the previous status
-                this.value = this.querySelector('option[selected]').value;
-            }
-        } catch (error) {
-            Swal.fire({
-                title: 'Error!',
-                text: 'Failed to update order status',
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-        }
-    });
-});
+      const orderId = this.dataset.orderId;
+      const newStatus = this.value;
 
-    // Search functionality
-    document.getElementById('searchInput').addEventListener('input', function(e) {
-        const searchText = e.target.value.toLowerCase();
-        const rows = document.querySelectorAll('tbody tr');
-        
-        rows.forEach(row => {
-            const productNames = Array.from(row.querySelectorAll('.product-info span')).map(span => span.textContent.toLowerCase());
-            const matches = productNames.some(name => name.includes(searchText));
-            row.style.display = matches ? '' : 'none';
+      try {
+        const response = await fetch(`/admin/orders/update-status/${orderId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            status: newStatus
+          })
         });
-    });
-    
-// View details function
-async function viewDetails(orderId) {
-    try {
-        const response = await fetch(`/admin/orders/details/${orderId}`);
-        const data = await response.json();
-        
-        if (!response.ok) {
-            throw new Error(data.error || 'Failed to fetch order details');
+
+        if (response.ok) {
+          Swal.fire({
+            title: 'Success!',
+            text: 'Order status updated successfully',
+            icon: 'success',
+            confirmButtonText: 'OK'
+          });
+        } else {
+          // Parse the error message from the response
+          const errorData = await response.json();
+          Swal.fire({
+            title: 'Error!',
+            text: errorData.error || 'Failed to update order status',
+            icon: 'error',
+            confirmButtonText: 'OK'
+          });
+
+          // Revert the select to the previous status
+          this.value = this.querySelector('option[selected]').value;
         }
+      } catch (error) {
+        Swal.fire({
+          title: 'Error!',
+          text: 'Failed to update order status',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
+      }
+    });
+  });
 
-        // Populate modal with order details
-        document.getElementById('modalOrderId').textContent = data._id;
-        document.getElementById('modalOrderDate').textContent = new Date(data.date).toLocaleDateString();
-        document.getElementById('modalPaymentMethod').textContent = data.payment;
-        document.getElementById('modalTotalAmount').textContent = data.total;
+  // Search functionality
+  document.getElementById('searchInput').addEventListener('input', function(e) {
+    const searchText = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('tbody tr');
 
-        // Customer information
-        document.getElementById('modalCustomerName').textContent = data.customer.name;
-        document.getElementById('modalCustomerEmail').textContent = data.customer.email;
-        document.getElementById('modalCustomerPhone').textContent = data.customer.phone;
+    rows.forEach(row => {
+      const productNames = Array.from(row.querySelectorAll('.product-info span')).map(span => span.textContent.toLowerCase());
+      const matches = productNames.some(name => name.includes(searchText));
+      row.style.display = matches ? '' : 'none';
+    });
+  });
 
-        // Shipping address
-        document.getElementById('modalShippingName').textContent = data.shippingAddress.fullName;
-        document.getElementById('modalStreet').textContent = data.shippingAddress.address;
-        document.getElementById('modalLandmark').textContent = data.shippingAddress.landMark;
-        document.getElementById('modalCity').textContent = data.shippingAddress.city;
-        document.getElementById('modalState').textContent = data.shippingAddress.state;
-        document.getElementById('modalPincode').textContent = data.shippingAddress.pincode;
-        document.getElementById('modalMobile').textContent = data.shippingAddress.phone;
-        document.getElementById('modalAltPhone').textContent = data.shippingAddress.altPhone;
+  // View details function
+  async function viewDetails(orderId) {
+    try {
+      const response = await fetch(`/admin/orders/details/${orderId}`);
+      const data = await response.json();
+      console.log("data", data)
 
-        // Order items
-        const orderItemsHtml = data.products.map(product => `
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch order details');
+      }
+
+      // Populate modal with order details
+      document.getElementById('modalOrderId').textContent = data._id;
+      document.getElementById('modalOrderDate').textContent = new Date(data.date).toLocaleDateString();
+      document.getElementById('modalPaymentMethod').textContent = data.payment;
+      document.getElementById('modalTotalAmount').textContent = data.total;
+
+      // Customer information
+      document.getElementById('modalCustomerName').textContent = data.customer.name;
+      document.getElementById('modalCustomerEmail').textContent = data.customer.email;
+      document.getElementById('modalCustomerPhone').textContent = data.customer.phone;
+
+      // Shipping address
+      document.getElementById('modalShippingName').textContent = data.shippingAddress.fullName;
+      document.getElementById('modalStreet').textContent = data.shippingAddress.address;
+      document.getElementById('modalLandmark').textContent = data.shippingAddress.landMark;
+      document.getElementById('modalCity').textContent = data.shippingAddress.city;
+      document.getElementById('modalState').textContent = data.shippingAddress.state;
+      document.getElementById('modalPincode').textContent = data.shippingAddress.pincode;
+      document.getElementById('modalMobile').textContent = data.shippingAddress.phone;
+      document.getElementById('modalAltPhone').textContent = data.shippingAddress.altPhone;
+
+      // Order items
+      const orderItemsHtml = data.products.map(product => `
             <tr>
                 <td>
                     <div class="d-flex align-items-center">
@@ -344,109 +355,111 @@ async function viewDetails(orderId) {
                 <td>₹${product.price * product.quantity}</td>
             </tr>
         `).join('');
-        document.getElementById('modalOrderItems').innerHTML = orderItemsHtml;
+      document.getElementById('modalOrderItems').innerHTML = orderItemsHtml;
 
-        // Show the modal
-        const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
-        modal.show();
+      // Show the modal
+      const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
+      modal.show();
     } catch (error) {
-        console.error('Error fetching order details:', error);
-        Swal.fire({
-            title: 'Error!',
-            text: error.message || 'Failed to load order details',
-            icon: 'error',
-            confirmButtonText: 'OK'
-        });
+      console.error('Error fetching order details:', error);
+      Swal.fire({
+        title: 'Error!',
+        text: error.message || 'Failed to load order details',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
     }
-}
+  }
 
-// Return Requests Modal
-document.getElementById('returnRequestsBtn').addEventListener('click', async function() {
+  // Return Requests Modal
+  document.getElementById('returnRequestsBtn').addEventListener('click', async function() {
     try {
-        const response = await fetch('/admin/orders/return-requests');
-        const returnRequests = await response.json();
+      const response = await fetch('/admin/orders/return-requests');
+      const returnRequests = await response.json();
 
-        const tableBody = document.getElementById('returnRequestsTable');
-        tableBody.innerHTML = '';
+      const tableBody = document.getElementById('returnRequestsTable');
+      tableBody.innerHTML = '';
 
-        if (returnRequests.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No return requests found</td></tr>';
-            return;
-        }
+      if (returnRequests.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No return requests found</td></tr>';
+        return;
+      }
 
-        returnRequests.forEach(request => {
-            if (request.status !== 'Returned') {  // Only show non-returned requests
-                const row = document.createElement('tr');
-                row.innerHTML = `
+      returnRequests.forEach(request => {
+        if (request.status !== 'Returned') { // Only show non-returned requests
+          const row = document.createElement('tr');
+          row.innerHTML = `
                     <td>${request._id}</td>
                     <td>${request.products[0].name}</td>
                     <td>${request.customer}</td>
                     <td>${request.products[0].quantity}</td>
                     <td>₹${request.total}</td>
-                    <td>${request.return_reason || 'Not specified'}</td>
+                    <td>${request.returnReason || 'Not specified'}</td>
                     <td>
                         <button class="btn btn-sm btn-danger return-btn" data-order-id="${request._id}">Return</button>
                     </td>
                 `;
-                tableBody.appendChild(row);
-            }
-        });
+          tableBody.appendChild(row);
+        }
+      });
 
-        // Add event listener for Return buttons
-        document.querySelectorAll('.return-btn').forEach(button => {
-            button.addEventListener('click', async function() {
-                const orderId = this.dataset.orderId;
-                try {
-                    const response = await fetch(`/admin/orders/update-return-status/${orderId}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ status: 'Returned' })
-                    });
-
-                    if (response.ok) {
-                        Swal.fire({
-                            title: 'Success!',
-                            text: 'Order status updated to Returned',
-                            icon: 'success',
-                            confirmButtonText: 'OK'
-                        });
-                        // Refresh the modal content
-                        document.getElementById('returnRequestsBtn').click(); // Reopen modal to refresh
-                    } else {
-                        const errorData = await response.json();
-                        Swal.fire({
-                            title: 'Error!',
-                            text: errorData.error || 'Failed to update return status',
-                            icon: 'error',
-                            confirmButtonText: 'OK'
-                        });
-                    }
-                } catch (error) {
-                    Swal.fire({
-                        title: 'Error!',
-                        text: 'Failed to update return status',
-                        icon: 'error',
-                        confirmButtonText: 'OK'
-                    });
-                }
+      // Add event listener for Return buttons
+      document.querySelectorAll('.return-btn').forEach(button => {
+        button.addEventListener('click', async function() {
+          const orderId = this.dataset.orderId;
+          try {
+            const response = await fetch(`/admin/orders/update-return-status/${orderId}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                status: 'Returned'
+              })
             });
-        });
 
-        // Show the modal
-        const modal = new bootstrap.Modal(document.getElementById('returnRequestsModal'));
-        modal.show();
-    } catch (error) {
-        console.error('Error fetching return requests:', error);
-        Swal.fire({
-            title: 'Error!',
-            text: 'Failed to load return requests',
-            icon: 'error',
-            confirmButtonText: 'OK'
+            if (response.ok) {
+              Swal.fire({
+                title: 'Success!',
+                text: 'Order status updated to Returned',
+                icon: 'success',
+                confirmButtonText: 'OK'
+              });
+              // Refresh the modal content
+              document.getElementById('returnRequestsBtn').click(); // Reopen modal to refresh
+            } else {
+              const errorData = await response.json();
+              Swal.fire({
+                title: 'Error!',
+                text: errorData.error || 'Failed to update return status',
+                icon: 'error',
+                confirmButtonText: 'OK'
+              });
+            }
+          } catch (error) {
+            Swal.fire({
+              title: 'Error!',
+              text: 'Failed to update return status',
+              icon: 'error',
+              confirmButtonText: 'OK'
+            });
+          }
         });
+      });
+
+      // Show the modal
+      const modal = new bootstrap.Modal(document.getElementById('returnRequestsModal'));
+      modal.show();
+    } catch (error) {
+      console.error('Error fetching return requests:', error);
+      Swal.fire({
+        title: 'Error!',
+        text: 'Failed to load return requests',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
     }
-});
+  });
 </script>
 
 <!-- SweetAlert2 JS -->

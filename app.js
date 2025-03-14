@@ -75,12 +75,21 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Prevent Caching Globally
+// app.use((req, res, next) => {
+//   res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0");
+//   res.setHeader("Pragma", "no-cache");
+//   res.setHeader("Expires", "0");
+//   next();
+// });
 app.use((req, res, next) => {
-  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0");
-  res.setHeader("Pragma", "no-cache");
-  res.setHeader("Expires", "0");
+  if (req.path.startsWith("/login")) {
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+  }
   next();
 });
+
 
 // Middleware to pass user data to all views
 app.use((req, res, next) => {

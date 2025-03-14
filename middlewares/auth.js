@@ -57,26 +57,55 @@ const userAuth = (req, res, next) => {
 };
 
 
+// const adminAuth = async (req, res, next) => {
+//   try {
+//     console.log("admin session id :",req.session.admin)
+//     if (!req.session.admin || !mongoose.Types.ObjectId.isValid(req.session.admin)) {
+//       return res.redirect("/admin/login");
+//     }
+
+//     const admin = await User.findById(req.session.admin);
+//     console.log("admin session id :",admin)
+
+//     if (!admin || !admin.isAdmin) {
+      
+//       req.session.destroy(); // Destroy session if invalid admin
+//       return res.redirect("/admin/login");
+//     }
+
+//     next(); // Proceed to the next middleware/route
+//   } catch (error) {
+//     console.error("Admin authentication error:", error);
+//     res.status(500).send("Internal Server Error");
+//   }
+// };
 const adminAuth = async (req, res, next) => {
   try {
+    console.log("Admin session ID:", req.session.admin);
     if (!req.session.admin || !mongoose.Types.ObjectId.isValid(req.session.admin)) {
+      console.log("Invalid session or admin ID, redirecting to login");
       return res.redirect("/admin/login");
     }
 
     const admin = await User.findById(req.session.admin);
+    console.log("Admin details:", admin);
 
     if (!admin || !admin.isAdmin) {
-      req.session.destroy(); // Destroy session if invalid admin
-      return res.redirect("/admin/login");
+      console.log("Invalid admin or not an admin, destroying session and redirecting to login");
+      req.session.destroy((err) => {
+        if (err) {
+          console.error("Error destroying session:", err);
+        }
+        return res.redirect("/admin/login");
+      });
+    } else {
+      next(); // Proceed to the next middleware/route
     }
-
-    next(); // Proceed to the next middleware/route
   } catch (error) {
     console.error("Admin authentication error:", error);
     res.status(500).send("Internal Server Error");
   }
 };
-
 
 
 

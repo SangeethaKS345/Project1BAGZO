@@ -180,60 +180,56 @@ const editProduct = async (req, res) => {
 
     if (existingProduct) {
       return res.status(400).json({
-        error: "Product with this name already exists. Please try with another name.",
+        error: "Product with this name already exists.",
       });
     }
 
     const brand = await Brand.findOne({ brandName: data.brand });
-    if (!brand) {
-      return res.status(400).json({ error: "Brand not found" });
-    }
+    if (!brand) return res.status(400).json({ error: "Brand not found" });
 
-    const category = await Category.findOne({ name: data.category });
-    if (!category) {
-      return res.status(400).json({ error: "Category not found" });
-    }
+    const category = await Category.findById(data.category);
+    if (!category) return res.status(400).json({ error: "Category not found" });
 
     // Handle image updates
-    let updatedImages = [];
+    let updatedImages = [...(product.productImage || [])];
     
-    // If new images were uploaded, replace the old ones completely
     if (req.files && req.files.length > 0) {
-      // Delete old image files from the server
-      if (product.productImage && product.productImage.length > 0) {
-        product.productImage.forEach(imageName => {
-          const imagePath = path.join("public", "uploads", "re-image", imageName);
-          if (fs.existsSync(imagePath)) {
-            fs.unlinkSync(imagePath);
-            console.log(`Deleted old image: ${imageName}`);
-          }
-        });
-      }
+      const currentImages = data.currentImages || [];
+      const replacePositions = data.replace_position || [];
       
-      // Use only the new images
-      updatedImages = req.files.map(file => file.filename);
-      console.log("New images:", updatedImages);
-    } else {
-      // If no new images were uploaded, keep the existing ones
-      updatedImages = [...(product.productImage || [])];
+      // Process new images
+      req.files.forEach((file, index) => {
+        const position = parseInt(replacePositions[index]);
+        if (!isNaN(position) && position < updatedImages.length) {
+          // Replace existing image at position
+          const oldImage = updatedImages[position];
+          const oldImagePath = path.join("public", "uploads", "re-image", oldImage);
+          if (fs.existsSync(oldImagePath)) {
+            fs.unlinkSync(oldImagePath);
+          }
+          updatedImages[position] = file.filename;
+        } else {
+          // Add new image if position is invalid or beyond current length
+          updatedImages.push(file.filename);
+        }
+      });
     }
 
-    // Fields to update
+    // Update product fields
     const updateFields = {
       productName: data.productName,
       description: data.descriptionData,
       brand: brand._id,
       category: category._id,
       regularPrice: parseFloat(data.regularPrice),
-      salesPrice: parseFloat(data.salesPrice),
+      salesPrice: parseFloat(data.salePrice || 0),
       quantity: parseInt(data.quantity),
       color: data.color,
       productImage: updatedImages
     };
 
-    // Update product in the database
     const updatedProduct = await Product.findByIdAndUpdate(
-      { _id: id },
+      id,
       updateFields,
       { new: true, runValidators: true }
     );
@@ -242,11 +238,11 @@ const editProduct = async (req, res) => {
       return res.status(500).json({ error: "Failed to update product" });
     }
 
-    return res.redirect("/admin/products");
+    return res.redirect(`/admin/editProduct?id=${id}&success=true`);
 
   } catch (error) {
     console.error("Error updating product:", error);
-    res.status(500).render('error', { 
+    return res.status(500).render('error', { 
       message: 'An error occurred while updating the product',
       error: {status: 500}
     });

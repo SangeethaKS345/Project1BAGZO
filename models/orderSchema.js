@@ -58,7 +58,11 @@ const orderSchema = new Schema({
     required: true,
     enum: ['cod', 'razorpay', 'wallet'],
     default: 'cod'
-  }
+  },
+  returnReason: {
+    type: String,
+    default: null
+  },
 });
 
 module.exports = mongoose.models.Order || mongoose.model('Order', orderSchema);
