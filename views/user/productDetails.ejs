@@ -660,6 +660,73 @@
         }
       });
     });
+    document.addEventListener('DOMContentLoaded', () => {
+      const mainImage = document.getElementById('mainImage');
+      const zoomLens = document.getElementById('zoomLens');
+      const zoomResult = document.getElementById('zoomResult');
+      const mainImageWrapper = document.querySelector('.main-image-wrapper');
+
+      // Set the background image of the zoom result to the main image
+      zoomResult.style.backgroundImage = `url(${mainImage.src})`;
+      zoomResult.style.backgroundSize = `${mainImage.width * 2}px ${mainImage.height * 2}px`; // 2x zoom factor
+
+      // Function to move the lens and update the zoomed image
+      function moveLens(e) {
+        e.preventDefault();
+
+        // Get the bounding rectangle of the main image
+        const rect = mainImage.getBoundingClientRect();
+        const lensWidth = zoomLens.offsetWidth;
+        const lensHeight = zoomLens.offsetHeight;
+
+        // Calculate mouse position relative to the image
+        let x = e.pageX - rect.left - window.scrollX;
+        let y = e.pageY - rect.top - window.scrollY;
+
+        // Keep the lens within the image boundaries
+        x = Math.max(lensWidth / 2, Math.min(x, rect.width - lensWidth / 2));
+        y = Math.max(lensHeight / 2, Math.min(y, rect.height - lensHeight / 2));
+
+        // Position the lens
+        zoomLens.style.left = `${x - lensWidth / 2}px`;
+        zoomLens.style.top = `${y - lensHeight / 2}px`;
+
+        // Calculate the background position for the zoomed image
+        const bgX = ((x - lensWidth / 2) / rect.width) * (mainImage.width * 2);
+        const bgY = ((y - lensHeight / 2) / rect.height) * (mainImage.height * 2);
+        zoomResult.style.backgroundPosition = `-${bgX}px -${bgY}px`;
+      }
+
+      // Show/hide lens and zoom result on hover
+      mainImageWrapper.addEventListener('mouseenter', () => {
+        if (window.innerWidth > 992) { // Only enable zoom on larger screens
+          zoomLens.style.display = 'block';
+          zoomResult.style.display = 'block';
+        }
+      });
+
+      mainImageWrapper.addEventListener('mouseleave', () => {
+        zoomLens.style.display = 'none';
+        zoomResult.style.display = 'none';
+      });
+
+      mainImageWrapper.addEventListener('mousemove', moveLens);
+
+      // Update zoom result background when switching thumbnails
+      const thumbnails = document.querySelectorAll('.image-thumbnails a');
+      thumbnails.forEach(thumb => {
+        thumb.addEventListener('click', (e) => {
+          e.preventDefault();
+          const newSrc = thumb.getAttribute('data-image');
+          mainImage.src = newSrc;
+          zoomResult.style.backgroundImage = `url(${newSrc})`;
+
+          // Remove active class from all thumbnails and add to clicked one
+          thumbnails.forEach(t => t.classList.remove('active'));
+          thumb.classList.add('active');
+        });
+      });
+    });
   </script>
   <%- include('../../views/partials/user/footer') %>
 </body>
