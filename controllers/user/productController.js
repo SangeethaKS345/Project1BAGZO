@@ -1,6 +1,7 @@
 const Product = require("../../models/productSchema");
 const Category = require("../../models/categorySchema");
 const User = require("../../models/userSchema");
+const Brand = require("../../models/brandSchema");
 const { ObjectId } = require("mongoose").Types;
 
 const productDetails = async (req, res, next) => {
