@@ -6,7 +6,7 @@ const Address = require("../../models/addressSchema");
 const getAllOrders = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit = 8;
+        const limit = 6;
 
         const searchText = req.query.search ? req.query.search.toLowerCase() : '';
 

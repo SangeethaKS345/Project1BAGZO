@@ -3,15 +3,13 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
   <style>
-    /* Base Container */
-    .main-container {
+  .main-container {
       max-width: 1200px;
       margin: 0 auto;
       padding: 20px;
       background-color: #fafafa;
     }
 
-    /* Top Bar Styling */
     .shop-topbar {
       display: flex;
       justify-content: space-between;
@@ -23,7 +21,6 @@
       box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
     }
 
-    /* Search Form */
     .search-form {
       display: flex;
       align-items: center;
@@ -62,7 +59,6 @@
       background: #FF416C;
     }
 
-    /* Sort Dropdown */
     .sort-dropdown {
       padding: 12px 20px;
       border: 1px solid #e0e0e0;
@@ -83,7 +79,6 @@
       border-color: #FF4B2B;
     }
 
-    /* Product List Container */
     .product-list-container {
       display: flex;
       gap: 30px;
@@ -91,7 +86,6 @@
       min-height: 800px;
     }
 
-    /* Sidebar */
     .sidebar {
       flex: 0 0 250px;
       padding: 24px;
@@ -101,7 +95,6 @@
       height: fit-content;
     }
 
-    /* Clear Filter Button */
     .clear-filter-btn {
       display: block;
       width: 90%;
@@ -122,7 +115,6 @@
       background: #FF416C;
     }
 
-    /* Product Grid */
     .product-grid {
       flex: 1;
       display: grid;
@@ -136,7 +128,6 @@
       padding: 20px;
     }
 
-    /* Product Cards */
     .product-card {
       height: 400px;
       background: #fff;
@@ -165,7 +156,6 @@
       transform: scale(1.05);
     }
 
-    /* Product Information */
     .product-info {
       padding: 15px;
       display: flex;
@@ -204,7 +194,6 @@
       font-size: 1.1em;
     }
 
-    /* Filter Sections */
     .filter-section {
       margin-bottom: 30px;
     }
@@ -238,7 +227,6 @@
       padding-left: 5px;
     }
 
-    /* Price Filters */
     .price-filters {
       display: flex;
       flex-direction: column;
@@ -264,7 +252,6 @@
       border-color: #FF4B2B;
     }
 
-    /* Add to Cart Button */
     .add-to-cart-btn {
       margin-top: auto;
       width: 100%;
@@ -284,7 +271,16 @@
       transform: translateY(-2px);
     }
 
-    /* Wishlist Button Styles */
+    .add-to-cart-btn.out-of-stock {
+      background: #ccc;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    .add-to-cart-btn.out-of-stock:hover {
+      transform: none;
+    }
+
     .wishlist-btn {
       width: 40px;
       height: 40px;
@@ -319,26 +315,16 @@
       color: #fff;
     }
 
-    /* Wishlist Button Animation */
     @keyframes wishlistPulse {
-      0% {
-        transform: scale(1);
-      }
-
-      50% {
-        transform: scale(1.2);
-      }
-
-      100% {
-        transform: scale(1);
-      }
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
     }
 
     .wishlist-btn.animate {
       animation: wishlistPulse 0.5s ease;
     }
 
-    /* No Products Message */
     .no-products {
       grid-column: 1 / -1;
       text-align: center;
@@ -353,7 +339,6 @@
       font-size: 1.2em;
     }
 
-    /* Responsive Design */
     @media (max-width: 768px) {
       .shop-topbar {
         flex-direction: column;
@@ -491,8 +476,9 @@
                 </p>
               </div>
             </a>
-            <button type="submit" class="btn" id="addToCartBtn" <%= (product.quantity <= 0 || product.isBlocked || product.category.isListed === false || product.brand.isBlocked) ? 'disabled' : '' %>>
-              Add to Cart
+            <button class="add-to-cart-btn <%= product.quantity <= 0 ? 'out-of-stock' : '' %>" 
+                    onclick="addToCart('<%= product._id %>', <%= product.quantity %>, <%= product.isBlocked %>, <%= product.category.isListed %>, <%= product.brand.isBlocked %>)">
+              <%= product.quantity <= 0 ? 'Out of Stock' : 'Add to Cart' %>
             </button>
             <button class="wishlist-btn" onclick="toggleWishlist('<%= product._id %>', this)" data-product-id="<%= product._id %>">
               <i class="fas fa-heart"></i>
@@ -526,7 +512,29 @@
       window.location.href = currentUrl.toString();
     }
 
-    async function addToCart(productId) {
+    async function addToCart(productId, quantity, isBlocked, categoryListed, brandBlocked) {
+      // Check stock and other conditions first
+      if (quantity <= 0) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Out of Stock',
+          text: 'This product is currently out of stock.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        return;
+      }
+      if (isBlocked || !categoryListed || brandBlocked) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Unavailable',
+          text: 'This product is currently unavailable.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        return;
+      }
+
       try {
         const response = await fetch('/add-to-cart', {
           method: 'POST',
