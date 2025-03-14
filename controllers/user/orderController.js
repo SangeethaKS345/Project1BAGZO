@@ -105,7 +105,7 @@ const loadMyOrders = async (req, res, next) => {
     if (!req.user) throw new Error("User not authenticated");
 
     const page = parseInt(req.query.page) || 1;
-    const limit = 10;
+    const limit = 3; 
     const skip = (page - 1) * limit;
 
     const orders = await Order.find({ userId: req.user._id })
@@ -126,7 +126,7 @@ const loadMyOrders = async (req, res, next) => {
         quantity: order.OrderItems.reduce((sum, item) => sum + item.quantity, 0),
         totalAmount: order.finalAmount,
         placedOn: order.createdOn.toLocaleString(),
-        status: statusNumber, // Use numeric status
+        status: statusNumber,
         cancellation_reason: order.cancellation_reason,
         return_reason: order.return_reason
       };
