@@ -2,6 +2,7 @@ const Product = require("../../models/productSchema");
 const Order = require("../../models/orderSchema");
 const User = require("../../models/userSchema");
 const Address = require("../../models/addressSchema");
+const Wallet = require("../../models/walletSchema");
 
 const getAllOrders = async (req, res) => {
     try {
@@ -109,29 +110,59 @@ const getOrderDetails = async (req, res) => {
 
 const updateOrderStatus = async (req, res) => {
     try {
-        const { orderId } = req.params;
-        const { status } = req.body;
-
-        const order = await Order.findOne({ orderId: orderId });
-        if (!order) {
-            return res.status(404).json({ error: 'Order not found' });
+      const { orderId } = req.params;
+      const { status } = req.body;
+  
+      const order = await Order.findOne({ orderId: orderId }).populate('OrderItems.product');
+      if (!order) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
+  
+      if (order.status === 'Cancelled' || order.status === 'Returned') {
+        return res.status(400).json({ 
+          error: `Cannot modify status of a ${order.status.toLowerCase()} order` 
+        });
+      }
+  
+      // Define stock-reducing statuses
+      const stockReductionStatuses = ['Shipped', 'Out for Delivery', 'Delivered'];
+      const nonStockReductionStatuses = ['Pending', 'Processing'];
+  
+      // Moving INTO a stock-reducing status from a non-stock-reducing status
+      if (stockReductionStatuses.includes(status) && !stockReductionStatuses.includes(order.status)) {
+        for (const item of order.OrderItems) {
+          const product = item.product;
+          if (product.quantity < item.quantity) {
+            return res.status(400).json({ error: `Insufficient quantity for ${product.productName}` });
+          }
+          product.quantity -= item.quantity;
+          if (product.quantity === 0) {
+            product.status = 'out of stock';
+          }
+          await product.save();
         }
-
-        if (order.status === 'Cancelled' || order.status === 'Returned') {
-            return res.status(400).json({ 
-                error: `Cannot modify status of a ${order.status.toLowerCase()} order` 
-            });
+      }
+      // Moving OUT OF a stock-reducing status back to a non-stock-reducing status
+      else if (!stockReductionStatuses.includes(status) && stockReductionStatuses.includes(order.status) && nonStockReductionStatuses.includes(status)) {
+        for (const item of order.OrderItems) {
+          const product = item.product;
+          product.quantity += item.quantity;
+          if (product.quantity > 0 && product.status === 'out of stock') {
+            product.status = 'Available';
+          }
+          await product.save();
         }
-
-        order.status = status;
-        await order.save();
-
-        res.json({ message: 'Order status updated successfully' });
+      }
+  
+      order.status = status;
+      await order.save();
+  
+      res.json({ message: 'Order status updated successfully' });
     } catch (error) {
-        console.error('Error updating order status:', error);
-        res.status(500).json({ error: 'Internal server error' });
+      console.error('Error updating order status:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
-};
+  };
 
 const getReturnRequests = async (req, res) => {
     try {
@@ -160,33 +191,63 @@ const getReturnRequests = async (req, res) => {
 
 const updateReturnStatus = async (req, res) => {
     try {
-        const { orderId } = req.params;
-        const { status } = req.body;
-
-        const order = await Order.findOne({ orderId: orderId });
-        if (!order) {
-            return res.status(404).json({ error: 'Order not found' });
+      const { orderId } = req.params;
+      const { status, action } = req.body;
+  
+      const order = await Order.findOne({ orderId: orderId })
+        .populate('userId')
+        .populate('OrderItems.product');
+      if (!order) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
+  
+      if (order.status !== 'Return Request') {
+        return res.status(400).json({ error: 'Order is not in Return Request status' });
+      }
+  
+      if (order.status === 'Cancelled' || order.status === 'Returned') {
+        return res.status(400).json({ 
+          error: `Cannot modify status of a ${order.status.toLowerCase()} order` 
+        });
+      }
+  
+      order.status = status;
+      await order.save();
+  
+      if (action === 'accept' && status === 'Returned') {
+        // Refund to wallet
+        let wallet = await Wallet.findOne({ user: order.userId._id });
+        if (!wallet) {
+          wallet = new Wallet({ user: order.userId._id, balance: 0, transactions: [] });
         }
-
-        if (order.status !== 'Return Request') {
-            return res.status(400).json({ error: 'Order is not in Return Request status' });
+  
+        const refundAmount = order.finalAmount;
+        wallet.balance += refundAmount;
+        wallet.transactions.push({
+          type: 'credit',
+          amount: refundAmount,
+          description: `Refund for order ${order.orderId}`,
+          date: new Date()
+        });
+        await wallet.save();
+  
+        // Increase quantity for returned items
+        for (const item of order.OrderItems) {
+          const product = item.product;
+          product.quantity += item.quantity;
+          if (product.quantity > 0 && product.status === 'out of stock') {
+            product.status = 'Available';
+          }
+          await product.save();
         }
-
-        if (order.status === 'Cancelled' || order.status === 'Returned') {
-            return res.status(400).json({ 
-                error: `Cannot modify status of a ${order.status.toLowerCase()} order` 
-            });
-        }
-
-        order.status = status;
-        await order.save();
-
-        res.json({ message: 'Order status updated to Returned successfully' });
+      }
+  
+      res.json({ message: `Order status updated to ${status} successfully` });
     } catch (error) {
-        console.error('Error updating return status:', error);
-        res.status(500).json({ error: 'Internal server error' });
+      console.error('Error updating return status:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
-};
+  };
 
 module.exports = {
     getAllOrders,

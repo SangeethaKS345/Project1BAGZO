@@ -43,22 +43,73 @@
     .table-dark td {
       border-color: #3d3d3d;
     }
+    .content-header .form-control, 
+  .content-header .form-select, 
+  .content-header .btn {
+    min-width: 0; /* Prevents elements from being too wide */
+  }
+  @media (max-width: 576px) {
+    .content-header .col-sm-6 {
+      margin-bottom: 10px; /* Extra spacing on small screens */
+    }
+  }
   </style>
   <%- include("../../views/partials/admin/header") %>
 </head>
 
 <section class="content-main">
-  <div class="content-header">
-    <div>
-      <h2 class="content-title card-title">Order Management</h2>
-    </div>
-    <div>
-      <input type="text" placeholder="Search by Product Name" class="form-control bg-white" id="searchInput">
-    </div>
-    <div>
-      <button class="btn btn-primary" id="returnRequestsBtn">Return Requests</button>
-    </div>
-  </div>
+    <div class="content-header">
+        <div class="row align-items-center justify-content-between">
+          <!-- Title -->
+          <div class="col-md-3 col-sm-12 mb-2">
+            <h2 class="content-title card-title">Order Management</h2>
+          </div>
+      
+          <!-- Search, Sort, Filter, and Clear -->
+          <div class="col-md-9 col-sm-12">
+            <div class="row g-2 align-items-center">
+              <!-- Search Input -->
+              <div class="col-md-4 col-sm-6">
+                <input type="text" placeholder="Search by Product Name or Order ID" class="form-control bg-white" id="searchInput">
+              </div>
+              
+              <!-- Sort Dropdown -->
+              <div class="col-md-3 col-sm-6">
+                <select class="form-select" id="sortSelect">
+                    <option value="date-desc">Date (Newest First)</option>
+                    <option value="date-asc">Date (Oldest First)</option>
+                    <option value="total-desc">Total (High to Low)</option>
+                    <option value="total-asc">Total (Low to High)</option>
+                  </select>
+              </div>
+              
+              <!-- Filter Dropdown -->
+              <div class="col-md-3 col-sm-6">
+                <select class="form-select" id="filterStatus">
+                  <option value="">All Statuses</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Processing">Processing</option>
+                  <option value="Shipped">Shipped</option>
+                  <option value="Out for Delivery">Out for Delivery</option>
+                  <option value="Delivered">Delivered</option>
+                  <option value="Cancelled">Cancelled</option>
+                  <option value="Returned">Returned</option>
+                </select>
+              </div>
+              
+              <!-- Clear Button -->
+              <div class="col-md-2 col-sm-6">
+                <button class="btn btn-secondary w-100" id="clearFilters">Clear</button>
+              </div>
+            </div>
+          </div>
+      
+          <!-- Return Requests Button -->
+          <div class="col-md-3 col-sm-12 mt-2 text-md-end">
+            <button class="btn btn-primary" id="returnRequestsBtn">Return Requests</button>
+          </div>
+        </div>
+      </div>
 
   <div class="card mb-4">
     <div class="card-body">
@@ -207,40 +258,39 @@
 </div>
 
 <!-- Return Requests Modal -->
-<!-- Return Requests Modal -->
 <div class="modal fade" id="returnRequestsModal" tabindex="-1" aria-labelledby="returnRequestsModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="returnRequestsModalLabel">Return Requests</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div class="table-responsive">
-          <table class="table table-hover">
-            <thead>
-              <tr>
-                <th>Order ID</th>
-                <th>Product Name</th>
-                <th>Customer Name</th>
-                <th>Quantity</th>
-                <th>Amount</th>
-                <th>Return Reason</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="returnRequestsTable">
-              <!-- Return requests will be populated here via JavaScript -->
-            </tbody>
-          </table>
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="returnRequestsModalLabel">Return Requests</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <div class="modal-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Product Name</th>
+                  <th>Customer Name</th>
+                  <th>Quantity</th>
+                  <th>Amount</th>
+                  <th>Return Reason</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="returnRequestsTable">
+                <!-- Return requests will be populated here via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
 
 
@@ -293,17 +343,7 @@
     });
   });
 
-  // Search functionality
-  document.getElementById('searchInput').addEventListener('input', function(e) {
-    const searchText = e.target.value.toLowerCase();
-    const rows = document.querySelectorAll('tbody tr');
-
-    rows.forEach(row => {
-      const productNames = Array.from(row.querySelectorAll('.product-info span')).map(span => span.textContent.toLowerCase());
-      const matches = productNames.some(name => name.includes(searchText));
-      row.style.display = matches ? '' : 'none';
-    });
-  });
+ 
 
   // View details function
   async function viewDetails(orderId) {
@@ -373,93 +413,198 @@
 
   // Return Requests Modal
   document.getElementById('returnRequestsBtn').addEventListener('click', async function() {
-    try {
-      const response = await fetch('/admin/orders/return-requests');
-      const returnRequests = await response.json();
+  try {
+    const response = await fetch('/admin/orders/return-requests');
+    const returnRequests = await response.json();
 
-      const tableBody = document.getElementById('returnRequestsTable');
-      tableBody.innerHTML = '';
+    const tableBody = document.getElementById('returnRequestsTable');
+    tableBody.innerHTML = '';
 
-      if (returnRequests.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No return requests found</td></tr>';
-        return;
-      }
-
+    if (returnRequests.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No return requests found</td></tr>';
+    } else {
       returnRequests.forEach(request => {
         if (request.status !== 'Returned') { // Only show non-returned requests
           const row = document.createElement('tr');
           row.innerHTML = `
-                    <td>${request._id}</td>
-                    <td>${request.products[0].name}</td>
-                    <td>${request.customer}</td>
-                    <td>${request.products[0].quantity}</td>
-                    <td>₹${request.total}</td>
-                    <td>${request.returnReason || 'Not specified'}</td>
-                    <td>
-                        <button class="btn btn-sm btn-danger return-btn" data-order-id="${request._id}">Return</button>
-                    </td>
-                `;
+            <td>${request._id}</td>
+            <td>${request.products[0].name}</td>
+            <td>${request.customer}</td>
+            <td>${request.products[0].quantity}</td>
+            <td>₹${request.total}</td>
+            <td>${request.returnReason || 'Not specified'}</td>
+            <td>
+              <button class="btn btn-sm btn-success accept-return-btn" data-order-id="${request._id}">Accept</button>
+              <button class="btn btn-sm btn-danger reject-return-btn" data-order-id="${request._id}">Reject</button>
+            </td>
+          `;
           tableBody.appendChild(row);
         }
       });
+    }
 
-      // Add event listener for Return buttons
-      document.querySelectorAll('.return-btn').forEach(button => {
-        button.addEventListener('click', async function() {
-          const orderId = this.dataset.orderId;
-          try {
-            const response = await fetch(`/admin/orders/update-return-status/${orderId}`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                status: 'Returned'
-              })
+    // Event listeners for Accept and Reject buttons
+    document.querySelectorAll('.accept-return-btn').forEach(button => {
+      button.addEventListener('click', async function() {
+        const orderId = this.dataset.orderId;
+        try {
+          const response = await fetch(`/admin/orders/update-return-status/${orderId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'Returned', action: 'accept' })
+          });
+
+          const result = await response.json();
+          if (response.ok) {
+            Swal.fire({
+              title: 'Success!',
+              text: 'Return request accepted and amount refunded to wallet',
+              icon: 'success',
+              confirmButtonText: 'OK'
             });
-
-            if (response.ok) {
-              Swal.fire({
-                title: 'Success!',
-                text: 'Order status updated to Returned',
-                icon: 'success',
-                confirmButtonText: 'OK'
-              });
-              // Refresh the modal content
-              document.getElementById('returnRequestsBtn').click(); // Reopen modal to refresh
-            } else {
-              const errorData = await response.json();
-              Swal.fire({
-                title: 'Error!',
-                text: errorData.error || 'Failed to update return status',
-                icon: 'error',
-                confirmButtonText: 'OK'
-              });
-            }
-          } catch (error) {
+            this.closest('tr').remove();
+          } else {
             Swal.fire({
               title: 'Error!',
-              text: 'Failed to update return status',
+              text: result.error || 'Failed to process return',
               icon: 'error',
               confirmButtonText: 'OK'
             });
           }
-        });
+        } catch (error) {
+          Swal.fire({
+            title: 'Error!',
+            text: 'Failed to process return request',
+            icon: 'error',
+            confirmButtonText: 'OK'
+          });
+        }
       });
+    });
 
-      // Show the modal
-      const modal = new bootstrap.Modal(document.getElementById('returnRequestsModal'));
-      modal.show();
-    } catch (error) {
-      console.error('Error fetching return requests:', error);
-      Swal.fire({
-        title: 'Error!',
-        text: 'Failed to load return requests',
-        icon: 'error',
-        confirmButtonText: 'OK'
+    document.querySelectorAll('.reject-return-btn').forEach(button => {
+      button.addEventListener('click', async function() {
+        const orderId = this.dataset.orderId;
+        try {
+          const response = await fetch(`/admin/orders/update-return-status/${orderId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'Delivered', action: 'reject' })
+          });
+
+          const result = await response.json();
+          if (response.ok) {
+            Swal.fire({
+              title: 'Success!',
+              text: 'Return request rejected',
+              icon: 'success',
+              confirmButtonText: 'OK'
+            });
+            this.closest('tr').remove();
+          } else {
+            Swal.fire({
+              title: 'Error!',
+              text: result.error || 'Failed to reject return',
+              icon: 'error',
+              confirmButtonText: 'OK'
+            });
+          }
+        } catch (error) {
+          Swal.fire({
+            title: 'Error!',
+            text: 'Failed to reject return request',
+            icon: 'error',
+            confirmButtonText: 'OK'
+          });
+        }
       });
+    });
+
+    // Show the modal
+    const modal = new bootstrap.Modal(document.getElementById('returnRequestsModal'));
+    modal.show();
+  } catch (error) {
+    console.error('Error fetching return requests:', error);
+    Swal.fire({
+      title: 'Error!',
+      text: 'Failed to load return requests',
+      icon: 'error',
+      confirmButtonText: 'OK'
+    });
+  }
+});
+//Search, Sort, and Filter functionality
+function applyFilters() {
+  const searchText = document.getElementById('searchInput').value.toLowerCase();
+  const sortValue = document.getElementById('sortSelect').value;
+  const filterStatus = document.getElementById('filterStatus').value;
+  const rows = Array.from(document.querySelectorAll('tbody tr'));
+  const tbody = document.querySelector('tbody');
+
+  // Filter rows
+  let filteredRows = rows.filter(row => {
+    const orderId = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
+    const productNames = Array.from(row.querySelectorAll('.product-info span')).map(span => span.textContent.toLowerCase());
+    const status = row.querySelector('.status-select').value;
+    
+    const matchesSearch = orderId.includes(searchText) || productNames.some(name => name.includes(searchText));
+    const matchesStatus = filterStatus === '' || status === filterStatus;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  // Sort rows
+  filteredRows.sort((a, b) => {
+    switch (sortValue) {
+      case 'date-asc':
+        const dateA = new Date(a.querySelector('td:nth-child(2)').textContent);
+        const dateB = new Date(b.querySelector('td:nth-child(2)').textContent);
+        console.log('Sorting date-asc:', { dateA, dateB }); // Debug
+        return dateA - dateB;
+      case 'date-desc':
+        const dateC = new Date(b.querySelector('td:nth-child(2)').textContent);
+        const dateD = new Date(a.querySelector('td:nth-child(2)').textContent);
+        console.log('Sorting date-desc:', { dateC, dateD }); // Debug
+        return dateC - dateD;
+      case 'total-asc':
+        const totalA = parseFloat(a.querySelector('td:nth-child(5)').textContent.replace('₹', '').trim());
+        const totalB = parseFloat(b.querySelector('td:nth-child(5)').textContent.replace('₹', '').trim());
+        console.log('Sorting total-asc:', { totalA, totalB }); // Debug
+        return isNaN(totalA) || isNaN(totalB) ? 0 : totalA - totalB;
+      case 'total-desc':
+        const totalC = parseFloat(b.querySelector('td:nth-child(5)').textContent.replace('₹', '').trim());
+        const totalD = parseFloat(a.querySelector('td:nth-child(5)').textContent.replace('₹', '').trim());
+        console.log('Sorting total-desc:', { totalC, totalD }); // Debug
+        return isNaN(totalC) || isNaN(totalD) ? 0 : totalC - totalD;
+      default:
+        return 0;
     }
   });
+
+  // Rebuild table body to ensure sort order is reflected
+  tbody.innerHTML = ''; // Clear current rows
+  filteredRows.forEach(row => {
+    tbody.appendChild(row); // Append sorted rows
+    row.style.display = ''; // Ensure visibility
+  });
+}
+
+// Event Listeners
+document.getElementById('searchInput').addEventListener('input', applyFilters);
+document.getElementById('sortSelect').addEventListener('change', function() {
+  console.log('Sort changed to:', this.value); // Debug
+  applyFilters();
+});
+document.getElementById('filterStatus').addEventListener('change', applyFilters);
+document.getElementById('clearFilters').addEventListener('click', function() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('sortSelect').value = 'date-desc';
+  document.getElementById('filterStatus').value = '';
+  applyFilters();
+});
+
+// Initial call to set up the table
+applyFilters();
 </script>
 
 <!-- SweetAlert2 JS -->

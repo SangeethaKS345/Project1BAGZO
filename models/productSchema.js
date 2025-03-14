@@ -32,10 +32,11 @@ const productSchema = new Schema({
         type : Number,
         default : 0,
     },
-    quantity : {
-        type : Number,
-        default : true,
-    },
+    quantity: {
+        type: Number,
+        default: 0,
+        min: 0 //ensures quantity doesn’t go negative
+      },
     color : {
         type : String,
         required : true,
