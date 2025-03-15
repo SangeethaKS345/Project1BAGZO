@@ -215,17 +215,22 @@ const downloadInvoice = async (req, res) => {
     const { orderId } = req.params;
     const userId = req.user._id;
 
+    console.log(`User ${userId} is requesting invoice for order ${orderId}`);
+
     // Fetch order details with populated fields
     const order = await Order.findOne({ orderId, userId })
       .populate('OrderItems.product')
       .populate('address');
 
     if (!order) {
+      console.log(`Order ${orderId} not found for user ${userId}`);
       return res.status(404).json({
         success: false,
         message: 'Order not found',
       });
     }
+
+    console.log(`Order ${orderId} found for user ${userId}`);
 
     // Create a new PDF document
     const doc = new PDFDocument({
@@ -296,6 +301,8 @@ const downloadInvoice = async (req, res) => {
 
     // Finalize the PDF
     doc.end();
+
+    console.log(`Invoice for order ${orderId} generated successfully`);
 
   } catch (error) {
     console.error('Error generating invoice:', error);

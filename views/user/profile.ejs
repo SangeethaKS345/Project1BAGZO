@@ -397,10 +397,10 @@ header {
                         <button class="gradient-btn mt-4"><i class="fas fa-sign-in-alt"></i> Log In</button>
                     <% } %>
 
-                    <div class="order-list mt-5">
+                    <!-- <div class="order-list mt-5">
                         <h5><i class="fas fa-shopping-bag"></i> Your Recent Orders</h5>
                         <ul>
-                            <% if (user?.orders?.length) { %>
+                            <% if (user && user.orders && user.orders.length > 0) { %>
                                 <% user.orders.forEach(order => { %>
                                     <li>
                                         <span><strong>Order #<%= order.id %></strong> - <%= order.status %></span>
@@ -411,7 +411,7 @@ header {
                                 <li class="text-muted">No recent orders found. <i class="fas fa-exclamation-circle"></i></li>
                             <% } %>
                         </ul>
-                    </div>
+                    </div> -->
                 </div>
             </div>
         </div>

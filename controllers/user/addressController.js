@@ -109,7 +109,7 @@ const editAddressForm = async (req, res, next) => {
       return res.redirect("/address");
     }
 
-    res.render("user/editAddress", { addressData: address, user: req.session.user });
+    res.render("editAddress", { addressData: address, user: req.session.user });
   } catch (error) {
     next(error);
   }
@@ -125,7 +125,7 @@ const updateAddress = async (req, res, next) => {
 
     if (!addressType || !name || !city || !landMark || !state || !pincode || !phone || !altPhone) {
       console.log("Missing required fields.");
-      return res.status(400).render("user/editAddress", {
+      return res.status(400).render("/editAddress", {
         addressData: { _id: addressId, ...req.body },
         user: req.session.user,
         error: "All fields are required."
@@ -140,7 +140,7 @@ const updateAddress = async (req, res, next) => {
 
     if (!updatedAddress) {
       console.log("Address update failed or address not found.");
-      return res.status(404).render("user/editAddress", {
+      return res.status(404).render("/editAddress", {
         addressData: { _id: addressId, ...req.body },
         user: req.session.user,
         error: "Address not found or no changes made."
