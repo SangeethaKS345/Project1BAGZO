@@ -73,7 +73,7 @@ const cancelOrder = async (req, res) => {
     }
 
     order.status = 'Cancelled';
-    order.cancellation_reason = cancellationReason; // Always set this
+    order.cancellation_reason = cancellationReason;
     await order.save();
 
     for (const item of order.OrderItems) {
@@ -158,7 +158,6 @@ function getOrderStatus(status) {
   };
   return statusMap[status] || 0;
 }
-
 
 const returnOrder = async (req, res) => {
   try {
@@ -252,13 +251,16 @@ const downloadInvoice = async (req, res) => {
     doc.text(`Date: ${new Date(order.createdOn).toLocaleDateString()}`, { align: 'right' });
 
     // Billing Information
-    const address = order.address.address[0]; // Assuming first address in array
     doc.moveDown();
     doc.fontSize(14).text('Billing Information', { underline: true });
-    doc.fontSize(12)
-      .text(`Name: ${address.name}`)
-      .text(`Address: ${address.landMark}, ${address.city}, ${address.state} - ${address.pincode}`)
-      .text(`Phone: ${address.phone}`);
+    if (order.address) {
+      doc.fontSize(12)
+        .text(`Name: ${order.address.name}`)
+        .text(`Address: ${order.address.landMark}, ${order.address.city}, ${order.address.state} - ${order.address.pincode}`)
+        .text(`Phone: ${order.address.phone}`);
+    } else {
+      doc.fontSize(12).text('Address: Not available');
+    }
 
     // Order Details Table
     doc.moveDown(2);

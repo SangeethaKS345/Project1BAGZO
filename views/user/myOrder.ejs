@@ -719,84 +719,42 @@ document.querySelectorAll('.buy-again-btn').forEach(button => {
   });
 });
 
-const downloadInvoice = async (req, res) => {
-  try {
-    const { orderId } = req.params;
-    const userId = req.user._id;
+document.querySelectorAll('.download-invoice-btn').forEach(button => {
+  button.addEventListener('click', async (e) => {
+    const orderId = e.target.closest('.download-invoice-btn').getAttribute('data-order-id');
+    
+    try {
+      const response = await fetch(`/download-invoice/${orderId}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/pdf'
+        }
+      });
 
-    const order = await Order.findOne({ orderId, userId })
-      .populate('OrderItems.product')
-      .populate('address');
+      if (!response.ok) {
+        throw new Error('Failed to download invoice');
+      }
 
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: 'Order not found',
+      // Create blob and trigger download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `invoice_${orderId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+      console.error('Error downloading invoice:', error);
+      Swal.fire({
+        title: 'Error',
+        text: 'Failed to download invoice. Please try again.',
+        icon: 'error',
+        confirmButtonColor: '#FF4B2B'
       });
     }
-
-    const doc = new PDFDocument({ size: 'A4', margin: 50 });
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=invoice_${orderId}.pdf`);
-    doc.pipe(res);
-
-    doc.fontSize(20).text('Invoice', { align: 'center' });
-    doc.moveDown();
-    doc.fontSize(12).text(`Order #${order.orderId}`, { align: 'right' });
-    doc.text(`Date: ${new Date(order.createdOn).toLocaleDateString()}`, { align: 'right' });
-
-    doc.moveDown();
-    doc.fontSize(14).text('Billing Information', { underline: true });
-    if (order.address) {
-      doc.fontSize(12)
-        .text(`Name: ${order.address.name}`)
-        .text(`Address: ${order.address.landMark}, ${order.address.city}, ${order.address.state} - ${order.address.pincode}`)
-        .text(`Phone: ${order.address.phone}`);
-    } else {
-      doc.fontSize(12).text('Address: Not available');
-    }
-
-    doc.moveDown(2);
-    doc.fontSize(14).text('Order Details', { underline: true });
-
-    const tableTop = doc.y + 15;
-    const itemX = 50;
-    const qtyX = 300;
-    const priceX = 400;
-    const totalX = 500;
-
-    doc.fontSize(12).font('Helvetica-Bold')
-      .text('Item', itemX, tableTop)
-      .text('Quantity', qtyX, tableTop)
-      .text('Price', priceX, tableTop)
-      .text('Total', totalX, tableTop);
-
-    let y = tableTop + 25;
-    order.OrderItems.forEach(item => {
-      const total = item.quantity * item.price;
-      doc.font('Helvetica')
-        .text(item.product.productName, itemX, y, { width: 250, ellipsis: true })
-        .text(item.quantity, qtyX, y)
-        .text(`₹${item.price.toFixed(2)}`, priceX, y)
-        .text(`₹${total.toFixed(2)}`, totalX, y);
-      y += 20;
-    });
-
-    doc.moveDown(2);
-    doc.font('Helvetica-Bold')
-      .text(`Total Amount: ₹${order.finalAmount.toFixed(2)}`, { align: 'right' });
-
-    doc.moveDown(2);
-    doc.fontSize(10).font('Helvetica')
-      .text('Thank you for shopping with BAGZO!', { align: 'center' });
-
-    doc.end();
-  } catch (error) {
-    console.error('Error generating invoice:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error: ' + error.message,
-    });
-  }
-};
+  });
+});
 </script>
