@@ -1,7 +1,7 @@
 const User = require("../../models/userSchema");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
-require('dotenv').config(); // Load env at the top
+require('dotenv').config(); 
 const session = require("express-session");
 const Order = require("../../models/orderSchema");
 const Address = require("../../models/addressSchema");
@@ -40,7 +40,7 @@ const generateOtp = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-// Helper function to "send" verification email (just logs OTP to console)
+
 const sendVerificationEmail = async (email, otp) => {
     try {
         console.log(`OTP for ${email}: ${otp}`); // Log OTP to console

@@ -13,7 +13,7 @@ const getProductAddPage = async (req, res, next) => {
     const brand = await Brand.find({ isBlocked: false });
     res.render("productAdd", { cat: category, brand: brand });
   } catch (error) {
-    next(error); // Pass error to middleware
+    next(error); 
   }
 };
 
@@ -113,7 +113,7 @@ const getAllProducts = async (req, res, next) => {
       brand: brand,
     });
   } catch (error) {
-    next(error); // Pass error to middleware
+    next(error); 
   }
 };
 
@@ -222,7 +222,7 @@ const editProduct = async (req, res) => {
       brand: brand._id,
       category: category._id,
       regularPrice: parseFloat(data.regularPrice),
-      salesPrice: parseFloat(data.salePrice || 0),
+      salesPrice: parseFloat(data.salesPrice || 0),
       quantity: parseInt(data.quantity),
       color: data.color,
       productImage: updatedImages

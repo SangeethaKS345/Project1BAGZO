@@ -1,0 +1,138 @@
+
+
+.content-main {
+  padding: 30px;
+}
+
+.content-header {
+  margin-bottom: 30px;
+}
+
+.content-title {
+  color: #DB4437;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.card {
+  border: none;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  margin-bottom: 30px;
+}
+
+.card-header {
+  background-color: white;
+  border-bottom: 1px solid #eee;
+  padding: 15px 20px;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+/* Form Styles */
+.form-label {
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 8px;
+}
+
+.form-control, .form-select {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 10px 15px;
+  font-size: 14px;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #FF416C;
+  box-shadow: 0 0 0 0.2rem rgba(255, 65, 108, 0.25);
+}
+
+textarea.form-control {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Image Upload Styles */
+.thumbnails-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.thumbnails-container img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.image-cropper {
+  margin-bottom: 20px;
+}
+
+#imgView1, #imgView2, #imgView3, #imgView4 {
+  max-width: 100%;
+  max-height: 200px;
+  margin-bottom: 10px;
+}
+
+/* Button Styles */
+.btn {
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 6px;
+  transition: all 0.3s;
+}
+
+.btn-primary {
+  background-color: #FF416C;
+  border-color: #FF416C;
+}
+
+.btn-primary:hover {
+  background-color: #DB4437;
+  border-color: #DB4437;
+}
+
+.btn-sm {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+/* Error Messages */
+.error-message {
+  color: #dc3545;
+  font-size: 14px;
+  margin-top: 5px;
+  display: none;
+}
+
+/* Row Styling */
+.row {
+  margin-bottom: 15px;
+}
+
+/* Border Styling */
+.border {
+  border: 1px solid #dee2e6 !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .content-main {
+    padding: 15px;
+  }
+  
+  .card-body {
+    padding: 15px;
+  }
+  
+  .col-lg-4 {
+    margin-bottom: 15px;
+  }
+}
