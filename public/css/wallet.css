@@ -1,0 +1,400 @@
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin: 0; /* Aligned with profile.css */
+    padding: 0; /* Aligned with profile.css */
+}
+
+header {
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+/* Container Styling */
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto; /* Aligned with profile.css */
+    padding: 0 20px;
+    flex-grow: 1;
+    margin-bottom: 50px; /* Aligned with profile.css */
+}
+
+.mt-5 {
+    margin-top: 0 !important; /* Aligned with profile.css */
+}
+
+/* Row and Column Setup */
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -20px; /* Updated from -20px to match profile.css */
+}
+
+.col-md-3,
+.col-md-9 {
+    padding: 0 20px; /* Updated to match profile.css */
+}
+
+.col-md-3 {
+    flex: 0 0 25%;
+    max-width: 25%;
+}
+
+.col-md-9 {
+    flex: 0 0 75%;
+    max-width: 75%;
+}
+
+/* Breadcrumb Styling */
+.breadcrumb {
+    background-color: #fff;
+    border: 1px solid #DB4437;
+    border-radius: 15px;
+    padding: 8px 15px; /* Aligned with profile.css */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Aligned with profile.css */
+    margin-top: 0; /* Aligned with profile.css */
+}
+
+.breadcrumb-item a {
+    color: #FF4B2B;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.breadcrumb-item.active {
+    color: #DB4437;
+    font-weight: 600;
+}
+
+/* Sidebar Styling */
+.card.sidebar {
+    border: 2px solid #DB4437;
+    border-radius: 20px;
+    padding: 20px; /* Aligned with profile.css */
+    background-color: #fff;
+    height: auto;
+    overflow: visible;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Aligned with profile.css */
+    transition: transform 0.3s ease; /* Aligned with profile.css */
+}
+
+.card.sidebar:hover {
+    transform: translateY(-5px); /* Aligned with profile.css */
+}
+
+.card.sidebar h4 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    color: #DB4437;
+    font-weight: 700;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Sidebar Navigation */
+.nav.flex-column {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    height: auto !important;
+}
+
+.nav-item {
+    width: 100%;
+    margin: 5px 0; /* Aligned with profile.css */
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: #FF4B2B;
+    text-decoration: none;
+    font-weight: 500;
+    border-radius: 10px;
+    transition: background-color 0.3s, color 0.3s, transform 0.2s;
+}
+
+.nav-link i {
+    margin-right: 12px;
+    width: 20px;
+    text-align: center;
+    color: #DB4437;
+}
+
+.nav-link:hover {
+    background-color: #ffe6e6;
+    color: #DB4437;
+    transform: translateX(5px);
+}
+
+.nav-link.active {
+    background: linear-gradient(to right, #FF4B2B, #FF416C);
+    color: #fff;
+    font-weight: 600;
+}
+
+.logout-link {
+    color: #DB4437;
+}
+
+.logout-link:hover {
+    background-color: #ffe6e6;
+    color: #DB4437;
+}
+
+/* Wallet Box Styling */
+.card.wallet-card {
+    border: 2px solid #DB4437;
+    border-radius: 20px;
+    padding: 25px;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Aligned with profile.css */
+    margin-bottom: 25px;
+}
+
+.wallet-card h4 {
+    font-size: 1.6rem;
+    color: #DB4437;
+    margin-bottom: 15px; /* Aligned with profile.css */
+    font-weight: 700;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.wallet-balance {
+    background: linear-gradient(to right, #FF4B2B, #FF416C);
+    color: #fff;
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.balance-label {
+    font-size: 1.2rem;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.balance-amount {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 10px 0;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Transaction History */
+.transaction-history {
+    margin-top: 25px;
+}
+
+.transaction-history h5 {
+    font-size: 1.3rem;
+    color: #DB4437;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+.table-container {
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th {
+    background: linear-gradient(to right, #FF4B2B, #FF416C);
+    color: #fff;
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+}
+
+.table td {
+    padding: 15px;
+    border-bottom: 1px solid #ffe6e6;
+    color: #FF4B2B;
+}
+
+.table tr:last-child td {
+    border-bottom: none;
+}
+
+.table tr:hover td {
+    background-color: #ffe6e6;
+}
+
+.text-success {
+    color: #28a745 !important;
+    font-weight: 600;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+    font-weight: 600;
+}
+
+/* Gradient Button */
+.gradient-btn {
+    padding: 12px 25px; /* Aligned with profile.css */
+    border: none;
+    border-radius: 25px;
+    background: linear-gradient(to right, #FF4B2B, #FF416C);
+    color: #fff;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.3s ease; /* Aligned with profile.css */
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2); /* Aligned with profile.css */
+    text-align: center;
+    display: inline-block;
+    text-decoration: none;
+}
+
+.gradient-btn:hover {
+    background: #DB4437; /* Aligned with profile.css */
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3); /* Aligned with profile.css */
+    color: #fff;
+    text-decoration: none;
+}
+
+/* Modal Styling */
+.modal-content {
+    border-radius: 20px;
+    border: 2px solid #DB4437;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+    background: linear-gradient(to right, #FF4B2B, #FF416C);
+    color: #fff;
+    border-radius: 18px 18px 0 0;
+    padding: 15px 20px;
+}
+
+.modal-title {
+    font-weight: 700;
+    font-size: 1.4rem;
+}
+
+.btn-close {
+    color: #fff;
+    opacity: 1;
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+.modal-body {
+    padding: 25px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    color: #DB4437;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #FF4B2B;
+    border-radius: 15px;
+    font-size: 1.1rem;
+    transition: border-color 0.3s;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #DB4437;
+    box-shadow: 0 0 0 3px rgba(219, 68, 55, 0.2);
+}
+
+/* Footer Styling */
+.footer {
+    background: linear-gradient(to right, #FF4B2B, #FF416C);
+    color: #fff;
+    text-align: center;
+    padding: 20px;
+    border-top: 2px solid #DB4437;
+    box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+}
+
+.footer p {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* Profile Photo Styling (Aligned with profile.css) */
+.profile-photo-container {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 15px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #DB4437;
+    background-color: #ffe6e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.profile-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none; /* Hidden by default if no image */
+}
+
+.profile-photo-placeholder {
+    font-size: 48px;
+    color: #DB4437;
+}
+
+.card.sidebar .text-center {
+    padding-top: 20px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .col-md-3,
+    .col-md-9 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    .card.sidebar {
+        margin-bottom: 25px;
+        border-radius: 15px;
+    }
+
+    .card.wallet-card {
+        border-radius: 15px;
+    }
+}
+    

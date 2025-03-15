@@ -1,0 +1,79 @@
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: white;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  right: 0;
+}
+
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  width: 100%;
+}
+
+.dropdown-content a:hover {
+  background-color: #f1f1f1;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.header {
+  position: relative;
+  z-index: 500;
+}
+
+/* Style for Sign Up and Log In buttons */
+.sign-in-link {
+  display: inline-block;
+  padding: 10px 20px;
+  color: #fff;
+  background-color: #1b1b1b;
+  /* Blue button color */
+  border: none;
+  border-radius: 5px;
+  text-decoration: none;
+  /* Remove underline */
+  font-size: 14px;
+  text-align: center;
+  margin-right: 10px;
+  /* Add space between buttons */
+  transition: background-color 0.3s ease;
+}
+
+.sign-in-link:hover {
+  background-color: #ff0000;
+  /* Darker blue on hover */
+}
+
+a[href="/login"] {
+  display: inline-block;
+  padding: 10px 20px;
+  color: #fff;
+  background-color: #121212;
+  /* Green button color */
+  border: none;
+  border-radius: 5px;
+  text-decoration: none;
+  /* Remove underline */
+  font-size: 14px;
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
+
+a[href="/login"]:hover {
+  background-color: #ff0000;
+  /* Darker green on hover */
+}

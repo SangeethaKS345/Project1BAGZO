@@ -1,0 +1,66 @@
+
+body {
+background-color: #fafafa;
+}
+
+.navbar {
+background-color: #FF4B2B;
+box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+}
+
+.navbar-aside {
+background-color: #fff;
+box-shadow: 2px 0 15px rgba(0,0,0,0.05);
+border-right: 1px solid rgba(255, 75, 43, 0.1);
+}
+
+.menu-item a.menu-link {
+color: #333;
+transition: all 0.3s ease;
+padding: 12px 16px;
+border-radius: 6px;
+margin: 2px 0;
+}
+
+.menu-item a.menu-link:hover,
+.menu-item a.menu-link.active {
+background: linear-gradient(45deg, #FF416C, #FF4B2B);
+color: #ffffff;
+transform: translateX(5px);
+}
+
+.dropdown-menu {
+background-color: #fff;
+border: 1px solid rgba(255, 75, 43, 0.1);
+box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+border-radius: 8px;
+padding: 8px 0;
+}
+
+.dropdown-item {
+color: #333;
+transition: all 0.3s ease;
+padding: 8px 16px;
+}
+
+.dropdown-item:hover {
+background: linear-gradient(45deg, #FF416C, #FF4B2B);
+color: #ffffff;
+}
+
+a {
+text-decoration: none;
+color: inherit;
+}
+
+.nav__logo {
+
+color: linear-gradient( #FF416C, #FF4B2B);
+font-weight: 600;
+font-size: 1.2em;
+transition: opacity 0.3s ease;
+}
+
+.nav__logo:hover {
+opacity: 0.9;
+}
