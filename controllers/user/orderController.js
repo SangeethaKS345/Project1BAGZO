@@ -1,6 +1,8 @@
 const Order = require('../../models/orderSchema');
 const Product = require('../../models/productSchema'); 
-const walletController = require('./walletController'); // Adjust path if needed
+const walletController = require('./walletController'); 
+const addressController = require('./addressController');
+const PDFDocument = require('pdfkit');
 
 const getOrderPlaced = async (req, res, next) => {
     try {
@@ -208,10 +210,106 @@ const returnOrder = async (req, res) => {
   }
 };
 
-// Update exports
+const downloadInvoice = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const userId = req.user._id;
+
+    // Fetch order details with populated fields
+    const order = await Order.findOne({ orderId, userId })
+      .populate('OrderItems.product')
+      .populate('address');
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found',
+      });
+    }
+
+    // Create a new PDF document
+    const doc = new PDFDocument({
+      size: 'A4',
+      margin: 50,
+    });
+
+    // Set response headers for PDF download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=invoice_${orderId}.pdf`);
+
+    // Pipe the PDF into the response
+    doc.pipe(res);
+
+    // Header
+    doc.fontSize(20).text('Invoice', { align: 'center' });
+    doc.moveDown();
+    doc.fontSize(12).text(`Order #${order.orderId}`, { align: 'right' });
+    doc.text(`Date: ${new Date(order.createdOn).toLocaleDateString()}`, { align: 'right' });
+
+    // Billing Information
+    const address = order.address.address[0]; // Assuming first address in array
+    doc.moveDown();
+    doc.fontSize(14).text('Billing Information', { underline: true });
+    doc.fontSize(12)
+      .text(`Name: ${address.name}`)
+      .text(`Address: ${address.landMark}, ${address.city}, ${address.state} - ${address.pincode}`)
+      .text(`Phone: ${address.phone}`);
+
+    // Order Details Table
+    doc.moveDown(2);
+    doc.fontSize(14).text('Order Details', { underline: true });
+
+    // Table Header
+    const tableTop = doc.y + 15;
+    const itemX = 50;
+    const qtyX = 300;
+    const priceX = 400;
+    const totalX = 500;
+
+    doc.fontSize(12).font('Helvetica-Bold')
+      .text('Item', itemX, tableTop)
+      .text('Quantity', qtyX, tableTop)
+      .text('Price', priceX, tableTop)
+      .text('Total', totalX, tableTop);
+
+    // Table Content
+    let y = tableTop + 25;
+    order.OrderItems.forEach(item => {
+      const total = item.quantity * item.price;
+      doc.font('Helvetica')
+        .text(item.product.productName, itemX, y, { width: 250, ellipsis: true })
+        .text(item.quantity, qtyX, y)
+        .text(`₹${item.price.toFixed(2)}`, priceX, y)
+        .text(`₹${total.toFixed(2)}`, totalX, y);
+      y += 20;
+    });
+
+    // Total Amount
+    doc.moveDown(2);
+    doc.font('Helvetica-Bold')
+      .text(`Total Amount: ₹${order.finalAmount.toFixed(2)}`, { align: 'right' });
+
+    // Footer
+    doc.moveDown(2);
+    doc.fontSize(10).font('Helvetica')
+      .text('Thank you for shopping with BAGZO!', { align: 'center' });
+
+    // Finalize the PDF
+    doc.end();
+
+  } catch (error) {
+    console.error('Error generating invoice:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error: ' + error.message,
+    });
+  }
+};
+
 module.exports = { 
   getOrderPlaced,
   loadMyOrders,
   cancelOrder,
-  returnOrder
+  returnOrder,
+  downloadInvoice
 };

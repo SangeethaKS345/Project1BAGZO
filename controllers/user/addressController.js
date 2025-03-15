@@ -7,13 +7,14 @@ const getAddresses = async (req, res, next) => {
     console.log("Address page function called");
 
     const userId = req.session.user.id;
-    // Fetch full user data
     const user = await User.findById(userId);
-    const addressDoc = await Address.findOne({ userId });
+    const addresses = await Address.find({ userId });
+    const error = req.session.error;
+    req.session.error = null;
 
     console.log("Full user data:", user);
     console.log("Rendering address page");
-    res.render("address", { addressDoc, user });
+    res.render("address", { addresses, user, error });
   } catch (error) {
     next(error);
   }
@@ -23,10 +24,12 @@ const getAddresses = async (req, res, next) => {
 const addAddressForm = async (req, res, next) => {
   try {
     const userId = req.session.user.id;
-    const success = req.session.success;
-    req.session.success = false; // reset the success flag
+    const success = req.session.success || false;
+    const error = req.session.error;
+    req.session.success = false;
+    req.session.error = null;
 
-    res.render("addAddress", { user: req.session.user, userId: userId, success: success });
+    res.render("addAddress", { user: req.session.user, userId, success, error });
   } catch (error) {
     next(error);
   }
@@ -43,13 +46,36 @@ const addAddress = async (req, res, next) => {
 
     const { addressType, name, city, landMark, state, pincode, phone, altPhone } = req.body;
 
-    if (!userId || !addressType || !name || !city || !landMark || !state || !pincode || !phone || !altPhone) {
-      console.log("Missing required fields. Redirecting to add address page...");
+    const requiredFields = { addressType, name, city, landMark, state, pincode, phone, altPhone };
+    const emptyFields = Object.keys(requiredFields).filter(key => !requiredFields[key] || !requiredFields[key].toString().trim());
+
+    if (emptyFields.length > 0) {
+      console.log("Empty fields detected:", emptyFields);
+      req.session.error = `Please fill out the following fields: ${emptyFields.join(", ")}`;
       return res.redirect("/address/new");
     }
 
-    const addressDoc = await Address.findOne({ userId });
-    const newAddress = {
+    const phoneRegex = /^[1-9][0-9]{9}$/;
+    if (!phoneRegex.test(phone) || phone === "0000000000") {
+      console.log("Invalid phone number.");
+      req.session.error = "Phone number must be a valid 10-digit number and cannot be all zeros.";
+      return res.redirect("/address/new");
+    }
+
+    if (!phoneRegex.test(altPhone) || altPhone === "0000000000") {
+      console.log("Invalid alternate phone number.");
+      req.session.error = "Alternate phone number must be a valid 10-digit number and cannot be all zeros.";
+      return res.redirect("/address/new");
+    }
+
+    if (phone === altPhone) {
+      console.log("Phone and alternate phone cannot be the same.");
+      req.session.error = "Phone and alternate phone numbers must be different.";
+      return res.redirect("/address/new");
+    }
+
+    const newAddress = new Address({
+      userId,
       addressType,
       name,
       city,
@@ -57,21 +83,12 @@ const addAddress = async (req, res, next) => {
       state,
       pincode,
       phone,
-      altPhone
-    };
+      altPhone,
+    });
 
-    if (addressDoc) {
-      addressDoc.address.push(newAddress);
-      await addressDoc.save();
-    } else {
-      await Address.create({
-        userId,
-        address: [newAddress]
-      });
-    }
+    await newAddress.save();
     console.log("Address added successfully. Redirecting to address page...");
 
-    // Set success flag
     req.session.success = true;
     return res.redirect("/address/new");
   } catch (error) {
@@ -85,14 +102,14 @@ const editAddressForm = async (req, res, next) => {
     const userId = req.session.user.id;
     const addressId = req.params.id;
 
-    const addressData = await Address.findOne({ userId, "address._id": addressId }, { "address.$": 1 });
+    const address = await Address.findOne({ _id: addressId, userId });
 
-    if (!addressData) {
+    if (!address) {
       console.log("Address not found.");
       return res.redirect("/address");
     }
 
-    res.render("editAddress", { addressData: addressData.address[0], user: req.session.user });
+    res.render("user/editAddress", { addressData: address, user: req.session.user });
   } catch (error) {
     next(error);
   }
@@ -108,32 +125,22 @@ const updateAddress = async (req, res, next) => {
 
     if (!addressType || !name || !city || !landMark || !state || !pincode || !phone || !altPhone) {
       console.log("Missing required fields.");
-      return res.status(400).render("editAddress", {
+      return res.status(400).render("user/editAddress", {
         addressData: { _id: addressId, ...req.body },
         user: req.session.user,
         error: "All fields are required."
       });
     }
 
-    const updatedAddress = await Address.updateOne(
-      { userId, "address._id": addressId },
-      {
-        $set: {
-          "address.$.addressType": addressType,
-          "address.$.name": name,
-          "address.$.city": city,
-          "address.$.landMark": landMark,
-          "address.$.state": state,
-          "address.$.pincode": pincode,
-          "address.$.phone": phone,
-          "address.$.altPhone": altPhone
-        }
-      }
+    const updatedAddress = await Address.findOneAndUpdate(
+      { _id: addressId, userId },
+      { addressType, name, city, landMark, state, pincode, phone, altPhone },
+      { new: true, runValidators: true }
     );
 
-    if (updatedAddress.nModified === 0) {
+    if (!updatedAddress) {
       console.log("Address update failed or address not found.");
-      return res.status(404).render("editAddress", {
+      return res.status(404).render("user/editAddress", {
         addressData: { _id: addressId, ...req.body },
         user: req.session.user,
         error: "Address not found or no changes made."
@@ -154,17 +161,17 @@ const deleteAddress = async (req, res, next) => {
     const userId = req.session.user.id;
     const addressId = req.params.id;
 
-    const updatedAddress = await Address.updateOne(
-      { userId },
-      { $pull: { address: { _id: addressId } } }
-    );
+    const deletedAddress = await Address.findOneAndDelete({ _id: addressId, userId });
 
-    if (updatedAddress.nModified === 0) {
+    if (!deletedAddress) {
+      req.session.error = "Address not found or could not be deleted.";
       return res.status(404).json({ success: false, message: "Address not found" });
     }
 
     res.json({ success: true, message: "Address deleted successfully!" });
   } catch (error) {
+    req.session.error = "An error occurred while deleting the address.";
+    res.status(500).json({ success: false, message: "Server error" });
     next(error);
   }
 };

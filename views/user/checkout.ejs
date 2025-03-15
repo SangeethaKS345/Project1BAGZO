@@ -477,407 +477,342 @@ input {
   <link rel="stylesheet" href="/css/sweetalert2.min.css">
 </head>
 <body>
-  <!--=============== MAIN ===============-->
   <main class="main">
-   <!--=============== BREADCRUMB ===============-->
-   <section class="breadcrumb">
-     <div class="container">
-       <ul class="breadcrumb__list">
-         <li><a href="/" class="breadcrumb__link">Home</a></li>
-         <li><span class="breadcrumb__divider">></span></li>
-         <li><a href="/cart" class="breadcrumb__link">Cart</a></li>
-         <li><span class="breadcrumb__divider">></span></li>
-         <li><span class="breadcrumb__current">Checkout</span></li>
-       </ul>
-     </div>
-   </section>
- 
-   <!--=============== CHECKOUT ===============-->
-   <section class="checkout section">
-     <div class="container">
-       <div class="checkout__container">
-         <!-- Delivery Address Section -->
-         <div class="checkout__group address-group">
-           <h3 class="section__title">Select Delivery Address</h3>
-           <div class="address__list" id="addressList">
-             <% addresses.forEach((address, index) => { %>
-             <div class="address__item">
-               <input type="radio" name="address" id="address<%= index + 1 %>"
-               value="<%= address._id %>" class="address__radio" <%= index === 0 ? 'checked' : '' %>>
-               <label for="address<%= index + 1 %>" class="address__label">
-                 <div class="address__details">
-                   <h4 class="address__name"><%= address.addressType || 'Address' %></h4>
-                   <p class="address__text"><%= address.name || '' %></p>
-                   <p class="address__text"><%= address.address || '' %></p>
-                   <p class="address__text"><%= address.city || '' %>, <%= address.state || '' %> <%= address.pincode || '' %></p>
-                   <p class="address__text">Landmark: <%= address.landMark || 'N/A' %></p>
-                   <p class="address__text">Phone: <%= address.phone || 'N/A' %></p>
-                   <p class="address__text">Alt Phone: <%= address.altPhone || 'N/A' %></p>
-                 </div>
-               </label>
-             </div>
-             <% }); %>
-           </div>
-           
-           <a href="/address/new" class="add-address-link">
-             <button class="btn add__address-btn">
-               <i class="fas fa-plus"></i> Add New Address
-             </button>
-           </a>
- 
-           <!-- Payment Methods Section -->
-           <div class="payment-options">
-             <h3 class="section__title">Payment Method</h3>
-             
-             <div class="payment-option">
-               <input type="radio" id="cod" name="paymentMethod" value="cod" class="payment-radio" checked>
-               <label for="cod" class="payment-label">
-                 <i class="fas fa-money-bill-wave payment-icon"></i>
-                 <span class="payment-text">Cash on Delivery</span>
-               </label>
-             </div>
-             
-             <div class="payment-option">
-               <input type="radio" id="razorpay" name="paymentMethod" value="razorpay" class="payment-radio" disabled>
-               <label for="razorpay" class="payment-label payment-disabled">
-                 <i class="fas fa-credit-card payment-icon"></i>
-                 <span class="payment-text">Razorpay (Currently Unavailable)</span>
-               </label>
-             </div>
-             
-             <div class="payment-option">
-               <input type="radio" id="wallet" name="paymentMethod" value="wallet" class="payment-radio" disabled>
-               <label for="wallet" class="payment-label payment-disabled">
-                 <i class="fas fa-wallet payment-icon"></i>
-                 <span class="payment-text">Wallet (Currently Unavailable)</span>
-               </label>
-             </div>
-           </div>
-         </div>
- 
-         <!-- Cart Summary Section -->
-         <div class="checkout__group cart-summary">
-           <h3 class="section__title">Cart Summary</h3>
-           
-           <div class="cart-items" id="cartItems">
-             <% if (cartItems && cartItems.length > 0) { %>
-               <% cartItems.forEach((item, i) => { %>
-                 <div class="cart-item">
-                   <div class="item-image">
-                     <img src="/uploads/re-image/<%= item.productDetails.productImage[0] %>" alt="<%= item.productDetails.productName %>">
-                   </div>
-                   <div class="item-details">
-                     <h3 class="item-name"><%= item.productDetails.productName %></h3>
-                     <p class="item-meta">
-                       <%= item.categoryDetails ? item.categoryDetails.name : 'Unknown Category' %> | 
-                       <%= item.brandDetails ? item.brandDetails.brandName : 'Unknown Brand' %>
-                     </p>
-                     <div class="item-price">
-                       <span class="price-label">Price:</span>
-                       <span class="price-value">₹<%= item.productDetails.salesPrice %></span>
-                     </div>
-                     <div class="item-quantity">
-                       <span>Quantity: <%= item.quantity %></span>
-                     </div>
-                   </div>
-                   <div class="item-subtotal">
-                     <span class="subtotal-label">Subtotal:</span>
-                     <span class="subtotal-value">₹<%= item.productDetails.salesPrice * item.quantity %></span>
-                   </div>
-                 </div>
-               <% }); %>
-             <% } else { %>
-               <div class="empty-cart">
-                 <h2>Your Cart is Empty</h2>
-                 <p>Please add items to your cart before checking out.</p>
-                 <a href="/shop" class="shop-now-btn">Shop Now</a>
-               </div>
-             <% } %>
-           </div>
-           
-           <div class="order-summary">
-             <div class="summary-row">
-               <span>Subtotal</span>
-               <span id="subtotal">₹<%= cartSubtotal.toFixed(2) %></span>
-             </div>
-             <div class="summary-row">
-               <span>Shipping</span>
-               <span>Free</span>
-             </div>
-             <div class="summary-row total">
-               <span>Total</span>
-               <span id="total">₹<%= finalAmount.toFixed(2) %></span>
-             </div>
-           </div>
-           
-           <form id="orderForm" action="/place-order" method="POST">
-             <input type="hidden" name="addressId" id="selectedAddressId" value="" />
-             <input type="hidden" name="paymentMethod" id="selectedPaymentMethod" value="cod" />
-             <button type="submit" class="btn place-order__btn">Place Order</button>
-           </form>
-         </div>
-       </div>
-     </div>
-   </section>
- </main>
+    <section class="breadcrumb">
+      <div class="container">
+        <ul class="breadcrumb__list">
+          <li><a href="/" class="breadcrumb__link">Home</a></li>
+          <li><span class="breadcrumb__divider">></span></li>
+          <li><a href="/cart" class="breadcrumb__link">Cart</a></li>
+          <li><span class="breadcrumb__divider">></span></li>
+          <li><span class="breadcrumb__current">Checkout</span></li>
+        </ul>
+      </div>
+    </section>
 
- <script src="https://unpkg.com/izitoast/dist/js/iziToast.min.js"></script>
- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
- <script>
-   document.addEventListener("DOMContentLoaded", function() {
-       initAddressSelection();
-       initPaymentMethodSelection();
-       fetchCartItems();
-       setupOrderForm();
-       setupNewsletterForm();
-   });
-   
-   function initAddressSelection() {
-       const addressRadios = document.querySelectorAll('input[name="address"]');
-       const selectedAddressInput = document.getElementById("selectedAddressId");
-   
-       if (addressRadios.length > 0) {
-           const checkedRadio = Array.from(addressRadios).find(radio => radio.checked) || addressRadios[0];
-           if (checkedRadio) {
-               selectedAddressInput.value = checkedRadio.value;
-               console.log("Initial addressId set to:", selectedAddressInput.value);
-           }
-       } else {
-           console.warn("No address radio buttons found!");
-       }
-   
-       addressRadios.forEach((radio) => {
-           radio.addEventListener("change", function() {
-               selectedAddressInput.value = this.value;
-               console.log("Address changed, new addressId:", selectedAddressInput.value);
-               highlightSelectedAddress(this);
-           });
-       });
-   }
-   
-   function highlightSelectedAddress(selectedRadio) {
-       document.querySelectorAll('.address__label').forEach(label => {
-           label.classList.remove('address__label--selected');
-       });
-   
-       const selectedLabel = document.querySelector(`label[for="${selectedRadio.id}"]`);
-       if (selectedLabel) {
-           selectedLabel.classList.add('address__label--selected');
-       }
-   }
-   
-   function initPaymentMethodSelection() {
-       const paymentRadios = document.querySelectorAll('input[name="paymentMethod"]');
-       const selectedPaymentMethodInput = document.getElementById("selectedPaymentMethod");
-   
-       paymentRadios.forEach((radio) => {
-           if (!radio.disabled) {
-               radio.addEventListener("change", function() {
-                   selectedPaymentMethodInput.value = this.value;
-                   console.log("Payment method changed to:", selectedPaymentMethodInput.value);
-               });
-           }
-       });
-   }
-   
-   function fetchCartItems() {
-       console.log("Cart items already displayed from server-side rendering");
-   }
-   
-   function renderCartItems(cart) {
-       const cartItemsContainer = document.getElementById('cartItems');
-       if (!cartItemsContainer) return;
-   
-       cartItemsContainer.innerHTML = '';
-   
-       if (!cart || !cart.products || cart.products.length === 0) {
-           cartItemsContainer.innerHTML = '<p class="empty-cart-message">Your cart is empty</p>';
-           return;
-       }
-   
-       cart.products.forEach(item => {
-           const product = item.productId;
-           const imageSrc = product.images && product.images.length > 0 
-               ? product.images[0] 
-               : '/img/default-product.jpg';
-   
-           const cartItemHTML = `
-               <div class="cart-item" data-product-id="${product._id}">
-                   <div class="cart-item__image">
-                       <img src="${imageSrc}" alt="${product.name || 'Product'}">
-                   </div>
-                   <div class="cart-item__details">
-                       <h4 class="cart-item__title">${product.name || 'Product'}</h4>
-                       <p class="cart-item__price">₹${item.price ? item.price.toFixed(2) : '0.00'}</p>
-                       <div class="cart-item__quantity">
-                           <span>Quantity: ${item.quantity || 1}</span>
-                       </div>
-                   </div>
-                   <div class="cart-item__total">
-                       <p>₹${item.totalPrice ? item.totalPrice.toFixed(2) : '0.00'}</p>
-                   </div>
-               </div>
-           `;
-           cartItemsContainer.innerHTML += cartItemHTML;
-       });
-   }
-   
-   function updateOrderSummary(cart) {
-       const subtotalElement = document.getElementById('subtotal');
-       const totalElement = document.getElementById('total');
-   
-       if (!subtotalElement || !totalElement) return;
-   
-       let subtotal = 0;
-   
-       if (cart && cart.products && cart.products.length > 0) {
-           subtotal = cart.products.reduce((sum, item) => {
-               return sum + (item.totalPrice || 0);
-           }, 0);
-       }
-   
-       subtotalElement.textContent = `₹${subtotal.toFixed(2)}`;
-       totalElement.textContent = `₹${subtotal.toFixed(2)}`;
-   }
-   
-   // Updated function to check quantities
-   function checkCartQuantities() {
-       const cartItems = document.querySelectorAll('#cartItems .cart-item');
-       let exceedsLimit = false;
-       let excessProducts = [];
+    <section class="checkout section">
+      <div class="container">
+        <div class="checkout__container">
+          <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-danger" role="alert">
+              <%= error %>
+            </div>
+          <% } %>
 
-       cartItems.forEach(item => {
-           const quantitySpan = item.querySelector('.item-quantity span');
-           if (quantitySpan) {
-               const quantityText = quantitySpan.textContent.replace('Quantity: ', '').trim();
-               const quantity = parseInt(quantityText) || 0;
-               console.log(`Checking item: ${item.querySelector('.item-name').textContent}, Quantity: ${quantity}`);
-               if (quantity > 5) {
-                   exceedsLimit = true;
-                   const productTitle = item.querySelector('.item-name').textContent;
-                   excessProducts.push(productTitle);
-               }
-           }
-       });
+          <div class="checkout__group address-group">
+            <h3 class="section__title">Select Delivery Address</h3>
+            <div class="address__list" id="addressList">
+              <% if (addresses && Array.isArray(addresses) && addresses.length > 0) { %>
+                <% addresses.forEach((address, index) => { %>
+                  <div class="address__item">
+                    <input type="radio" name="address" id="address<%= index + 1 %>"
+                      value="<%= address._id %>" class="address__radio" <%= index === 0 ? 'checked' : '' %>>
+                    <label for="address<%= index + 1 %>" class="address__label">
+                      <div class="address__details">
+                        <h4 class="address__name"><%= address.addressType || 'Address' %></h4>
+                        <p class="address__text"><%= address.name || '' %></p>
+                        <p class="address__text"><%= address.city || '' %>, <%= address.state || '' %> <%= address.pincode || '' %></p>
+                        <p class="address__text">Landmark: <%= address.landMark || 'N/A' %></p>
+                        <p class="address__text">Phone: <%= address.phone || 'N/A' %></p>
+                        <p class="address__text">Alt Phone: <%= address.altPhone || 'N/A' %></p>
+                      </div>
+                    </label>
+                  </div>
+                <% }); %>
+              <% } else { %>
+                <div class="no-address">
+                  <p>No delivery addresses available. Please add one to proceed.</p>
+                  <a href="/address/new" class="gradient-btn">Add New Address</a>
+                </div>
+              <% } %>
+            </div>
+            
+            <a href="/address/new" class="add-address-link">
+              <button class="btn add__address-btn">
+                <i class="fas fa-plus"></i> Add New Address
+              </button>
+            </a>
 
-       if (exceedsLimit) {
-           Swal.fire({
-               icon: 'error',
-               title: 'Quantity Limit Exceeded',
-               text: `You cannot checkout with more than 5 items per product. Please adjust quantities for: ${excessProducts.join(', ')}.`,
-           });
-           return false;
-       }
-       return true;
-   }
-   
-   function setupOrderForm() {
-  const orderForm = document.getElementById('orderForm');
+            <div class="payment-options">
+              <h3 class="section__title">Payment Method</h3>
+              <div class="payment-option">
+                <input type="radio" id="cod" name="paymentMethod" value="cod" class="payment-radio" checked>
+                <label for="cod" class="payment-label">
+                  <i class="fas fa-money-bill-wave payment-icon"></i>
+                  <span class="payment-text">Cash on Delivery</span>
+                </label>
+              </div>
+              <div class="payment-option">
+                <input type="radio" id="razorpay" name="paymentMethod" value="razorpay" class="payment-radio" disabled>
+                <label for="razorpay" class="payment-label payment-disabled">
+                  <i class="fas fa-credit-card payment-icon"></i>
+                  <span class="payment-text">Razorpay (Currently Unavailable)</span>
+                </label>
+              </div>
+              <div class="payment-option">
+                <input type="radio" id="wallet" name="paymentMethod" value="wallet" class="payment-radio" disabled>
+                <label for="wallet" class="payment-label payment-disabled">
+                  <i class="fas fa-wallet payment-icon"></i>
+                  <span class="payment-text">Wallet (Currently Unavailable)</span>
+                </label>
+              </div>
+            </div>
+          </div>
 
-  if (!orderForm) {
-    console.error("Order form not found!");
-    return;
-  }
+          <div class="checkout__group cart-summary">
+            <h3 class="section__title">Cart Summary</h3>
+            <div class="cart-items" id="cartItems">
+              <% if (cartItems && cartItems.length > 0) { %>
+                <% cartItems.forEach((item, i) => { %>
+                  <div class="cart-item">
+                    <div class="item-image">
+                      <img src="/uploads/re-image/<%= item.productDetails.productImage[0] || 'default.jpg' %>" alt="<%= item.productDetails.productName || 'Product' %>">
+                    </div>
+                    <div class="item-details">
+                      <h3 class="item-name"><%= item.productDetails.productName || 'Unknown Product' %></h3>
+                      <p class="item-meta">
+                        <%= item.categoryDetails ? item.categoryDetails.name : 'Unknown Category' %> | 
+                        <%= item.brandDetails ? item.brandDetails.brandName : 'Unknown Brand' %>
+                      </p>
+                      <div class="item-price">
+                        <span class="price-label">Price:</span>
+                        <span class="price-value">₹<%= item.productDetails.salesPrice || 0 %></span>
+                      </div>
+                      <div class="item-quantity">
+                        <span>Quantity: <%= item.quantity || 0 %></span>
+                      </div>
+                    </div>
+                    <div class="item-subtotal">
+                      <span class="subtotal-label">Subtotal:</span>
+                      <span class="subtotal-value">₹<%= (item.productDetails.salesPrice * item.quantity).toFixed(2) %></span>
+                    </div>
+                  </div>
+                <% }); %>
+              <% } else { %>
+                <div class="empty-cart">
+                  <h2>Your Cart is Empty</h2>
+                  <p>Please add items to your cart before checking out.</p>
+                  <a href="/shop" class="shop-now-btn">Shop Now</a>
+                </div>
+              <% } %>
+            </div>
+            
+            <div class="order-summary">
+              <div class="summary-row">
+                <span>Subtotal</span>
+                <span id="subtotal">₹<%= cartSubtotal.toFixed(2) %></span>
+              </div>
+              <div class="summary-row">
+                <span>Shipping</span>
+                <span>Free</span>
+              </div>
+              <div class="summary-row total">
+                <span>Total</span>
+                <span id="total">₹<%= finalAmount.toFixed(2) %></span>
+              </div>
+            </div>
+            
+            <form id="orderForm" action="/place-order" method="POST">
+              <input type="hidden" name="addressId" id="selectedAddressId" value="" />
+              <input type="hidden" name="paymentMethod" id="selectedPaymentMethod" value="cod" />
+              <button type="submit" class="btn place-order__btn">Place Order</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
 
-  orderForm.addEventListener('submit', function(e) {
-    console.log("Form submission started");
-
-    if (!checkCartQuantities()) {
-      e.preventDefault();
-      console.log("Quantity check failed");
-      return;
-    }
-
-    const selectedAddressInput = document.getElementById("selectedAddressId");
-    const selectedPaymentMethodInput = document.getElementById("selectedPaymentMethod");
-    const addressId = selectedAddressInput.value;
-    const paymentMethod = selectedPaymentMethodInput.value;
-
-    if (!addressId) {
-      e.preventDefault();
-      console.log("No address selected");
-      showError('Please select a delivery address');
-      return;
-    }
-
-    console.log("Submitting with addressId:", addressId, "and payment method:", paymentMethod);
-
-    const submitButton = this.querySelector('button[type="submit"]');
-    const originalButtonText = submitButton.innerHTML;
-    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-    submitButton.disabled = true;
-
-    submitOrder(addressId, paymentMethod, function() {
-      submitButton.innerHTML = originalButtonText;
-      submitButton.disabled = false;
-      console.log("Submission callback executed");
+  <script src="https://unpkg.com/izitoast/dist/js/iziToast.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      initAddressSelection();
+      initPaymentMethodSelection();
+      fetchCartItems();
+      setupOrderForm();
     });
-
-    e.preventDefault(); // Move this here if you want to handle submission fully via fetch
-  });
-}
-   
-   function submitOrder(addressId, paymentMethod, callback) {
-  const formData = { 
-    addressId,
-    paymentMethod 
-  };
-
-  console.log("Submitting Order:", formData);
-
-  fetch('/place-order', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(formData)
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return response.json();
-  })
-  .then(data => {
-    console.log("Server Response:", data);
-
-    if (data.success) {
-      showSuccess('Order Placed Successfully!', 'Your order has been placed successfully.')
-        .then(() => {
-          window.location.href = data.redirect || '/orderPlaced';
+    
+    function initAddressSelection() {
+      const addressRadios = document.querySelectorAll('input[name="address"]');
+      const selectedAddressInput = document.getElementById("selectedAddressId");
+  
+      if (addressRadios.length > 0) {
+        const checkedRadio = Array.from(addressRadios).find(radio => radio.checked) || addressRadios[0];
+        if (checkedRadio) {
+          selectedAddressInput.value = checkedRadio.value;
+          console.log("Initial addressId set to:", selectedAddressInput.value);
+        }
+      } else {
+        console.warn("No address radio buttons found!");
+      }
+  
+      addressRadios.forEach((radio) => {
+        radio.addEventListener("change", function() {
+          selectedAddressInput.value = this.value;
+          console.log("Address changed, new addressId:", selectedAddressInput.value);
+          highlightSelectedAddress(this);
         });
-    } else {
-      showError(data.error || 'Failed to place order');
+      });
     }
+    
+    function highlightSelectedAddress(selectedRadio) {
+      document.querySelectorAll('.address__label').forEach(label => {
+        label.classList.remove('address__label--selected');
+      });
+  
+      const selectedLabel = document.querySelector(`label[for="${selectedRadio.id}"]`);
+      if (selectedLabel) {
+        selectedLabel.classList.add('address__label--selected');
+      }
+    }
+    
+    function initPaymentMethodSelection() {
+      const paymentRadios = document.querySelectorAll('input[name="paymentMethod"]');
+      const selectedPaymentMethodInput = document.getElementById("selectedPaymentMethod");
+  
+      paymentRadios.forEach((radio) => {
+        if (!radio.disabled) {
+          radio.addEventListener("change", function() {
+            selectedPaymentMethodInput.value = this.value;
+            console.log("Payment method changed to:", selectedPaymentMethodInput.value);
+          });
+        }
+      });
+    }
+    
+    function fetchCartItems() {
+      console.log("Cart items already displayed from server-side rendering");
+    }
+    
+    function checkCartQuantities() {
+      const cartItems = document.querySelectorAll('#cartItems .cart-item');
+      let exceedsLimit = false;
+      let excessProducts = [];
 
-    if (callback) callback();
-  })
-  .catch(error => {
-    console.error("Order Submission Error:", error);
-    showError(`An error occurred while placing the order: ${error.message}`);
-    if (callback) callback();
-  });
-}
-   
-   function showSuccess(title, text) {
-       return Swal.fire({
-           icon: 'success',
-           title: title,
-           text: text,
-           confirmButtonText: 'OK',
-           confirmButtonColor: '#DB4437'
-       });
-   }
-   
-   function showError(message) {
-       return Swal.fire({
-           icon: 'error',
-           title: 'Error',
-           text: message,
-           confirmButtonColor: '#DB4437'
-       });
-   }
-   
-   
- </script>
- <%- include('../../views/partials/user/footer') %>
+      cartItems.forEach(item => {
+        const quantitySpan = item.querySelector('.item-quantity span');
+        if (quantitySpan) {
+          const quantityText = quantitySpan.textContent.replace('Quantity: ', '').trim();
+          const quantity = parseInt(quantityText) || 0;
+          console.log(`Checking item: ${item.querySelector('.item-name').textContent}, Quantity: ${quantity}`);
+          if (quantity > 5) {
+            exceedsLimit = true;
+            const productTitle = item.querySelector('.item-name').textContent;
+            excessProducts.push(productTitle);
+          }
+        }
+      });
+
+      if (exceedsLimit) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Quantity Limit Exceeded',
+          text: `You cannot checkout with more than 5 items per product. Please adjust quantities for: ${excessProducts.join(', ')}.`,
+        });
+        return false;
+      }
+      return true;
+    }
+    
+    function setupOrderForm() {
+      const orderForm = document.getElementById('orderForm');
+      if (!orderForm) {
+        console.error("Order form not found!");
+        return;
+      }
+
+      orderForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        if (!checkCartQuantities()) {
+          console.log("Quantity check failed");
+          return;
+        }
+
+        const selectedAddressInput = document.getElementById("selectedAddressId");
+        const selectedPaymentMethodInput = document.getElementById("selectedPaymentMethod");
+        const addressId = selectedAddressInput.value;
+        const paymentMethod = selectedPaymentMethodInput.value;
+
+        if (!addressId) {
+          console.log("No address selected");
+          showError('Please select a delivery address');
+          return;
+        }
+
+        console.log("Submitting with addressId:", addressId, "and payment method:", paymentMethod);
+
+        const submitButton = this.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        submitButton.disabled = true;
+
+        submitOrder(addressId, paymentMethod, function() {
+          submitButton.innerHTML = originalButtonText;
+          submitButton.disabled = false;
+          console.log("Submission callback executed");
+        });
+      });
+    }
+    
+    function submitOrder(addressId, paymentMethod, callback) {
+      const formData = { 
+        addressId,
+        paymentMethod 
+      };
+
+      console.log("Submitting Order:", formData);
+
+      fetch('/place-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log("Server Response:", data);
+        if (data.success) {
+          showSuccess('Order Placed Successfully!', 'Your order has been placed successfully.')
+            .then(() => {
+              window.location.href = data.redirect || '/orderPlaced';
+            });
+        } else {
+          showError(data.error || 'Failed to place order');
+        }
+        if (callback) callback();
+      })
+      .catch(error => {
+        console.error("Order Submission Error:", error);
+        showError(`An error occurred while placing the order: ${error.message}`);
+        if (callback) callback();
+      });
+    }
+    
+    function showSuccess(title, text) {
+      return Swal.fire({
+        icon: 'success',
+        title: title,
+        text: text,
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#DB4437'
+      });
+    }
+    
+    function showError(message) {
+      return Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: message,
+        confirmButtonColor: '#DB4437'
+      });
+    }
+  </script>
+  <%- include('../../views/partials/user/footer') %>
 </body>
 </html>

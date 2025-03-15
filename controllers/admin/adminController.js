@@ -30,7 +30,7 @@ const login = async (req, res, next) => {
             return res.render("login", { message: "Incorrect password!" });
         }
 
-        req.session.admin = admin._id.toString(); // ✅ Store admin's ObjectId instead of `true`
+        req.session.admin = admin._id.toString(); 
 
         return res.redirect("/admin/dashboard");
     } catch (error) {
