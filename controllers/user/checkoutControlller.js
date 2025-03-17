@@ -165,6 +165,30 @@ const placeOrder = async (req, res) => {
     await order.save();
     console.log("Order Saved Successfully");
 
+    // Update product quantities in the database
+    for (const item of cartItems) {
+      const productId = item.productDetails._id;
+      const orderedQuantity = item.quantity;
+
+      const product = await Product.findById(productId);
+      if (!product) {
+        console.log(`Product not found: ${productId}`);
+        throw new Error(`Product not found: ${productId}`);
+      }
+
+      if (product.quantity < orderedQuantity) {
+        console.log(`Insufficient stock for product: ${productId}`);
+        throw new Error(`Insufficient stock for product: ${item.productDetails.productName}`);
+      }
+
+      // Decrease the quantity
+      await Product.updateOne(
+        { _id: productId },
+        { $inc: { quantity: -orderedQuantity } }
+      );
+      console.log(`Updated stock for product ${productId}: decreased by ${orderedQuantity}`);
+    }
+
     // Clear the cart
     const cartUpdateResult = await Cart.updateOne(
       { userId: userId },
