@@ -97,6 +97,7 @@ router.get('/user/cart-data', userAuth, checkoutController.getCartDataForUser);
 // Checkout Management
 router.get('/checkout', userAuth, checkoutController.getCheckoutPage);
 router.post('/place-order', userAuth, checkoutController.placeOrder);
+router.post('/verify-payment', userAuth, checkoutController.verifyPayment);
 
 // Order Management
 router.get('/orderPlaced', userAuth, orderController.getOrderPlaced);

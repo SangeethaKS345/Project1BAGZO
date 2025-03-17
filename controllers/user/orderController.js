@@ -5,36 +5,31 @@ const addressController = require('./addressController');
 const PDFDocument = require('pdfkit');
 
 const getOrderPlaced = async (req, res, next) => {
-    try {
-        console.log("Accessed /orderPlaced route");
-        if (!req.user) throw new Error("User not authenticated");
+  try {
+    console.log("Accessed /orderPlaced route with query:", req.query);
+    if (!req.user) throw new Error("User not authenticated");
 
-        const order = await Order.findOne({ userId: req.user._id })
-            .sort({ createdOn: -1 })
-            .populate('OrderItems.product')
-            .populate('address');
+    const { orderId, totalAmount, placedAt } = req.query;
 
-        if (!order) {
-            return res.render("orderPlaced", { message: "No recent order found." });
-        }
-
-        const orderDetails = {
-            orderId: order.orderId,
-            totalAmount: order.finalAmount,
-            placedAt: order.createdOn.toLocaleString(),
-            items: order.OrderItems.map(item => ({
-                productName: item.product.productName,
-                quantity: item.quantity,
-                price: item.price
-            })),
-            shippingAddress: order.address
-        };
-
-        res.render("orderPlaced", { order: orderDetails });
-    } catch (err) {
-        console.error("Error in getOrderPlaced:", err);
-        next(err);
+    // Check if order details are provided via query parameters
+    if (!orderId || !totalAmount || !placedAt) {
+      console.log("Order details missing in query parameters, redirecting to fallback");
+      return res.status(400).render("orderPlaced", { order: null, message: "Order details not found." });
     }
+
+    // Format the order details from query parameters
+    const orderDetails = {
+      orderId,
+      totalAmount: parseFloat(totalAmount).toFixed(2),
+      placedAt: new Date(placedAt).toLocaleString()
+    };
+
+    console.log("Rendering orderPlaced with details:", orderDetails);
+    res.render("orderPlaced", { order: orderDetails });
+  } catch (err) {
+    console.error("Error in getOrderPlaced:", err);
+    next(err);
+  }
 };
 
 const cancelOrder = async (req, res) => {

@@ -81,10 +81,10 @@
                 </label>
               </div>
               <div class="payment-option">
-                <input type="radio" id="razorpay" name="paymentMethod" value="razorpay" class="payment-radio" disabled>
-                <label for="razorpay" class="payment-label payment-disabled">
+                <input type="radio" id="razorpay" name="paymentMethod" value="razorpay" class="payment-radio">
+                <label for="razorpay" class="payment-label">
                   <i class="fas fa-credit-card payment-icon"></i>
-                  <span class="payment-text">Razorpay (Currently Unavailable)</span>
+                  <span class="payment-text">Razorpay</span>
                 </label>
               </div>
               <div class="payment-option">
@@ -163,6 +163,7 @@
 
   <script src="https://unpkg.com/izitoast/dist/js/iziToast.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       initAddressSelection();
@@ -293,63 +294,110 @@
         });
       });
     }
-    
+
     function submitOrder(addressId, paymentMethod, callback) {
-      const formData = { 
-        addressId,
-        paymentMethod 
-      };
+  const formData = { addressId, paymentMethod };
 
-      console.log("Submitting Order:", formData);
-
-      fetch('/place-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log("Server Response:", data);
-        if (data.success) {
-          showSuccess('Order Placed Successfully!', 'Your order has been placed successfully.')
-            .then(() => {
-              window.location.href = data.redirect || '/orderPlaced';
+  fetch('/place-order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(formData)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      if (paymentMethod === 'razorpay' && data.razorpayOrderId) {
+        const options = {
+          key: data.key,
+          amount: data.amount,
+          currency: 'INR',
+          order_id: data.razorpayOrderId,
+          handler: function (response) {
+            fetch('/verify-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+                orderId: data.orderId
+              })
+            })
+            .then(verifyResponse => verifyResponse.json())
+            .then(verifyData => {
+              if (verifyData.success) {
+                showSuccess('Payment Successful!', 'Your order has been placed.')
+                  .then(() => {
+                    const orderQuery = new URLSearchParams(verifyData.order).toString();
+                    window.location.href = `/orderPlaced?${orderQuery}`; // Ensure redirect happens here
+                  });
+              } else {
+                showError('Payment verification failed. Please contact support.');
+                if (callback) callback(); // Reset button state
+              }
+            })
+            .catch(error => {
+              showError(`Payment verification error: ${error.message}`);
+              if (callback) callback(); // Reset button state
             });
-        } else {
-          showError(data.error || 'Failed to place order');
-        }
-        if (callback) callback();
-      })
-      .catch(error => {
-        console.error("Order Submission Error:", error);
-        showError(`An error occurred while placing the order: ${error.message}`);
-        if (callback) callback();
-      });
+          },
+          prefill: {
+            name: '<%= user.name %>',
+            email: '<%= user.email %>',
+            contact: '<%= addresses[0]?.phone || "" %>'
+          },
+          theme: {
+            color: '#DB4437'
+          },
+          modal: {
+            ondismiss: function() {
+              if (callback) callback(); // Reset button state if user closes Razorpay modal
+            }
+          }
+        };
+        const rzp = new Razorpay(options);
+        rzp.on('payment.failed', function (response) {
+          showError(`Payment failed: ${response.error.description}`);
+          if (callback) callback(); // Reset button state
+        });
+        rzp.open();
+      } else {
+        // For COD or other methods
+        showSuccess('Order Placed Successfully!', 'Your order has been placed.')
+          .then(() => {
+            const orderQuery = new URLSearchParams(data.order).toString();
+            window.location.href = `/orderPlaced?${orderQuery}`; // Redirect for non-Razorpay
+          });
+        if (callback) callback(); // Reset button state
+      }
+    } else {
+      showError(data.error || 'Failed to place order');
+      if (callback) callback(); // Reset button state
     }
-    
-    function showSuccess(title, text) {
-      return Swal.fire({
-        icon: 'success',
-        title: title,
-        text: text,
-        confirmButtonText: 'OK',
-        confirmButtonColor: '#DB4437'
-      });
-    }
-    
-    function showError(message) {
-      return Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: message,
-        confirmButtonColor: '#DB4437'
-      });
-    }
+  })
+  .catch(error => {
+    showError(`An error occurred: ${error.message}`);
+    if (callback) callback(); // Reset button state
+  });
+}
+
+function showSuccess(title, text) {
+  return Swal.fire({
+    icon: 'success',
+    title: title,
+    text: text,
+    timer: 2000,
+    showConfirmButton: false
+  });
+}
+
+function showError(message) {
+  Swal.fire({
+    icon: 'error',
+    title: 'Error',
+    text: message,
+  });
+}
   </script>
   <%- include('../../views/partials/user/footer') %>
 </body>

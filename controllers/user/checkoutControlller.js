@@ -4,6 +4,7 @@ const Product = require('../../models/productSchema');
 const Category = require('../../models/categorySchema');
 const Brand = require('../../models/brandSchema');
 const Order = require('../../models/orderSchema');
+const razorpay = require('../../config/razorpay');
 
 const getCartPage = async (req, res) => {
   try {
@@ -98,22 +99,18 @@ const placeOrder = async (req, res) => {
 
     // Validate inputs
     if (!addressId || !paymentMethod) {
-      console.log("Missing addressId or paymentMethod");
       return res.status(400).json({ success: false, error: 'Address and payment method are required' });
     }
 
     // Fetch cart items
     const cartItems = await getCartDataForUser(userId);
-    console.log("Cart Items:", cartItems);
     if (!cartItems || cartItems.length === 0) {
-      console.log("Cart is empty");
       return res.status(400).json({ success: false, error: 'Cart is empty' });
     }
 
     // Verify all items have valid productDetails
     const invalidItems = cartItems.filter(item => !item.productDetails || !item.productDetails._id);
     if (invalidItems.length > 0) {
-      console.log("Invalid cart items found:", invalidItems);
       return res.status(400).json({ 
         success: false, 
         error: 'Cart contains invalid or missing product data' 
@@ -123,7 +120,6 @@ const placeOrder = async (req, res) => {
     // Check quantity limits
     const exceedsLimit = cartItems.some(item => item.quantity > 5);
     if (exceedsLimit) {
-      console.log("Quantity limit exceeded");
       return res.status(400).json({ 
         success: false, 
         error: 'Quantity limit exceeded. Maximum 5 items per product allowed.' 
@@ -133,20 +129,16 @@ const placeOrder = async (req, res) => {
     // Calculate total
     const finalAmount = cartItems.reduce((sum, item) => {
       const price = item.productDetails?.salesPrice || 0;
-      console.log(`Item: ${item.productDetails?.productName}, Price: ${price}, Qty: ${item.quantity}`);
       return sum + (price * item.quantity);
     }, 0);
-    console.log("Calculated Final Amount:", finalAmount);
 
     // Validate selected address
     const selectedAddress = await Address.findById(addressId).lean();
     if (!selectedAddress || selectedAddress.userId.toString() !== userId.toString()) {
-      console.log("Invalid address selected:", addressId);
       return res.status(400).json({ success: false, error: 'Invalid address selected' });
     }
-    console.log("Selected Address:", selectedAddress);
 
-    // Create order
+    // Create order in MongoDB
     const order = new Order({
       userId: userId, 
       OrderItems: cartItems.map(item => ({
@@ -157,46 +149,39 @@ const placeOrder = async (req, res) => {
       totalPrice: finalAmount,
       finalAmount: finalAmount,
       address: addressId,
-      status: 'Pending',
+      status: paymentMethod === 'razorpay' ? 'Pending' : 'Processing', // Pending for Razorpay until payment is verified
       paymentMethod: paymentMethod
     });
 
-    console.log("Order to Save:", order.toObject());
     await order.save();
-    console.log("Order Saved Successfully");
 
-    // Update product quantities in the database
-    for (const item of cartItems) {
-      const productId = item.productDetails._id;
-      const orderedQuantity = item.quantity;
-
-      const product = await Product.findById(productId);
-      if (!product) {
-        console.log(`Product not found: ${productId}`);
-        throw new Error(`Product not found: ${productId}`);
-      }
-
-      if (product.quantity < orderedQuantity) {
-        console.log(`Insufficient stock for product: ${productId}`);
-        throw new Error(`Insufficient stock for product: ${item.productDetails.productName}`);
-      }
-
-      // Decrease the quantity
-      await Product.updateOne(
-        { _id: productId },
-        { $inc: { quantity: -orderedQuantity } }
-      );
-      console.log(`Updated stock for product ${productId}: decreased by ${orderedQuantity}`);
+    if (paymentMethod === 'razorpay') {
+      const razorpayOrder = await razorpay.orders.create({
+        amount: finalAmount * 100, // Convert to paise
+        currency: 'INR',
+        receipt: order.orderId
+      });
+    
+      return res.json({
+        success: true,
+        key: process.env.RAZORPAY_KEY_ID,
+        amount: razorpayOrder.amount,
+        razorpayOrderId: razorpayOrder.id,
+        orderId: order._id // Send MongoDB order ID for verification
+      });
     }
 
-    // Clear the cart
-    const cartUpdateResult = await Cart.updateOne(
-      { userId: userId },
-      { $set: { products: [] } }
-    );
-    console.log("Cart Update Result:", cartUpdateResult);
-
-    res.json({ success: true, redirect: '/orderPlaced' });
+    // For COD, clear cart immediately
+    await Cart.updateOne({ userId: userId }, { $set: { products: [] } });
+    res.json({ 
+      success: true, 
+      redirect: '/orderPlaced', 
+      order: { 
+        orderId: order.orderId, 
+        totalAmount: order.finalAmount, 
+        placedAt: order.createdOn 
+      } 
+    });
   } catch (error) {
     console.error('Error placing order:', error.stack);
     res.status(500).json({ 
@@ -206,10 +191,52 @@ const placeOrder = async (req, res) => {
   }
 };
 
+// Add new endpoint to verify payment
+const verifyPayment = async (req, res) => {
+  try {
+    const { razorpay_payment_id, razorpay_order_id, razorpay_signature, orderId } = req.body;
+    const crypto = require('crypto');
+
+    // Verify Razorpay signature
+    const generatedSignature = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(razorpay_order_id + '|' + razorpay_payment_id)
+      .digest('hex');
+
+    if (generatedSignature !== razorpay_signature) {
+      return res.status(400).json({ success: false, error: 'Invalid payment signature' });
+    }
+
+    // Update order status after successful payment
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ success: false, error: 'Order not found' });
+    }
+
+    order.status = 'Processing';
+    await order.save();
+
+    // Clear the cart after successful payment
+    await Cart.updateOne({ userId: order.userId }, { $set: { products: [] } });
+
+    res.json({ 
+      success: true, 
+      redirect: '/orderPlaced', 
+      order: { 
+        orderId: order.orderId, 
+        totalAmount: order.finalAmount, 
+        placedAt: order.createdOn 
+      } 
+    });
+    } catch (error) {
+    console.error('Error verifying payment:', error.stack);
+    res.status(500).json({ success: false, error: 'Payment verification failed' });
+  }
+};
+
 module.exports = {
   getCartPage,
   getCheckoutPage,
   getCartDataForUser,
-  placeOrder
+  placeOrder,
+  verifyPayment,
 };
-
