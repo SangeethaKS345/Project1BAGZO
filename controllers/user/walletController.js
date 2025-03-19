@@ -11,18 +11,35 @@ const crypto = require('crypto');
 
 const loadWalletPage = async (req, res, next) => {
     try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = 5; // Number of transactions per page
+        const skip = (page - 1) * limit;
+
         let wallet = await Wallet.findOne({ user: req.user._id });
         if (!wallet) {
             wallet = new Wallet({ user: req.user._id });
             await wallet.save();
         }
 
-        const transactions = wallet.transactions.sort((a, b) => b.date - a.date);
+        // Get total number of transactions
+        const totalTransactions = wallet.transactions.length;
+        
+        // Sort transactions and apply pagination
+        const transactions = wallet.transactions
+            .sort((a, b) => b.date - a.date)
+            .slice(skip, skip + limit);
+
+        // Calculate total pages
+        const totalPages = Math.ceil(totalTransactions / limit);
 
         res.render('wallet', {
             user: req.user,
             wallet,
-            transactions
+            transactions,
+            currentPage: page,
+            totalPages,
+            hasPrev: page > 1,
+            hasNext: page < totalPages
         });
     } catch (error) {
         next(error);
