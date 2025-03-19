@@ -110,6 +110,8 @@ router.get('/orderFailure', userAuth, checkoutController.getOrderFailurePage);
 
 // Wallet Management
 router.get('/user/wallet', userAuth, walletController.loadWalletPage);
+router.post('/add-wallet-money', userAuth, walletController.addMoneyToWallet);
+router.post('/verify-wallet-payment', userAuth, walletController.verifyPayment);
 
 // Wishlist Management
 router.get('/wishlist', userAuth, wishlistController.loadWishlistPage);
