@@ -1,0 +1,196 @@
+.order-failure-container {
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    text-align: center;
+}
+
+.failure-icon {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+}
+
+.icon-circle {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 4px solid #FF5252;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.icon-line {
+    position: absolute;
+    background-color: #FF5252;
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+}
+
+.line-left {
+    transform: rotate(45deg);
+}
+
+.line-right {
+    transform: rotate(-45deg);
+}
+
+.failure-content {
+    margin-bottom: 30px;
+}
+
+.failure-content h2 {
+    font-size: 28px;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.brand-message {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.brand-name {
+    font-weight: bold;
+    color: #FF5252;
+}
+
+.failure-details {
+    max-width: 500px;
+    margin: 0 auto 30px;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    text-align: left;
+}
+
+.failure-details h3 {
+    font-size: 20px;
+    color: #333;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-weight: bold;
+    color: #666;
+}
+
+.detail-value {
+    color: #333;
+}
+
+.detail-value.price {
+    font-weight: bold;
+    color: #333;
+}
+
+.detail-value.status.failed {
+    color: #FF5252;
+    font-weight: bold;
+}
+
+.failure-message {
+    display: flex;
+    align-items: center;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #fff8f8;
+    border: 1px solid #ffecec;
+}
+
+.failure-message i {
+    font-size: 24px;
+    color: #FF5252;
+    margin-right: 15px;
+}
+
+.failure-message p {
+    color: #666;
+    text-align: left;
+    margin: 0;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.order-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 25px;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.retry-btn {
+    background-color: #FF5252;
+    color: white;
+}
+
+.retry-btn:hover {
+    background-color: #ff3636;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(255, 82, 82, 0.3);
+}
+
+.orders-btn {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.orders-btn:hover {
+    background-color: #e0e0e0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.order-btn i {
+    margin-right: 8px;
+}
+
+@media (max-width: 600px) {
+    .order-failure-container {
+        padding: 20px;
+        margin: 30px 15px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .order-btn {
+        width: 100%;
+    }
+}

@@ -105,6 +105,8 @@ router.get('/my-orders', userAuth, orderController.loadMyOrders);
 router.post('/cancel-order/:orderId', userAuth, orderController.cancelOrder);
 router.post('/return-order/:orderId', userAuth, orderController.returnOrder);
 router.get('/download-invoice/:orderId', userAuth, orderController.downloadInvoice);
+router.get('/orderFailure', userAuth, checkoutController.getOrderFailurePage);
+
 
 // Wallet Management
 router.get('/user/wallet', userAuth, walletController.loadWalletPage);

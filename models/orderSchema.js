@@ -59,6 +59,14 @@ const orderSchema = new Schema({
     enum: ['cod', 'razorpay', 'wallet'],
     default: 'cod'
   },
+  paymentAttempts: {
+    type: Number,
+    default: 0,
+  },
+  razorpayOrderId: {
+    type: String,
+    default: null,
+  },
   returnReason: {
     type: String,
     default: null

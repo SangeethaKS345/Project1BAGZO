@@ -329,16 +329,18 @@
                 showSuccess('Payment Successful!', 'Your order has been placed.')
                   .then(() => {
                     const orderQuery = new URLSearchParams(verifyData.order).toString();
-                    window.location.href = `/orderPlaced?${orderQuery}`; // Ensure redirect happens here
+                    window.location.href = `/orderPlaced?${orderQuery}`;
                   });
+              } else if (verifyData.redirect) {
+                window.location.href = verifyData.redirect; // Redirect to failure page
               } else {
                 showError('Payment verification failed. Please contact support.');
-                if (callback) callback(); // Reset button state
+                if (callback) callback();
               }
             })
             .catch(error => {
               showError(`Payment verification error: ${error.message}`);
-              if (callback) callback(); // Reset button state
+              if (callback) callback();
             });
           },
           prefill: {
@@ -351,33 +353,35 @@
           },
           modal: {
             ondismiss: function() {
-              if (callback) callback(); // Reset button state if user closes Razorpay modal
+              if (callback) callback();
             }
           }
         };
         const rzp = new Razorpay(options);
         rzp.on('payment.failed', function (response) {
-          showError(`Payment failed: ${response.error.description}`);
-          if (callback) callback(); // Reset button state
+          window.location.href = `/orderFailure?message=${encodeURIComponent(response.error.description)}&orderId=${data.orderId}&totalAmount=${data.amount / 100}`;
+          if (callback) callback();
         });
         rzp.open();
       } else {
-        // For COD or other methods
         showSuccess('Order Placed Successfully!', 'Your order has been placed.')
           .then(() => {
             const orderQuery = new URLSearchParams(data.order).toString();
-            window.location.href = `/orderPlaced?${orderQuery}`; // Redirect for non-Razorpay
+            window.location.href = `/orderPlaced?${orderQuery}`;
           });
-        if (callback) callback(); // Reset button state
+        if (callback) callback();
       }
+    } else if (data.redirect) {
+      window.location.href = data.redirect; // Redirect to failure page
+      if (callback) callback();
     } else {
       showError(data.error || 'Failed to place order');
-      if (callback) callback(); // Reset button state
+      if (callback) callback();
     }
   })
   .catch(error => {
     showError(`An error occurred: ${error.message}`);
-    if (callback) callback(); // Reset button state
+    if (callback) callback();
   });
 }
 

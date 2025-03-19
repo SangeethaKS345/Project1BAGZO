@@ -1,0 +1,92 @@
+<%- include('../../views/partials/user/header') %>
+<link rel="stylesheet" href="/css/orderFailure.css" type="text/css">
+<div class="order-failure-container">
+    <div class="failure-icon">
+        <div class="icon-circle">
+            <span class="icon-line line-left"></span>
+            <span class="icon-line line-right"></span>
+        </div>
+    </div>
+    
+    <div class="failure-content">
+        <h2>Payment Failed</h2>
+        <p class="brand-message">We couldn't process your payment with <span class="brand-name">BAGZO</span></p>
+        
+        <div class="failure-details">
+            <h3>Transaction Details</h3>
+            <% if (order) { %>
+              <div class="detail-row">
+                <span class="detail-label">Order ID:</span>
+                <span class="detail-value"><%= order.orderId %></span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Amount:</span>
+                <span class="detail-value price">₹<%= order.totalAmount %></span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Date:</span>
+                <span class="detail-value"><%= new Date().toLocaleString() %></span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Status:</span>
+                <span class="detail-value status failed">Failed</span>
+              </div>
+            <% } else { %>
+              <p><%= message || "No transaction details available." %></p>
+            <% } %>
+        </div>
+        
+        <div class="failure-message">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>Your payment couldn't be processed. This could be due to insufficient funds, network issues, or card restrictions.</p>
+        </div>
+    </div>
+    
+    <div class="action-buttons">
+        <a href="/checkout/retry-payment/<%= order ? order.orderId : '' %>" class="order-btn retry-btn">
+            <i class="fas fa-redo"></i>
+            Retry Payment
+        </a>
+        <a href="/my-orders" class="order-btn orders-btn">
+            <i class="fas fa-box"></i>
+            View Orders
+        </a>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    // Animation for the X icon
+    const iconCircle = document.querySelector('.icon-circle');
+    const iconLines = document.querySelectorAll('.icon-line');
+    
+    // Add animation classes
+    setTimeout(() => {
+        iconCircle.classList.add('animate-circle');
+        iconLines.forEach(line => line.classList.add('animate-line'));
+    }, 300);
+    
+    // Add these animation classes to the CSS file
+    const style = document.createElement('style');
+    style.textContent = `
+        .animate-circle {
+            animation: scaleIn 0.3s ease-out forwards;
+        }
+        
+        .animate-line {
+            animation: drawLine 0.3s ease-out 0.3s forwards;
+        }
+        
+        @keyframes scaleIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes drawLine {
+            0% { width: 0; }
+            100% { width: 40px; }
+        }
+    `;
+    document.head.appendChild(style);
+});
+</script>
+<%- include('../../views/partials/user/footer') %>
