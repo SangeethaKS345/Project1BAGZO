@@ -5,6 +5,8 @@ const Category = require('../../models/categorySchema');
 const Brand = require('../../models/brandSchema');
 const Order = require('../../models/orderSchema');
 const razorpay = require('../../config/razorpay');
+const  Wallet = require('../../models/walletSchema');
+const { addWalletTransaction } = require('../../controllers/user/walletController');
 
 const getCartPage = async (req, res) => {
   try {
@@ -25,7 +27,7 @@ const getCheckoutPage = async (req, res) => {
 
     const cartItems = await getCartDataForUser(userId);
     if (!cartItems || cartItems.length === 0) {
-      req.session.error = "Your cart is . Add items before checking out.";
+      req.session.error = "Your cart is empty. Add items before checking out.";
       return res.redirect("/cart");
     }
 
@@ -36,12 +38,17 @@ const getCheckoutPage = async (req, res) => {
     }, 0);
     const finalAmount = cartSubtotal;
 
+    // Fetch wallet balance
+    const wallet = await Wallet.findOne({ user: userId });
+    const walletBalance = wallet ? wallet.balance : 0;
+
     res.render('checkout', { 
       user: req.user, 
       addresses, 
       cartItems, 
       cartSubtotal, 
       finalAmount,
+      walletBalance, // Add this line
       error: req.session.error || null 
     });
     req.session.error = null;
@@ -168,6 +175,31 @@ const placeOrder = async (req, res) => {
         amount: razorpayOrder.amount,
         razorpayOrderId: razorpayOrder.id,
         orderId: order._id // Send MongoDB order ID for verification
+      });
+    }
+
+    // Handle wallet payment
+    if (paymentMethod === 'wallet') {
+      try {
+        await addWalletTransaction(userId, finalAmount, 'debit', `Payment for order #${order.orderId}`);
+      } catch (error) {
+        return res.status(400).json({ 
+          success: false, 
+          error: error.message 
+        });
+      }
+
+      // Clear cart after successful wallet payment
+      await Cart.updateOne({ userId: userId }, { $set: { products: [] } });
+
+      return res.json({ 
+        success: true, 
+        redirect: '/orderPlaced', 
+        order: { 
+          orderId: order.orderId, 
+          totalAmount: order.finalAmount, 
+          placedAt: order.createdOn 
+        } 
       });
     }
 

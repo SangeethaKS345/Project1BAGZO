@@ -27,8 +27,34 @@ const loadWalletPage = async (req, res, next) => {
     }
 };
 
+const addWalletTransaction = async (userId, amount, type, description) => {
+    try {
+      let wallet = await Wallet.findOne({ user: userId });
+      if (!wallet) {
+        wallet = new Wallet({ user: userId });
+      }
+  
+      if (type === 'debit' && wallet.balance < amount) {
+        throw new Error('Insufficient wallet balance');
+      }
+  
+      wallet.balance = type === 'credit' ? wallet.balance + amount : wallet.balance - amount;
+      wallet.transactions.push({
+        type,
+        amount,
+        description,
+        date: new Date()
+      });
+  
+      await wallet.save();
+      return wallet;
+    } catch (error) {
+      throw new Error(`Wallet transaction failed: ${error.message}`);
+    }
+  };
+  
+  module.exports = {
+    loadWalletPage,
+    addWalletTransaction 
+  };
 
-
-module.exports = {
-    loadWalletPage
-} 
