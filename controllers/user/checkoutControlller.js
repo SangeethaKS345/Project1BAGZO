@@ -265,15 +265,8 @@ const verifyPayment = async (req, res) => {
       success: false, 
       redirect: `/orderFailure?message=${encodeURIComponent('Payment verification failed')}&orderId=${orderId || ''}&totalAmount=${order ? order.finalAmount : 0}`
     });
-}
-if (generatedSignature !== razorpay_signature) {
-  return res.status(400).json({ 
-    success: false, 
-    redirect: `/orderFailure?message=${encodeURIComponent('Invalid payment signature')}&orderId=${orderId || ''}&totalAmount=${order ? order.finalAmount : 0}`
-  });
-}
+  }
 };
-
 const getOrderFailurePage = async (req, res) => {
   try {
     const { message, orderId, totalAmount } = req.query;
@@ -393,5 +386,6 @@ module.exports = {
   placeOrder,
   verifyPayment,
   getOrderFailurePage,
-  retryPayment
+  retryPayment,
+  verifyRetryPayment
 };
