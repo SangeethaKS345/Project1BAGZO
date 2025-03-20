@@ -114,6 +114,50 @@ const deleteCategory = async (req, res, next) => {
     }
 };
 
+const addCategoryOffer = async (req, res, next) => {
+    try {
+        const { categoryId, percentage, endDate } = req.body;
+        
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            return res.status(404).json({ success: false, message: "Category not found" });
+        }
+
+        if (percentage < 0 || percentage > 100) {
+            return res.status(400).json({ success: false, message: "Offer percentage must be between 0 and 100" });
+        }
+
+        await Category.updateOne(
+            { _id: categoryId },
+            { $set: { categoryOffer: percentage, offerEndDate: new Date(endDate) } }
+        );
+
+        res.json({ success: true, message: "Offer added successfully" });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const removeCategoryOffer = async (req, res, next) => {
+    try {
+        const categoryId = req.params.categoryId;
+        const category = await Category.findById(categoryId);
+
+        if (!category) {
+            return res.status(404).json({ success: false, message: "Category not found" });
+        }
+
+        await Category.updateOne(
+            { _id: categoryId },
+            { $set: { categoryOffer: 0, offerEndDate: null } }
+        );
+
+        res.json({ success: true, message: "Offer removed successfully" });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     categoryInfo,
     addCategory,
@@ -121,5 +165,8 @@ module.exports = {
     editCategory,
     getListCategory,
     getUnlistCategory,
-    deleteCategory
+    deleteCategory,
+    addCategoryOffer,
+    removeCategoryOffer
 };
+

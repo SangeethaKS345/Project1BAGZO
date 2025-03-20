@@ -1,124 +1,184 @@
 <%- include("../../views/partials/admin/header") %>
 
 <head>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css" />
-  <link rel="stylesheet" href="/css/category.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css" />
+    <link rel="stylesheet" href="/css/category.css">
+    <style>
+        .modal-backdrop {
+            z-index: 1040 !important;
+        }
+        .modal {
+            z-index: 1050 !important;
+        }
+    </style>
 </head>
 
 <body>
   <section class="content-main">
     <div class="content-header">
-      <div>
-        <h2 class="content-title card-title">Category</h2>
-      </div>
+        <div>
+            <h2 class="content-title card-title">Category</h2>
+        </div>
     </div>
 
     <header class="search-container text-center mb-4">
-      <form action="/admin/category/" method="get" class="d-inline">
-        <div class="input-group input-group-sm rounded-pill" style="width: 500px; margin: 0 auto;">
-          <input type="text" class="form-control rounded-pill" placeholder="Search categories" name="search" />
-          <button class="btn" type="submit">Search</button>
-        </div>
-      </form>
+        <form action="/admin/category/" method="get" class="d-inline" id="searchForm">
+            <div class="input-group input-group-sm rounded-pill" style="width: 500px; margin: 0 auto;">
+                <input type="text" class="form-control rounded-pill" placeholder="Search categories" name="search" value="<%= typeof search !== 'undefined' ? search : '' %>" />
+                <button class="btn" type="submit">Search</button>
+                <button class="btn btn-secondary" type="button" onclick="clearSearch()">Clear</button>
+            </div>
+        </form>
     </header>
 
-    <div class="card">
-      <div class="card-body">
-        <div class="row">
-          <!-- Add Category Form -->
-          <div class="col-md-3">
-            <div class="form-container">
-              <form method="post" action="/admin/addCategory" onsubmit="return handleFormSubmit(event)">
-                <div class="mb-4">
-                  <label for="product_name" class="form-label">Name</label>
-                  <input type="text" name="name" placeholder="Type here" class="form-control" id="product_name" novalidate/>
-                  <div id="name-error" class="error-message"></div>
-                </div>
-                <div class="mb-4">
-                  <label class="form-label">Description</label>
-                  <textarea placeholder="Type here" name="description" class="form-control" id="descriptionId" novalidate></textarea>
-                  <div id="description-error" class="error-message"></div>
-                </div>
-                <div class="d-grid">
-                  <button class="btn btn-primary" type="submit">Create category</button>
-                </div>
-              </form>
-            </div>
-          </div>
 
-          <!-- Category List Table -->
-          <div class="col-md-9">
-            <div class="table-responsive">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th></th>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th>Status</th>
-                    <th>List/Unlist</th>
-                    <th>Edit</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <% if (cat && cat.length > 0) { %>
-                  <% cat.forEach((category) => { %>
-                  <tr>
-                   
-                    <tr>
-                      <td></td>
-                      <td class="text-start"><%= category.name %></td>
-                      <td class="text-start"><%= category.description %></td>
-                      <td class="text-start">
-                        <span class="status-badge <%= category.isListed ? 'status-listed' : 'status-unlisted' %>" id="status-<%= category._id %>">
-                          <%= category.isListed ? 'LISTED' : 'UNLISTED' %>
-                        </span>
-                      </td>
-                      <td class="text-start">
-                        <button id="toggle-btn-<%= category._id %>" 
-                                onclick="toggleCategoryStatus('<%= category._id %>', '<%= category.isListed %>')" 
-                                class="btn <%= category.isListed ? 'btn-danger' : 'btn-success' %> action-btn">
-                          <%= category.isListed ? 'Unlist' : 'List' %>
-                        </button>
-                      </td>
-                      <td class="text-start">
-                        <a href="/admin/editCategory?id=<%= category._id %>" class="btn btn-info">Edit</a>
-                      </td>
-                    </tr>
-                  <% }) %>
-                  <% } else { %>
-                  <tr>
-                    <td colspan="6" class="text-center">No categories found.</td>
-                  </tr>
-                  <% } %>
-                </tbody>
-              </table>
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-container">
+                            <form method="post" action="/admin/addCategory" onsubmit="return handleFormSubmit(event)">
+                                <div class="mb-4">
+                                    <label for="product_name" class="form-label">Name</label>
+                                    <input type="text" name="name" placeholder="Type here" class="form-control" id="product_name" novalidate/>
+                                    <div id="name-error" class="error-message"></div>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label">Description</label>
+                                    <textarea placeholder="Type here" name="description" class="form-control" id="descriptionId" novalidate></textarea>
+                                    <div id="description-error" class="error-message"></div>
+                                </div>
+                                <div class="d-grid">
+                                    <button class="btn btn-primary" type="submit">Create category</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="col-md-9">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>Name</th>
+                                        <th>Description</th>
+                                        <th>Offer Percentage</th>
+                                        <th>Offer</th>
+                                        <th>Status</th>
+                                        <th>List/Unlist</th>
+                                        <th>Edit</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if (cat && cat.length > 0) { %>
+                                    <% cat.forEach((category) => { %>
+                                    <tr>
+                                        <td></td>
+                                        <td class="text-start"><%= category.name %></td>
+                                        <td class="text-start"><%= category.description %></td>
+                                        <td class="text-start">
+                                            <%= category.categoryOffer ? category.categoryOffer + '%' : '0%' %>
+                                        </td>
+                                        <td class="text-start">
+                                            <% if(category.categoryOffer === 0) { %>
+                                            <button class="btn btn-info" style="width: 100px">
+                                                <a href="#" class="text-white" onclick="addOffer('<%= category._id %>')">Add Offer</a>
+                                            </button>
+                                            <% } else { %>
+                                            <button class="btn btn-info" style="width: 100px">
+                                                <a href="#" class="text-white" onclick="removeOffer('<%= category._id %>')">Remove</a>
+                                            </button>
+                                            <% } %>
+                                        </td>
+                                        <td class="text-start">
+                                            <span class="status-badge <%= category.isListed ? 'status-listed' : 'status-unlisted' %>" id="status-<%= category._id %>">
+                                                <%= category.isListed ? 'LISTED' : 'UNLISTED' %>
+                                            </span>
+                                        </td>
+                                        <td class="text-start">
+                                            <button id="toggle-btn-<%= category._id %>" 
+                                                    onclick="toggleCategoryStatus('<%= category._id %>', '<%= category.isListed %>')" 
+                                                    class="btn <%= category.isListed ? 'btn-danger' : 'btn-success' %> action-btn">
+                                                <%= category.isListed ? 'Unlist' : 'List' %>
+                                            </button>
+                                        </td>
+                                        <td class="text-start">
+                                            <a href="/admin/editCategory?id=<%= category._id %>" class="btn btn-info">Edit</a>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                                    <% } else { %>
+                                    <tr>
+                                        <td colspan="8" class="text-center">No categories found.</td>
+                                    </tr>
+                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Pagination -->
-    <div class="pagination-container">
-      <% if (currentPage > 1) { %>
-      <a href="?page=<%= currentPage - 1 %>">&laquo; Previous</a>
-      <% } %>
-      <% for (let i = 1; i <= totalPages; i++) { %>
-      <% if (i === currentPage) { %>
-      <span class="current-page"><%= i %></span>
-      <% } else { %>
-      <a href="?page=<%= i %>"><%= i %></a>
-      <% } %>
-      <% } %>
-      <% if (currentPage < totalPages) { %>
-      <a href="?page=<%= currentPage + 1 %>">Next &raquo;</a>
-      <% } %>
-    </div>
-  </section>
+        <div class="pagination-container">
+            <% if (currentPage > 1) { %>
+            <a href="?page=<%= currentPage - 1 %>">« Previous</a>
+            <% } %>
+            <% for (let i = 1; i <= totalPages; i++) { %>
+            <% if (i === currentPage) { %>
+            <span class="current-page"><%= i %></span>
+            <% } else { %>
+            <a href="?page=<%= i %>"><%= i %></a>
+            <% } %>
+            <% } %>
+            <% if (currentPage < totalPages) { %>
+            <a href="?page=<%= currentPage + 1 %>">Next »</a>
+            <% } %>
+        </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header" style="background-color: #007bff; color: white;">
+                        <h5 class="modal-title" id="addOfferModalLabel">Add Offer</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="addOfferForm">
+                            <input type="hidden" id="offerCategoryId" name="categoryId">
+                            <div class="mb-3">
+                                <label for="offerPercentage" class="form-label">Offer Percentage:</label>
+                                <input type="number" class="form-control" id="offerPercentage" name="percentage" min="0" max="100" novalidate>
+                                <div id="offerPercentageError" class="text-danger"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="offerEndDate" class="form-label">End Date:</label>
+                                <input type="date" class="form-control" id="offerEndDate" name="endDate" novalidate>
+                                <div id="offerEndDateError" class="text-danger"></div>
+                            </div>
+                            <button type="submit" class="btn btn-primary" id="saveOfferBtn">Save Offer</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
   <script>
+    function clearSearch() {
+            const searchInput = document.querySelector('input[name="search"]');
+            searchInput.value = '';
+            const form = document.getElementById('searchForm');
+            form.submit();
+        }
+
     async function handleFormSubmit(event) {
       event.preventDefault();
       if (!validateForm()) {
@@ -273,6 +333,95 @@
     }
   });
 }
-    
-  </script>
+
+function addOffer(categoryId) {
+            $('#addOfferModal').modal('show');
+            $('#offerCategoryId').val(categoryId);
+            $('#offerPercentageError').text('');  // Clear errors when opening modal
+            $('#offerEndDateError').text('');
+        }
+
+        async function removeOffer(categoryId) {
+            const result = await Swal.fire({
+                title: 'Are you sure?',
+                text: 'Do you want to remove this offer?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#FF416C',
+                cancelButtonColor: '#DB4437',
+                confirmButtonText: 'Yes, remove it!'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/admin/removeCategoryOffer/${categoryId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        Swal.fire('Success!', data.message, 'success');
+                        window.location.reload();
+                    } else {
+                        Swal.fire('Error!', data.message, 'error');
+                    }
+                } catch (error) {
+                    Swal.fire('Error!', 'Something went wrong', 'error');
+                }
+            }
+        }
+
+        $('#addOfferForm').on('submit', async function(e) {
+            e.preventDefault();
+            const categoryId = $('#offerCategoryId').val();
+            const percentage = $('#offerPercentage').val();
+            const endDate = $('#offerEndDate').val();
+
+            let isValid = true;
+            $('#offerPercentageError').text('');
+            $('#offerEndDateError').text('');
+
+            // Check if fields are empty
+            if (!percentage) {
+                $('#offerPercentageError').text('Offer percentage is required');
+                isValid = false;
+            } else if (percentage < 0 || percentage > 100) {
+                $('#offerPercentageError').text('Percentage must be between 0 and 100');
+                isValid = false;
+            }
+
+            if (!endDate) {
+                $('#offerEndDateError').text('End date is required');
+                isValid = false;
+            } else {
+                const today = new Date().toISOString().split('T')[0];
+                if (endDate < today) {
+                    $('#offerEndDateError').text('End date cannot be in the past');
+                    isValid = false;
+                }
+            }
+
+            if (isValid) {
+                try {
+                    const response = await fetch('/admin/addCategoryOffer', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ categoryId, percentage: parseInt(percentage), endDate })
+                    });
+                    const data = await response.json();
+
+                    if (data.success) {
+                        Swal.fire('Success!', data.message, 'success');
+                        $('#addOfferModal').modal('hide');
+                        window.location.reload();
+                    } else {
+                        Swal.fire('Error!', data.message, 'error');
+                    }
+                } catch (error) {
+                    Swal.fire('Error!', 'Something went wrong', 'error');
+                }
+            }
+        });
+    </script>
   <%- include("../../views/partials/admin/footer") %>

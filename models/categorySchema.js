@@ -18,6 +18,10 @@ const categorySchema = new mongoose.Schema({
     categoryOffer: {
         type: Number,
         default: 0
+    },
+    offerEndDate: {  
+        type: Date,
+        default: null
     }
 }, { timestamps: true });
 
