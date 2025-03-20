@@ -8,18 +8,23 @@ const brandController = require("../controllers/admin/brandController");
 const productController = require("../controllers/admin/productController");
 const ordersController = require("../controllers/admin/ordersController");
 const couponController = require("../controllers/admin/couponController");
+const dashboardController = require("../controllers/admin/dashboardController");
 const uploads = require("../helpers/multer");
 const { adminErrorHandler } = require("../middlewares/errorHandler");
 
 // Error handler
 router.use(adminErrorHandler);
 
-// Admin Login & Dashboard Routes
+// Admin Login & Logout Routes
 router.get("/login", adminController.loadLogin);
 router.post("/login", adminController.login);
-router.get("/dashboard", adminAuth, adminController.loadDashboard); 
-router.get("/", adminAuth, adminController.loadDashboard);
 router.get("/logout", adminController.logout);
+
+// Dashboard Routes
+router.get("/dashboard", adminAuth, dashboardController.loadDashboard); 
+router.get("/", adminAuth, dashboardController.loadDashboard); 
+router.get('/dashboard/chartData', dashboardController.getChartData);
+router.get('/downloadReport', dashboardController.downloadReport);
 
 // Customer Management
 router.get("/users", adminAuth, customerController.customerInfo);
@@ -67,5 +72,7 @@ router.post('/applyCoupon', adminAuth, couponController.applyCoupon);
 router.patch('/editCoupon/:couponId', adminAuth, couponController.editCoupon);
 router.delete('/deleteCoupon/:couponId', adminAuth, couponController.deleteCoupon);
 router.get('/getCoupon/:couponId', adminAuth, couponController.getCoupon);
+
+
 
 module.exports = router;
