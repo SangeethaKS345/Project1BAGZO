@@ -35,12 +35,18 @@
     }
 
     .chart-container {
-        margin: 0 auto;
-        width: 100%;
-        min-height: 380px;
-        padding: 20px;
-        position: relative;
-    }
+    margin: 0 auto;
+    width: 100%;
+    min-height: 380px;
+    padding: 20px;
+    position: relative;
+    animation: fadeIn 1s ease-in-out; /* Added animation */
+}
+
+@keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(20px); } /* Start slightly below and transparent */
+    100% { opacity: 1; transform: translateY(0); } /* End at normal position and fully visible */
+}
 
     canvas#salesChart, canvas#productChart {
         width: 100% !important;
@@ -220,7 +226,7 @@ canvas {
                                 <option value="last30days">Last 30 Days</option>
                                 <option value="last7days">Last 7 Days</option>
                                 <option value="last3days">Last 3 Days</option>
-                                <option value="daily">Daily</option>
+                                <option value="daily" selected>Daily</option>
                             </select>
                         </div>
                     </div>
@@ -376,61 +382,84 @@ canvas {
     document.addEventListener('DOMContentLoaded', function() {
         const timeRangeSelect = document.getElementById('timeRangeSelect');
         let salesChart, topProductsChart, topCategoriesChart, topBrandsChart;
-    
+
         // Initialize all charts
         function initializeCharts() {
             try {
                 const chartData = JSON.parse('<%- JSON.stringify(chartData) %>' || '{}');
-    
-                // Sales Chart (Line Chart)
+
+                // Sales Chart (Line Chart) - Full Definition
                 salesChart = new Chart(
                     document.getElementById('salesChart').getContext('2d'),
                     {
                         type: 'line',
                         data: {
-                            labels: chartData.chartLabels || [],
+                            labels: chartData.chartLabels || [], // X-axis labels (e.g., dates)
                             datasets: [
                                 {
-                                    label: 'Revenue (₹)',
-                                    data: chartData.revenueData || [],
-                                    borderColor: '#DB4437', // Red
-                                    backgroundColor: 'rgba(219, 68, 55, 0.1)',
-                                    borderWidth: 2,
-                                    fill: true,
-                                    yAxisID: 'y-revenue'
+                                    label: 'Revenue (₹)', // Label for revenue line
+                                    data: chartData.revenueData || [], // Revenue data points
+                                    borderColor: '#DB4437', // Red line color
+                                    backgroundColor: 'rgba(219, 68, 55, 0.1)', // Red fill with opacity
+                                    borderWidth: 2, // Line thickness
+                                    fill: true, // Fill area under the line
+                                    yAxisID: 'y-revenue' // Assign to left Y-axis
                                 },
                                 {
-                                    label: 'Orders',
-                                    data: chartData.ordersData || [],
-                                    borderColor: '#FF4B2B', // Bright Orange-Red
-                                    backgroundColor: 'rgba(255, 75, 43, 0.1)',
-                                    borderWidth: 2,
-                                    fill: true,
-                                    yAxisID: 'y-orders'
+                                    label: 'Orders', // Label for orders line
+                                    data: chartData.ordersData || [], // Orders data points
+                                    borderColor: '#FF4B2B', // Bright Orange-Red line color
+                                    backgroundColor: 'rgba(255, 75, 43, 0.1)', // Orange-Red fill with opacity
+                                    borderWidth: 2, // Line thickness
+                                    fill: true, // Fill area under the line
+                                    yAxisID: 'y-orders' // Assign to right Y-axis
                                 }
                             ]
                         },
                         options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
+                            responsive: true, // Adapts to container size
+                            maintainAspectRatio: false, // Allows custom height/width
                             scales: {
                                 'y-revenue': {
                                     type: 'linear',
-                                    position: 'left',
-                                    title: { display: true, text: 'Revenue (₹)' }
+                                    position: 'left', // Left Y-axis for revenue
+                                    title: {
+                                        display: true,
+                                        text: 'Revenue (₹)' // Y-axis label
+                                    },
+                                    grid: {
+                                        borderColor: '#DB4437' // Match grid to theme
+                                    }
                                 },
                                 'y-orders': {
                                     type: 'linear',
-                                    position: 'right',
-                                    title: { display: true, text: 'Number of Orders' }
+                                    position: 'right', // Right Y-axis for orders
+                                    title: {
+                                        display: true,
+                                        text: 'Number of Orders' // Y-axis label
+                                    },
+                                    grid: {
+                                        drawOnChartArea: false // Avoid overlapping grid lines
+                                    }
                                 }
                             },
-                            plugins: { legend: { position: 'top' } }
+                            plugins: {
+                                legend: {
+                                    position: 'top' // Legend at the top
+                                }
+                            },
+                            animation: {
+                                duration: 1500, // 1.5-second animation
+                                easing: 'easeOutQuart', // Smooth easing effect
+                                onComplete: function () {
+                                    console.log('Sales chart animation complete');
+                                }
+                            }
                         }
                     }
                 );
-    
-                // Top Products Chart (Doughnut)
+
+                // Top Products Chart (Doughnut) - Unchanged
                 topProductsChart = new Chart(
                     document.getElementById('topProductsChart').getContext('2d'),
                     {
@@ -439,7 +468,7 @@ canvas {
                             labels: chartData.topProductLabels || [],
                             datasets: [{
                                 data: chartData.topProductData || [],
-                                backgroundColor: ['#FF416C', '#FF4B2B', '#DB4437', '#FF6384', '#9966FF'] // Swapped pink and red
+                                backgroundColor: ['#FF416C', '#FF4B2B', '#DB4437', '#FF6384', '#9966FF']
                             }]
                         },
                         options: {
@@ -454,7 +483,7 @@ canvas {
                                     }
                                 }
                             },
-                            hoverOffset: 20, // Pop-out on hover
+                            hoverOffset: 20,
                             animation: {
                                 animateScale: true,
                                 animateRotate: true
@@ -465,8 +494,8 @@ canvas {
                         }
                     }
                 );
-    
-                // Top Categories Chart (Doughnut)
+
+                // Top Categories Chart (Doughnut) - Unchanged
                 topCategoriesChart = new Chart(
                     document.getElementById('topCategoriesChart').getContext('2d'),
                     {
@@ -475,7 +504,7 @@ canvas {
                             labels: chartData.topCategoryLabels || [],
                             datasets: [{
                                 data: chartData.topCategoryData || [],
-                                backgroundColor: ['#FF416C', '#FF4B2B', '#DB4437', '#FF6384', '#9966FF'] // Swapped pink and red
+                                backgroundColor: ['#FF416C', '#FF4B2B', '#DB4437', '#FF6384', '#9966FF']
                             }]
                         },
                         options: {
@@ -490,7 +519,7 @@ canvas {
                                     }
                                 }
                             },
-                            hoverOffset: 20, // Pop-out on hover
+                            hoverOffset: 20,
                             animation: {
                                 animateScale: true,
                                 animateRotate: true
@@ -501,8 +530,8 @@ canvas {
                         }
                     }
                 );
-    
-                // Top Brands Chart (Doughnut)
+
+                // Top Brands Chart (Doughnut) - Unchanged
                 topBrandsChart = new Chart(
                     document.getElementById('topBrandsChart').getContext('2d'),
                     {
@@ -511,7 +540,7 @@ canvas {
                             labels: chartData.topBrandLabels || [],
                             datasets: [{
                                 data: chartData.topBrandData || [],
-                                backgroundColor: ['#FF416C', '#FF4B2B', '#DB4437', '#FF6384', '#9966FF'] // Swapped pink and red
+                                backgroundColor: ['#FF416C', '#FF4B2B', '#DB4437', '#FF6384', '#9966FF']
                             }]
                         },
                         options: {
@@ -526,7 +555,7 @@ canvas {
                                     }
                                 }
                             },
-                            hoverOffset: 20, // Pop-out on hover
+                            hoverOffset: 20,
                             animation: {
                                 animateScale: true,
                                 animateRotate: true
@@ -537,13 +566,13 @@ canvas {
                         }
                     }
                 );
-    
+
                 console.log('Chart Data:', chartData);
             } catch (error) {
                 console.error('Error initializing charts:', error);
             }
         }
-    
+
         // Update sales chart based on time range
         function updateSalesChart(range) {
             fetch(`/admin/dashboard/chartData?range=${range}`)
@@ -552,16 +581,16 @@ canvas {
                     salesChart.data.labels = data.chartLabels || [];
                     salesChart.data.datasets[0].data = data.revenueData || [];
                     salesChart.data.datasets[1].data = data.ordersData || [];
-                    salesChart.update();
+                    salesChart.update(); // Re-renders the chart with animation
                 })
                 .catch(error => console.error('Error updating chart:', error));
         }
-    
+
         // Handle select change
         timeRangeSelect.addEventListener('change', function() {
             updateSalesChart(this.value);
         });
-    
+
         // Download Report Modal - Open
         document.getElementById('downloadReport').addEventListener('click', function() {
             const modal = document.getElementById('generateReportModal');
@@ -572,13 +601,13 @@ canvas {
             backdrop.className = 'modal-backdrop fade show';
             document.body.appendChild(backdrop);
         });
-    
+
         // Show/hide custom date fields in modal
         document.getElementById('reportType').addEventListener('change', function() {
             const customDateFields = document.getElementById('customDateFields');
             customDateFields.style.display = this.value === 'custom' ? 'block' : 'none';
         });
-    
+
         // Generate Report and Download
         document.getElementById('generateReportBtn').addEventListener('click', function() {
             const reportType = document.getElementById('reportType').value;
@@ -586,7 +615,7 @@ canvas {
             let downloadUrl = `/admin/downloadReport?reportType=${reportType}&reportFormat=${reportFormat}`;
             
             if (reportType === 'custom') {
-                const startDate = document.getElementById('startDate').value;
+                const startDate = document.getId('startDate').value;
                 const endDate = document.getElementById('endDate').value;
                 if (!startDate || !endDate) {
                     alert('Please select both start and end dates');
@@ -609,7 +638,7 @@ canvas {
                     a.click();
                     window.URL.revokeObjectURL(url);
                     document.body.removeChild(a);
-    
+
                     // Close modal manually
                     const modal = document.getElementById('generateReportModal');
                     modal.classList.remove('show');
@@ -622,10 +651,10 @@ canvas {
                     alert('Failed to download the report. Please try again.');
                 });
         });
-    
+
         // Initialize charts and load default data
         initializeCharts();
-        updateSalesChart('yearly');
+        updateSalesChart('daily'); // Load "Daily" data by default
     });
-    </script>
+</script>
 <%- include("../../views/partials/admin/footer") %>
