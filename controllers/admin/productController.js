@@ -70,18 +70,30 @@ const addProducts = async (req, res, next) => {
 // Function to get all products
 const getAllProducts = async (req, res, next) => {
   try {
-    const search = req.query.search || "";
-    const page = parseInt(req.query.page) || 1;
-    const limit = 4;
+      const search = req.query.search || "";
+      const page = parseInt(req.query.page) || 1;
+      const limit = 4;
 
-    const searchRegex = new RegExp(search, "i");
-    const brands = await Brand.find({ name: { $regex: searchRegex } }).select("_id");
-    const productData = await Product.find({
-      $or: [
-        { productName: { $regex: searchRegex }},
-        { brand: { $in: brands.map(b => b._id) } }
-      ],
-    })
+      let searchConditions = [];
+      const searchRegex = new RegExp(search, "i");
+      const searchNum = parseFloat(search);
+
+      // Text-based searches
+      searchConditions.push({ productName: { $regex: searchRegex } });
+      searchConditions.push({ 'brand': { $in: await Brand.find({ brandName: { $regex: searchRegex } }).distinct('_id') } });
+      searchConditions.push({ 'category': { $in: await Category.find({ name: { $regex: searchRegex } }).distinct('_id') } });
+
+      // Number-based searches
+      if (!isNaN(searchNum)) {
+          searchConditions.push({ regularPrice: searchNum });
+          searchConditions.push({ salesPrice: searchNum });
+          searchConditions.push({ productOffer: searchNum });
+          searchConditions.push({ quantity: searchNum });
+      }
+
+      const productData = await Product.find({
+          $or: searchConditions
+      })
       .limit(limit)
       .skip((page - 1) * limit)
       .sort({ createdOn: -1 })
@@ -89,31 +101,29 @@ const getAllProducts = async (req, res, next) => {
       .populate("brand")
       .exec();
 
-    const count = await Product.countDocuments({
-      $or: [
-        { productName: { $regex: searchRegex }},
-        { brand: { $in: brands.map(b => b._id) } }
-      ],
-    });
+      const count = await Product.countDocuments({
+          $or: searchConditions
+      });
 
-    const category = await Category.find({ isListed: true });
-    const brand = await Brand.find({ isBlocked: false });
+      const category = await Category.find({ isListed: true });
+      const brand = await Brand.find({ isBlocked: false });
 
-    const safeProductData = productData.map(product => ({
-      ...product.toObject(),
-      brand: product.brand || { brandName: 'Unknown' },
-      category: product.category || { name: 'Uncategorized' },
-    }));
+      const safeProductData = productData.map(product => ({
+          ...product.toObject(),
+          brand: product.brand || { brandName: 'Unknown' },
+          category: product.category || { name: 'Uncategorized' },
+      }));
 
-    res.render("products", {
-      data: safeProductData,
-      currentPage: page,
-      totalPages: Math.ceil(count / limit),
-      cat: category,
-      brand: brand,
-    });
+      res.render("products", {
+          data: safeProductData,
+          currentPage: page,
+          totalPages: Math.ceil(count / limit),
+          cat: category,
+          brand: brand,
+          search: search
+      });
   } catch (error) {
-    next(error); 
+      next(error);
   }
 };
 
