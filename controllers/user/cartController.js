@@ -264,64 +264,72 @@ async function addToCart(req, res) {
 
 // Change product quantity in cart
 const changeQuantity = async (req, res) => {
-    try {
-        const { productId, quantity } = req.body;
-        let userId;
+  try {
+      const { productId, quantity } = req.body;
+      console.log('Received changeQuantity request:', { productId, quantity });
 
-        if (typeof req.session.user === 'object' && req.session.user.id) {
-            userId = req.session.user.id;
-        } else {
-            userId = req.session.user;
-        }
+      let userId;
+      if (typeof req.session.user === 'object' && req.session.user.id) {
+          userId = req.session.user.id;
+      } else {
+          userId = req.session.user;
+      }
 
-        if (!mongoose.Types.ObjectId.isValid(productId) || !mongoose.Types.ObjectId.isValid(userId)) {
-            return res.status(400).json({ status: false, error: "Invalid ID format" });
-        }
+      if (!mongoose.Types.ObjectId.isValid(productId) || !mongoose.Types.ObjectId.isValid(userId)) {
+          return res.status(400).json({ status: false, error: "Invalid ID format" });
+      }
 
-        const userObjectId = new mongoose.Types.ObjectId(userId);
-        const productObjectId = new mongoose.Types.ObjectId(productId);
+      const userObjectId = new mongoose.Types.ObjectId(userId);
+      const productObjectId = new mongoose.Types.ObjectId(productId);
 
-        const product = await Product.findById(productObjectId);
-        if (!product) {
-            return res.status(404).json({ status: false, error: "Product not found" });
-        }
+      const product = await Product.findById(productObjectId);
+      if (!product) {
+          return res.status(404).json({ status: false, error: "Product not found" });
+      }
 
-        if (quantity > product.quantity) {
-            return res.status(400).json({ status: false, error: `Only ${product.quantity} items available in stock` });
-        }
+      if (quantity > product.quantity) {
+          return res.status(400).json({ status: false, error: `Only ${product.quantity} items available in stock` });
+      }
 
-        const cart = await Cart.findOne({ userId: userObjectId });
-        if (!cart) {
-            return res.status(404).json({ status: false, error: "Cart not found" });
-        }
+      const cart = await Cart.findOne({ userId: userObjectId });
+      if (!cart) {
+          return res.status(404).json({ status: false, error: "Cart not found" });
+      }
 
-        const productInCart = cart.products.find(item => item.productId.equals(productObjectId));
-        if (!productInCart) {
-            return res.status(404).json({ status: false, error: "Product not in cart" });
-        }
+      const productInCart = cart.products.find(item => item.productId.equals(productObjectId));
+      if (!productInCart) {
+          return res.status(404).json({ status: false, error: "Product not in cart" });
+      }
 
-        productInCart.quantity = parseInt(quantity);
-        productInCart.totalPrice = productInCart.quantity * product.salesPrice;
+      productInCart.quantity = parseInt(quantity);
+      productInCart.totalPrice = productInCart.quantity * product.salesPrice;
 
-        await cart.save();
+      await cart.save();
 
-        // Calculate grand total
-        let grandTotal = 0;
-        cart.products.forEach(item => {
-            grandTotal += item.totalPrice;
-        });
+      let grandTotal = 0;
+      cart.products.forEach(item => {
+          grandTotal += item.totalPrice;
+      });
 
-        res.json({
-            status: true,
-            quantityInput: productInCart.quantity,
-            totalAmount: productInCart.totalPrice,
-            grandTotal: grandTotal
-        });
-    } catch (error) {
-        console.error("Error in changeQuantity:", error);
-        res.status(500).json({ status: false, error: "Server error" });
-    }
+      console.log('Returning response:', {
+          status: true,
+          quantityInput: productInCart.quantity,
+          totalAmount: productInCart.totalPrice,
+          grandTotal: grandTotal
+      });
+
+      res.json({
+          status: true,
+          quantityInput: productInCart.quantity,
+          totalAmount: productInCart.totalPrice,
+          grandTotal: grandTotal
+      });
+  } catch (error) {
+      console.error("Error in changeQuantity:", error);
+      res.status(500).json({ status: false, error: "Server error" });
+  }
 };
+
 // Delete product from cart
 const deleteProduct = async (req, res) => {
     try {

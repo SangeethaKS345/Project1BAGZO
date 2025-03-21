@@ -123,70 +123,110 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    function changeQuantity(productId, currentQuantity, change, price, elementId, maxQuantity) {
-        const newQuantity = parseInt(currentQuantity) + change;
-        
-        if (newQuantity > 5) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Quantity Limit',
-                text: 'You cannot add more than 5 items of this product to your cart.',
-            });
-            return;
-        }
-    
-        if (newQuantity < 1 || newQuantity > maxQuantity) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Invalid Quantity',
-                text: `Quantity must be between 1 and ${maxQuantity}`,
-            });
-            return;
-        }
-    
-        $.ajax({
-            url: '/cart/changeQuantity',
-            method: 'POST',
-            data: {
-                productId: productId,
-                quantity: newQuantity
-            },
-            success: function(response) {
-                console.log('AJAX Success:', response);
-                if (response.status) {
-                    document.getElementById(`cartProductQuantity${elementId}`).value = response.quantityInput;
-                    document.getElementById(`subTotal${elementId}`).innerText = response.totalAmount;
-                    document.getElementById('total').innerText = response.grandTotal;
-                    document.getElementById('subtotal').innerText = response.grandTotal;
-    
-                    document.getElementById(`subTotal${elementId}`).classList.add('price-updated');
-                    setTimeout(() => {
-                        document.getElementById(`subTotal${elementId}`).classList.remove('price-updated');
-                    }, 800);
-                } else {
-                    document.getElementById(`cartProductQuantity${elementId}`).value = currentQuantity;
-                    document.getElementById(`subTotal${elementId}`).innerText = currentQuantity * price;
-                    
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: response.error || 'Failed to update quantity'
-                    });
+   function changeQuantity(productId, currentQuantity, change, price, elementId, maxQuantity) {
+    const newQuantity = parseInt(currentQuantity) + change;
+
+    // Quantity limit checks
+    if (newQuantity > 5) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Quantity Limit',
+            text: 'You cannot add more than 5 items of this product to your cart.',
+        });
+        return;
+    }
+
+    let maxLimitText = maxQuantity >= 5 ? '5' : maxQuantity;
+    if (newQuantity < 1 || newQuantity > maxQuantity) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Invalid Quantity',
+            text: `Quantity must be between 1 and ${maxLimitText}. Only ${maxQuantity} items available.`,
+        });
+        return;
+    }
+
+    // Get button elements for disabling
+    const minusBtn = document.querySelector(`.minus[onclick*="${productId}"]`);
+    const plusBtn = document.querySelector(`.plus[onclick*="${productId}"]`);
+    if (!minusBtn || !plusBtn) {
+        console.error('Buttons not found for productId:', productId);
+        return;
+    }
+
+    // Disable buttons to prevent multiple clicks
+    minusBtn.disabled = true;
+    plusBtn.disabled = true;
+
+    // Log the request for debugging
+    console.log('Sending AJAX request:', { productId, newQuantity });
+
+    $.ajax({
+        url: '/cart/changeQuantity',
+        method: 'POST',
+        data: {
+            productId: productId,
+            quantity: newQuantity
+        },
+        success: function(response) {
+            console.log('AJAX Success Response:', response);
+            if (response.status) {
+                // Update quantity input
+                const quantityInput = document.getElementById(`cartProductQuantity${elementId}`);
+                const subTotalSpan = document.getElementById(`subTotal${elementId}`);
+                const totalSpan = document.getElementById('total');
+                const subtotalSpan = document.getElementById('subtotal');
+
+                if (!quantityInput || !subTotalSpan || !totalSpan || !subtotalSpan) {
+                    console.error('One or more DOM elements not found:', { elementId });
+                    return;
                 }
-            },
-            error: function(xhr, status, error) {
-                console.log('AJAX Error:', status, error);
-                document.getElementById(`cartProductQuantity${elementId}`).value = currentQuantity;
-                document.getElementById(`subTotal${elementId}`).innerText = currentQuantity * price;
-                
+
+                // Update DOM elements with new values
+                quantityInput.value = response.quantityInput;
+                subTotalSpan.innerText = response.totalAmount;
+                totalSpan.innerText = response.grandTotal;
+                subtotalSpan.innerText = response.grandTotal;
+
+                // Visual feedback
+                subTotalSpan.classList.add('price-updated');
+                setTimeout(() => {
+                    subTotalSpan.classList.remove('price-updated');
+                }, 800);
+
+                // Recalculate totals
+                updateTotal();
+            } else {
+                console.warn('Update failed:', response.error);
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: 'Failed to connect to server'
+                    text: response.error || 'Failed to update quantity'
                 });
+                // Revert UI on failure
+                document.getElementById(`cartProductQuantity${elementId}`).value = currentQuantity;
+                document.getElementById(`subTotal${elementId}`).innerText = currentQuantity * price;
             }
-        });
-    }
+        },
+        error: function(xhr, status, error) {
+            console.error('AJAX Error:', status, error, xhr.responseText);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to connect to server'
+            });
+            // Revert UI on error
+            document.getElementById(`cartProductQuantity${elementId}`).value = currentQuantity;
+            document.getElementById(`subTotal${elementId}`).innerText = currentQuantity * price;
+        },
+        complete: function() {
+            // Re-enable buttons
+            minusBtn.disabled = false;
+            plusBtn.disabled = false;
+            console.log('AJAX request completed');
+        }
+    });
+}
     
     function confirmRemove(productId) {
         Swal.fire({
