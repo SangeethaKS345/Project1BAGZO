@@ -35,14 +35,22 @@ const categoryInfo = async (req, res, next) => {
 const addCategory = async (req, res, next) => {
     try {
         const { name, description } = req.body;
-        const normalizedName = name.trim();
-        const existingCategory = await Category.findOne({ name: normalizedName });
+        
+        // Standardize name: Capitalize first letter of each word, rest lowercase
+        const standardizedName = name.trim().split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ');
+        
+        // Check for existing category (case-insensitive)
+        const existingCategory = await Category.findOne({ 
+            name: { $regex: new RegExp(`^${standardizedName}$`, 'i') }
+        });
         
         if (existingCategory) {
             return res.status(400).json({ error: "Category already exists" });
         }
 
-        const newCategory = new Category({ name: normalizedName, description });
+        const newCategory = new Category({ name: standardizedName, description });
         await newCategory.save();
         
         res.json({ message: "Category added successfully" });
@@ -69,15 +77,31 @@ const editCategory = async (req, res, next) => {
             return res.status(400).json({ success: false, error: "Category name and description are required" });
         }
 
-        const existingCategory = await Category.findOne({ name: categoryName.trim(), _id: { $ne: id } });
+        // Standardize name: Capitalize first letter of each word, rest lowercase
+        const standardizedName = categoryName.trim().split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ');
+
+        // Check for existing category (case-insensitive), excluding current category
+        const existingCategory = await Category.findOne({ 
+            name: { $regex: new RegExp(`^${standardizedName}$`, 'i') },
+            _id: { $ne: id }
+        });
+        
         if (existingCategory) {
             return res.status(400).json({ success: false, error: "Category exists, please choose another name" });
         }
 
-        const updatedCategory = await Category.findByIdAndUpdate(id, { name: categoryName.trim(), description }, { new: true, runValidators: true });
+        const updatedCategory = await Category.findByIdAndUpdate(
+            id, 
+            { name: standardizedName, description }, 
+            { new: true, runValidators: true }
+        );
+        
         if (!updatedCategory) {
             return res.status(404).json({ success: false, error: "Category not found" });
         }
+        
         res.json({ success: true, message: "Category updated successfully", category: updatedCategory });
     } catch (error) {
         next(error);
@@ -117,24 +141,58 @@ const deleteCategory = async (req, res, next) => {
 const addCategoryOffer = async (req, res, next) => {
     try {
         const { categoryId, percentage, endDate } = req.body;
-        
-        const category = await Category.findById(categoryId);
-        if (!category) {
-            return res.status(404).json({ success: false, message: "Category not found" });
+
+        // Validate inputs
+        if (!categoryId || !percentage || !endDate) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Category ID, percentage, and end date are required" 
+            });
         }
 
-        if (percentage < 0 || percentage > 100) {
-            return res.status(400).json({ success: false, message: "Offer percentage must be between 0 and 100" });
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            return res.status(404).json({ 
+                success: false, 
+                message: "Category not found" 
+            });
+        }
+
+        const parsedPercentage = parseInt(percentage);
+        if (isNaN(parsedPercentage) || parsedPercentage < 0 || parsedPercentage > 100) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Offer percentage must be a number between 0 and 100" 
+            });
+        }
+
+        const today = new Date().setHours(0, 0, 0, 0);
+        const offerEndDate = new Date(endDate);
+        if (offerEndDate < today) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "End date cannot be in the past" 
+            });
         }
 
         await Category.updateOne(
             { _id: categoryId },
-            { $set: { categoryOffer: percentage, offerEndDate: new Date(endDate) } }
+            { $set: { 
+                categoryOffer: parsedPercentage, 
+                offerEndDate: offerEndDate 
+            } }
         );
 
-        res.json({ success: true, message: "Offer added successfully" });
+        res.json({ 
+            success: true, 
+            message: "Category offer added successfully" 
+        });
     } catch (error) {
-        next(error);
+        res.status(500).json({ 
+            success: false, 
+            message: "Something went wrong while adding the offer",
+            error: error.message 
+        });
     }
 };
 
