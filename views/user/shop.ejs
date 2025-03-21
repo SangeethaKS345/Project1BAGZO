@@ -2,7 +2,23 @@
   <%- include('../../views/partials/user/header') %>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link rel="stylesheet" href="/css/shop.css" type="text/css">
- 
+  <style>
+    .product-price .offer-percentage {
+        color: #e91e63;
+        font-size: 12px;
+        margin-left: 5px;
+    }
+    .product-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background-color: #e91e63;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 3px;
+        font-size: 12px;
+    }
+</style>
 </head>
 
 <body>
@@ -87,24 +103,37 @@
           </div>
           <% } else { %>
           <% products.forEach(product => { %>
-          <div class="product-card">
-            <a href="/productDetails?id=<%= product._id %>">
-              <img src="/uploads/re-image/<%= product.productImage[0] %>" alt="<%= product.productName %>">
-              <div class="product-info">
-                <h4 class="product-name"><%= product.productName %></h4>
-                <p class="product-price">
-                  <span class="original-price">₹<%= product.regularPrice %></span>
-                  <span class="sale-price">₹<%= product.salesPrice %></span>
-                </p>
-              </div>
-            </a>
-            <button class="add-to-cart-btn <%= product.quantity <= 0 ? 'out-of-stock' : '' %>" 
-                    onclick="addToCart('<%= product._id %>', <%= product.quantity %>, <%= product.isBlocked %>, <%= product.category.isListed %>, <%= product.brand.isBlocked %>)">
-              <%= product.quantity <= 0 ? 'Out of Stock' : 'Add to Cart' %>
-            </button>
-            <button class="wishlist-btn" onclick="toggleWishlist('<%= product._id %>', this)" data-product-id="<%= product._id %>">
-              <i class="fas fa-heart"></i>
-            </button>
+            <div class="product-card">
+              <a href="/productDetails?id=<%= product._id %>">
+                  <img src="/uploads/re-image/<%= product.productImage[0] %>" alt="<%= product.productName %>">
+                  <div class="product-info">
+                      <h4 class="product-name"><%= product.productName %></h4>
+                      <p class="product-price">
+                          <% if(product.offerPercentage > 0) { %>
+                              <span class="original-price">₹<%= product.regularPrice %></span>
+                              <span class="sale-price">₹<%= product.effectivePrice %></span>
+                              <span class="offer-percentage">(<%= product.offerPercentage %>% OFF)</span>
+                          <% } else if(product.regularPrice > product.salesPrice) { %>
+                              <span class="original-price">₹<%= product.regularPrice %></span>
+                              <span class="sale-price">₹<%= product.salesPrice %></span>
+                          <% } else { %>
+                              <span class="sale-price">₹<%= product.regularPrice %></span>
+                          <% } %>
+                      </p>
+                  </div>
+              </a>
+              <% if(product.offerPercentage > 0) { %>
+                  <div class="product-badge">Offer</div>
+              <% } else if(product.regularPrice > product.salesPrice) { %>
+                  <div class="product-badge">Sale</div>
+              <% } %>
+              <button class="add-to-cart-btn <%= product.quantity <= 0 ? 'out-of-stock' : '' %>" 
+                      onclick="addToCart('<%= product._id %>', <%= product.quantity %>, <%= product.isBlocked %>, <%= product.category.isListed %>, <%= product.brand.isBlocked %>)">
+                  <%= product.quantity <= 0 ? 'Out of Stock' : 'Add to Cart' %>
+              </button>
+              <button class="wishlist-btn" onclick="toggleWishlist('<%= product._id %>', this)" data-product-id="<%= product._id %>">
+                  <i class="fas fa-heart"></i>
+              </button>
           </div>
           <% }) %>
           <% } %>

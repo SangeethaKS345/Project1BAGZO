@@ -5,10 +5,10 @@ const Category = require('../../models/categorySchema');
 const User = require('../../models/userSchema');
 const Cart = require('../../models/cartSchema')
 
+// Replace the products fetch and render section with this
 const loadShop = async (req, res, next) => {
     try {
         let userData = null;
-
         if (req.session.user) {
             if (mongoose.Types.ObjectId.isValid(req.session.user)) {
                 userData = await User.findOne({ _id: new mongoose.Types.ObjectId(req.session.user) });
@@ -59,9 +59,41 @@ const loadShop = async (req, res, next) => {
             default: sortOptions = { createdAt: -1 };
         }
 
-        const products = await Product.find(filter).sort(sortOptions).populate('category').populate('brand');
+        const productsData = await Product.find(filter)
+            .populate('category')
+            .populate('brand')
+            .sort(sortOptions);
 
-        console.log('Products:', products);
+        // Calculate effective price for each product
+        const currentDate = new Date();
+        const products = productsData.map(product => {
+            let effectivePrice = product.salesPrice;
+            let offerPercentage = 0;
+            let offerType = '';
+
+            // Check product-specific offer
+            if (product.productOffer > 0 && 
+                (!product.offerEndDate || product.offerEndDate > currentDate)) {
+                effectivePrice = product.regularPrice * (1 - product.productOffer/100);
+                offerPercentage = product.productOffer;
+                offerType = 'product';
+            }
+            
+            // Check category offer if no product offer or if category offer is higher
+            if (product.category?.categoryOffer > offerPercentage && 
+                (!product.category.offerEndDate || product.category.offerEndDate > currentDate)) {
+                effectivePrice = product.regularPrice * (1 - product.category.categoryOffer/100);
+                offerPercentage = product.category.categoryOffer;
+                offerType = 'category';
+            }
+
+            return {
+                ...product._doc,
+                effectivePrice: Math.round(effectivePrice),
+                offerPercentage,
+                offerType
+            };
+        });
 
         res.render('shop', {
             products,
@@ -76,7 +108,6 @@ const loadShop = async (req, res, next) => {
         next(error);
     }
 };
-
 
 
 module.exports = { loadShop };
