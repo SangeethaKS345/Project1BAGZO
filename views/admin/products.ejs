@@ -2,6 +2,14 @@
 <head>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="/css/products.css" type="text/css">
+    <style>
+        .modal-backdrop {
+            z-index: 1040 !important;
+        }
+        .modal {
+            z-index: 1050 !important;
+        }
+    </style>
 </head>
 <div class="content-header">
     <div>
@@ -9,63 +17,59 @@
     </div>
 </div>
 <header class="card-header text-center mb-20">
-    <form action="" method="get" class="d-inline">
+    <form action="/admin/products" method="get" class="d-inline" id="searchForm">
         <div class="input-group input-group-sm border border-1 border-grey rounded-pill" style="width: 500px; margin-left: 230px;">
-            <input type="text" class="form-control border-0 rounded-pill" placeholder="Search products or brands" name="search">
-            <button class="btn  border-0" type="submit">Search</button>
+            <input type="text" class="form-control border-0 rounded-pill" placeholder="Search products or brands" name="search" value="<%= typeof search !== 'undefined' ? search : '' %>">
+            <button class="btn border-0" type="submit">Search</button>
+            <button class="btn btn-secondary border-0" type="button" onclick="clearSearch()">Clear</button>
         </div>
     </form>
 </header>
 <div class="right mt-5">
     <table class="table table-striped">
         <thead>
-                    <tr>
-                        <th scope="col"><b>Product name</b></th>
-                        <th scope="col"><b>Brand</b></th>
-                        <th scope="col"><b>Category</b></th>
-                        <th scope="col"><b>Regular Price</b></th>  <!-- Add this line -->
-                        <th scope="col"><b>Sale Price</b></th>
-                        <th scope="col"><b>Quantity</b></th>
-                        <th scope="col"><b>Action</b></th>
-                        <th scope="col"><b>Edit</b></th>
-                         <!-- <th scope="col"><b>Offer Price</b></th> -->
-                <!-- <th scope="col"><b>Offer</b></th> -->
-                    </tr>
-                </thead>
+            <tr>
+                <th scope="col"><b>Product name</b></th>
+                <th scope="col"><b>Brand</b></th>
+                <th scope="col"><b>Category</b></th>
+                <th scope="col"><b>Regular Price</b></th>
+                <th scope="col"><b>Sale Price</b></th>
+                <th scope="col"><b>Offer %</b></th>
+                <th scope="col"><b>Offer</b></th>
+                <th scope="col"><b>Quantity</b></th>
+                <th scope="col"><b>Action</b></th>
+                <th scope="col"><b>Edit</b></th>
             </tr>
         </thead>
         <tbody>
-            
-            <% for(let i=data.length-1;i>=0;i--){ %>
-
+            <% for(let i=data.length-1; i>=0; i--) { %>
             <tr>
-                <td><%=data[i].productName %></td>
-                <td><%=data[i].brand.brandName %></td>
-                <td><%=data[i].category.name %></td>
-                <td><%=data[i].regularPrice%></td> 
-                <td><%=data[i].salesPrice%></td>
-                <td><%=data[i].quantity%></td>
-               
-                <!-- <td>
-                
-                    <button class="btn btn-info" onclick="" style="width: 100px;">
-                        <a href="#" class="text-white">Add Offer</a>
-                    </button>
-        
-                    <button class="btn btn-info" onclick="" style="width: 100px;">
-                        <a href="#" class="text-white">Remove</a>
-                    </button>
-                
-                </td> -->
-               
+                <td><%= data[i].productName %></td>
+                <td><%= data[i].brand.brandName %></td>
+                <td><%= data[i].category.name %></td>
+                <td><%= data[i].regularPrice %></td>
+                <td><%= data[i].salesPrice %></td>
+                <td><%= data[i].productOffer ? data[i].productOffer + '%' : '0%' %></td>
                 <td>
-                <% if(data[i].isBlocked===false){ %>
+                    <% if(data[i].productOffer === 0) { %>
+                    <button class="btn btn-info" style="width: 100px;">
+                        <a href="#" class="text-white" onclick="addOffer('<%= data[i]._id %>')">Add Offer</a>
+                    </button>
+                    <% } else { %>
+                    <button class="btn btn-info" style="width: 100px;">
+                        <a href="#" class="text-white" onclick="removeOffer('<%= data[i]._id %>')">Remove</a>
+                    </button>
+                    <% } %>
+                </td>
+                <td><%= data[i].quantity %></td>
+                <td>
+                    <% if(data[i].isBlocked===false) { %>
                     <button class="btn btn-danger" style="width: 80px;">
                         <a href="/admin/blockProduct?id=<%=data[i]._id%>" class="text-white" style="text-decoration: none;">Block</a>
                     </button>
-                    <% }else{ %>
+                    <% } else { %>
                     <button class="btn btn-success" style="width: 80px;">
-                        <a href="/admin/unblockProduct?id=<%=data[i]._id%>"  class="text-white" style="text-decoration: none;">Unblock</a>
+                        <a href="/admin/unblockProduct?id=<%=data[i]._id%>" class="text-white" style="text-decoration: none;">Unblock</a>
                     </button>
                     <% } %>
                 </td>
@@ -75,37 +79,149 @@
                     </button>
                 </td>
             </tr>
-            
-         <% } %>
-
+            <% } %>
         </tbody>
-
     </table>
-</div>
-</div>
-</div>
 
-<!-- <div class="container mt-3">
-</div> -->
+    <!-- Add Offer Modal -->
+    <div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: #007bff; color: white;">
+                    <h5 class="modal-title" id="addOfferModalLabel">Add Product Offer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addOfferForm">
+                        <input type="hidden" id="offerProductId" name="productId">
+                        <div class="mb-3">
+                            <label for="offerPercentage" class="form-label">Offer Percentage:</label>
+                            <input type="number" class="form-control" id="offerPercentage" name="percentage" min="0" max="100" novalidate>
+                            <div id="offerPercentageError" class="text-danger"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="offerEndDate" class="form-label">End Date:</label>
+                            <input type="date" class="form-control" id="offerEndDate" name="endDate" novalidate>
+                            <div id="offerEndDateError" class="text-danger"></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="saveOfferBtn">Save Offer</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="container mt-3">
-  <nav aria-label="Page navigation">
-      <ul class="pagination justify-content-center mb-20" style="margin-right: 200px;">
-
-
-          <% for (let i = 1; i <= totalPages; i++) { %>
-          <li class="page-item <%- (i === currentPage) ? 'active' : '' %>">
-              <a class="page-link" href="?page=<%= i %>"><%= i %></a>
-          </li>
-          <% } %>
-
-
-      </ul>
-  </nav>
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center mb-20" style="margin-right: 200px;">
+            <% for (let i = 1; i <= totalPages; i++) { %>
+            <li class="page-item <%- (i === currentPage) ? 'active' : '' %>">
+                <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+            </li>
+            <% } %>
+        </ul>
+    </nav>
 </div>
 
-
-
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script>
+    function clearSearch() {
+        const searchInput = document.querySelector('input[name="search"]');
+        searchInput.value = '';
+        document.getElementById('searchForm').submit();
+    }
+
+    function addOffer(productId) {
+        $('#addOfferModal').modal('show');
+        $('#offerProductId').val(productId);
+        $('#offerPercentageError').text('');
+        $('#offerEndDateError').text('');
+    }
+
+    async function removeOffer(productId) {
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: 'Do you want to remove this offer?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#FF416C',
+            cancelButtonColor: '#DB4437',
+            confirmButtonText: 'Yes, remove it!'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const response = await fetch(`/admin/removeProductOffer/${productId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    Swal.fire('Success!', data.message, 'success');
+                    window.location.reload();
+                } else {
+                    Swal.fire('Error!', data.message, 'error');
+                }
+            } catch (error) {
+                Swal.fire('Error!', 'Something went wrong', 'error');
+            }
+        }
+    }
+
+    $('#addOfferForm').on('submit', async function(e) {
+        e.preventDefault();
+        const productId = $('#offerProductId').val();
+        const percentage = $('#offerPercentage').val();
+        const endDate = $('#offerEndDate').val();
+
+        let isValid = true;
+        $('#offerPercentageError').text('');
+        $('#offerEndDateError').text('');
+
+        if (!percentage) {
+            $('#offerPercentageError').text('Offer percentage is required');
+            isValid = false;
+        } else if (percentage < 0 || percentage > 100) {
+            $('#offerPercentageError').text('Percentage must be between 0 and 100');
+            isValid = false;
+        }
+
+        if (!endDate) {
+            $('#offerEndDateError').text('End date is required');
+            isValid = false;
+        } else {
+            const today = new Date().toISOString().split('T')[0];
+            if (endDate < today) {
+                $('#offerEndDateError').text('End date cannot be in the past');
+                isValid = false;
+            }
+        }
+
+        if (isValid) {
+            try {
+                const response = await fetch('/admin/addProductOffer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productId, percentage: parseInt(percentage), endDate })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    Swal.fire('Success!', data.message, 'success');
+                    $('#addOfferModal').modal('hide');
+                    window.location.reload();
+                } else {
+                    Swal.fire('Error!', data.message, 'error');
+                }
+            } catch (error) {
+                Swal.fire('Error!', 'Something went wrong', 'error');
+            }
+        }
+    });
+</script>
 <%- include("../../views/partials/admin/footer") %>

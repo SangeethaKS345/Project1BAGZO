@@ -276,6 +276,66 @@ const deleteSingleImage = async (req, res) => {
   }
 };
 
+const addProductOffer = async (req, res, next) => {
+  try {
+      const { productId, percentage, endDate } = req.body;
+      
+      const product = await Product.findById(productId);
+      if (!product) {
+          return res.status(404).json({ success: false, message: "Product not found" });
+      }
+
+      if (percentage < 0 || percentage > 100) {
+          return res.status(400).json({ success: false, message: "Offer percentage must be between 0 and 100" });
+      }
+
+      // Calculate new sale price based on offer
+      const discountAmount = product.regularPrice * (percentage / 100);
+      const newSalePrice = product.regularPrice - discountAmount;
+
+      await Product.updateOne(
+          { _id: productId },
+          { 
+              $set: { 
+                  productOffer: percentage, 
+                  offerEndDate: new Date(endDate),
+                  salesPrice: newSalePrice
+              } 
+          }
+      );
+
+      res.json({ success: true, message: "Offer added successfully" });
+  } catch (error) {
+      next(error);
+  }
+};
+
+const removeProductOffer = async (req, res, next) => {
+  try {
+      const productId = req.params.productId;
+      const product = await Product.findById(productId);
+
+      if (!product) {
+          return res.status(404).json({ success: false, message: "Product not found" });
+      }
+
+      await Product.updateOne(
+          { _id: productId },
+          { 
+              $set: { 
+                  productOffer: 0, 
+                  offerEndDate: null,
+                  salesPrice: product.regularPrice // Reset to original price
+              } 
+          }
+      );
+
+      res.json({ success: true, message: "Offer removed successfully" });
+  } catch (error) {
+      next(error);
+  }
+};
+
 module.exports = {
   getProductAddPage,
   addProducts,
@@ -285,4 +345,6 @@ module.exports = {
   getEditProduct,
   editProduct,
   deleteSingleImage,
+  addProductOffer,
+  removeProductOffer
 };
