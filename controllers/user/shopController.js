@@ -5,7 +5,7 @@ const Category = require('../../models/categorySchema');
 const User = require('../../models/userSchema');
 const Cart = require('../../models/cartSchema')
 
-// Replace the products fetch and render section with this
+
 const loadShop = async (req, res, next) => {
     try {
         let userData = null;
