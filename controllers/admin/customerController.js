@@ -7,12 +7,23 @@ const customerInfo = async (req, res, next) => {
         let page = parseInt(req.query.page) || 1;
         const limit = 3;
 
+        let searchConditions = [];
+        const searchRegex = new RegExp(search, "i");
+
+        // Text-based searches
+        searchConditions.push({ name: { $regex: searchRegex } });
+        searchConditions.push({ email: { $regex: searchRegex } });
+        searchConditions.push({ phone: { $regex: searchRegex } });
+        // Status search
+        if (search.toLowerCase().includes('block')) {
+            searchConditions.push({ isBlocked: true });
+        } else if (search.toLowerCase().includes('active')) {
+            searchConditions.push({ isBlocked: false });
+        }
+
         const userData = await User.find({
             isAdmin: false,
-            $or: [
-                { name: { $regex: ".*" + search + ".*", $options: "i" } },
-                { email: { $regex: ".*" + search + ".*", $options: "i" } },
-            ],
+            $or: searchConditions
         })
         .limit(limit)
         .skip((page - 1) * limit)
@@ -21,16 +32,17 @@ const customerInfo = async (req, res, next) => {
 
         const count = await User.countDocuments({
             isAdmin: false,
-            $or: [
-                { name: { $regex: ".*" + search + ".*", $options: "i" } },
-                { email: { $regex: ".*" + search + ".*", $options: "i" } },
-            ],
+            $or: searchConditions
         });
 
-        res.render("customers", { data: userData, totalPages: Math.ceil(count / limit), currentPage: page });
-
+        res.render("customers", { 
+            data: userData, 
+            totalPages: Math.ceil(count / limit), 
+            currentPage: page,
+            search: search // Pass search term back to template
+        });
     } catch (error) {
-        next(error); // Passes error to middleware
+        next(error);
     }
 };
 

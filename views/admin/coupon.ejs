@@ -1,282 +1,355 @@
 <head>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css" />
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
       .errorMessage { font-size: 0.875rem; margin-top: 0.25rem; color: #DB4437; }
       .contentTitle h4 { color: #DB4437; }
       .gradientButton { background: linear-gradient(to right, #FF4B2B, #FF416C); border: none; color: white; }
       .gradientButton:hover { background: #DB4437; color: white; }
       .textOrange { color: #FF4B2B; }
-    </style>
-  </head>
-  <%- include("../../views/partials/admin/header") %>
+      .search-container {
+          position: relative;
+          display: inline-block;
+      }
+      .search-suggestions {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          background: white;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          max-height: 200px;
+          overflow-y: auto;
+          z-index: 1000;
+          display: none;
+      }
+      .search-suggestions div {
+          padding: 8px;
+          cursor: pointer;
+      }
+      .search-suggestions div:hover {
+          background-color: #f0f0f0;
+      }
+  </style>
+</head>
+<%- include("../../views/partials/admin/header") %>
 
-  <div class="contentMain">
-    <div class="contentHeader d-flex align-items-center">
+<div class="contentMain">
+  <div class="contentHeader d-flex align-items-center justify-content-between">
       <div class="contentTitle">
-        <h4>Coupon Management</h4>
+          <h4>Coupon Management</h4>
+      </div>
+      <div class="search-container">
+          <form action="/admin/coupon" method="get" class="d-inline" id="searchForm">
+              <div class="input-group input-group-sm rounded-pill">
+                  <input type="text" class="form-control rounded-pill" 
+                         placeholder="Search coupons by code, amount, dates, or status..." 
+                         name="search" 
+                         id="searchInput" 
+                         value="<%= typeof search !== 'undefined' ? search : '' %>" 
+                         autocomplete="off"/>
+                  <button class="btn" type="submit" style="display: none;">Search</button>
+                  <button class="btn btn-secondary" type="button" onclick="clearSearch()">Clear</button>
+              </div>
+          </form>
+          <div class="search-suggestions" id="searchSuggestions"></div>
       </div>
       <button type="button" class="btn gradientButton ms-3" data-bs-toggle="modal" data-bs-target="#addCouponModal">Create Coupon</button>
-    </div>
-  
-    <!-- Add Coupon Modal -->
-    <div class="modal fade" id="addCouponModal" tabindex="-1" aria-labelledby="addCouponModalLabel" aria-hidden="true">
+  </div>
+
+  <!-- Add Coupon Modal -->
+  <div class="modal fade" id="addCouponModal" tabindex="-1" aria-labelledby="addCouponModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header" style="border-bottom: 2px solid #DB4437;">
-            <h5 class="modal-title textOrange" id="addCouponModalLabel">Create New Coupon</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <form id="addCouponForm">
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label for="couponCode" class="form-label textOrange">Coupon Code</label>
-                  <input type="text" class="form-control" id="couponCode" name="code" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label for="offerAmount" class="form-label textOrange">Offer Amount</label>
-                  <input type="number" class="form-control" id="offerAmount" name="offerPrice" required>
-                </div>
+          <div class="modal-content">
+              <div class="modal-header" style="border-bottom: 2px solid #DB4437;">
+                  <h5 class="modal-title textOrange" id="addCouponModalLabel">Create New Coupon</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label for="minimumPurchase" class="form-label textOrange">Minimum Purchase Amount</label>
-                  <input type="number" class="form-control" id="minimumPurchase" name="minimumPrice" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label for="startDate" class="form-label textOrange">Start Date</label>
-                  <input type="date" class="form-control" id="startDate" name="startOn" required>
-                </div>
+              <div class="modal-body">
+                  <form id="addCouponForm">
+                      <div class="row">
+                          <div class="col-md-6 mb-3">
+                              <label for="couponCode" class="form-label textOrange">Coupon Code</label>
+                              <input type="text" class="form-control" id="couponCode" name="code" required>
+                          </div>
+                          <div class="col-md-6 mb-3">
+                              <label for="offerAmount" class="form-label textOrange">Offer Amount</label>
+                              <input type="number" class="form-control" id="offerAmount" name="offerPrice" required>
+                          </div>
+                      </div>
+                      <div class="row">
+                          <div class="col-md-6 mb-3">
+                              <label for="minimumPurchase" class="form-label textOrange">Minimum Purchase Amount</label>
+                              <input type="number" class="form-control" id="minimumPurchase" name="minimumPrice" required>
+                          </div>
+                          <div class="col-md-6 mb-3">
+                              <label for="startDate" class="form-label textOrange">Start Date</label>
+                              <input type="date" class="form-control" id="startDate" name="startOn" required>
+                          </div>
+                      </div>
+                      <div class="row">
+                          <div class="col-md-6 mb-3">
+                              <label for="usageLimit" class="form-label textOrange">Usage Limit</label>
+                              <input type="number" class="form-control" id="usageLimit" name="maxUses" required>
+                          </div>
+                          <div class="col-md-6 mb-3">
+                              <label for="expirationDate" class="form-label textOrange">Expiration Date</label>
+                              <input type="date" class="form-control" id="expirationDate" name="expireOn" required>
+                          </div>
+                      </div>
+                  </form>
               </div>
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label for="usageLimit" class="form-label textOrange">Usage Limit</label>
-                  <input type="number" class="form-control" id="usageLimit" name="maxUses" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label for="expirationDate" class="form-label textOrange">Expiration Date</label>
-                  <input type="date" class="form-control" id="expirationDate" name="expireOn" required>
-                </div>
+              <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                  <button type="button" class="btn btn-secondary" onclick="clearForm()">Clear</button>
+                  <button type="submit" form="addCouponForm" class="btn gradientButton">Create Coupon</button>
               </div>
-            </form>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-secondary" onclick="clearForm()">Clear</button>
-            <button type="submit" form="addCouponForm" class="btn gradientButton">Create Coupon</button>
-          </div>
-        </div>
       </div>
-    </div>
-  
-    <!-- Edit Coupon Modal -->
-    <div class="modal fade" id="editCouponModal" tabindex="-1" aria-labelledby="editCouponModalLabel" aria-hidden="true">
+  </div>
+
+  <!-- Edit Coupon Modal -->
+  <div class="modal fade" id="editCouponModal" tabindex="-1" aria-labelledby="editCouponModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header" style="border-bottom: 2px solid #DB4437;">
-            <h5 class="modal-title textOrange" id="editCouponModalLabel">Edit Coupon</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <form id="editCouponForm">
-              <input type="hidden" id="editCouponId" name="couponId">
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label for="editCouponCode" class="form-label textOrange">Coupon Code</label>
-                  <input type="text" class="form-control" id="editCouponCode" name="code" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label for="editOfferAmount" class="form-label textOrange">Offer Amount</label>
-                  <input type="number" class="form-control" id="editOfferAmount" name="offerPrice" required>
-                </div>
+          <div class="modal-content">
+              <div class="modal-header" style="border-bottom: 2px solid #DB4437;">
+                  <h5 class="modal-title textOrange" id="editCouponModalLabel">Edit Coupon</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label for="editMinimumPurchase" class="form-label textOrange">Minimum Purchase Amount</label>
-                  <input type="number" class="form-control" id="editMinimumPurchase" name="minimumPrice" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label for="editStartDate" class="form-label textOrange">Start Date</label>
-                  <input type="date" class="form-control" id="editStartDate" name="startOn" required>
-                </div>
+              <div class="modal-body">
+                  <form id="editCouponForm">
+                      <input type="hidden" id="editCouponId" name="couponId">
+                      <div class="row">
+                          <div class="col-md-6 mb-3">
+                              <label for="editCouponCode" class="form-label textOrange">Coupon Code</label>
+                              <input type="text" class="form-control" id="editCouponCode" name="code" required>
+                          </div>
+                          <div class="col-md-6 mb-3">
+                              <label for="editOfferAmount" class="form-label textOrange">Offer Amount</label>
+                              <input type="number" class="form-control" id="editOfferAmount" name="offerPrice" required>
+                          </div>
+                      </div>
+                      <div class="row">
+                          <div class="col-md-6 mb-3">
+                              <label for="editMinimumPurchase" class="form-label textOrange">Minimum Purchase Amount</label>
+                              <input type="number" class="form-control" id="editMinimumPurchase" name="minimumPrice" required>
+                          </div>
+                          <div class="col-md-6 mb-3">
+                              <label for="editStartDate" class="form-label textOrange">Start Date</label>
+                              <input type="date" class="form-control" id="editStartDate" name="startOn" required>
+                          </div>
+                      </div>
+                      <div class="row">
+                          <div class="col-md-6 mb-3">
+                              <label for="editUsageLimit" class="form-label textOrange">Usage Limit</label>
+                              <input type="number" class="form-control" id="editUsageLimit" name="maxUses" required>
+                          </div>
+                          <div class="col-md-6 mb-3">
+                              <label for="editExpirationDate" class="form-label textOrange">Expiration Date</label>
+                              <input type="date" class="form-control" id="editExpirationDate" name="expireOn" required>
+                          </div>
+                      </div>
+                  </form>
               </div>
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label for="editUsageLimit" class="form-label textOrange">Usage Limit</label>
-                  <input type="number" class="form-control" id="editUsageLimit" name="maxUses" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label for="editExpirationDate" class="form-label textOrange">Expiration Date</label>
-                  <input type="date" class="form-control" id="editExpirationDate" name="expireOn" required>
-                </div>
+              <div class="modal-footer">
+                  <button type="button" class="btn btn-danger" onclick="deleteCoupon()">Delete</button>
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                  <button type="button" class="btn btn-secondary" onclick="clearEditForm()">Clear</button>
+                  <button type="submit" form="editCouponForm" class="btn gradientButton">Save Changes</button>
               </div>
-            </form>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-danger" onclick="deleteCoupon()">Delete</button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-secondary" onclick="clearEditForm()">Clear</button>
-            <button type="submit" form="editCouponForm" class="btn gradientButton">Save Changes</button>
-          </div>
-        </div>
       </div>
-    </div>
-  
-    <div class="card mb-4">
+  </div>
+
+  <div class="card mb-4">
       <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-hover">
-            <thead>
-              <tr>
-                <th class="textOrange">Code</th>
-                <th class="textOrange">Offer Amount</th>
-                <th class="textOrange">Minimum Purchase</th>
-                <th class="textOrange">Start Date</th>
-                <th class="textOrange">Usage Limit</th>
-                <th class="textOrange">Used Count</th>
-                <th class="textOrange">Expiration Date</th>
-                <th class="textOrange">Status</th>
-                <th class="textOrange">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% coupons.forEach(coupon => { %>
-                <tr>
-                  <td><%= coupon.code %></td>
-                  <td>₹<%= coupon.offerPrice %></td>
-                  <td>₹<%= coupon.minimumPrice %></td>
-                  <td><%= new Date(coupon.startOn).toISOString().split('T')[0] %></td>
-                  <td><%= coupon.maxUses %></td>
-                  <td><%= coupon.usesCount %></td>
-                  <td><%= new Date(coupon.expireOn).toISOString().split('T')[0] %></td>
-                  <td><%= coupon.isListed ? 'Active' : 'Inactive' %></td>
-                  <td>
-                    <button 
-                      class="btn btn-sm gradientButton me-2" 
-                      data-coupon="<%= coupon._id %>"
-                      onclick="openEditModal(this.getAttribute('data-coupon'))"
-                    >
-                      Edit
-                    </button>
-                    <button 
-                      class="btn btn-sm gradientButton" 
-                      onclick="toggleCouponStatus('<%= coupon._id %>', '<%= coupon.isListed %>')"
-                    >
-                      <%= coupon.isListed ? 'Unlist' : 'List' %>
-                    </button>
-                  </td>
-                </tr>
-              <% }); %>
-            </tbody>
-          </table>
-        </div>
+          <div class="table-responsive">
+              <table class="table table-hover">
+                  <thead>
+                      <tr>
+                          <th class="textOrange">Code</th>
+                          <th class="textOrange">Offer Amount</th>
+                          <th class="textOrange">Minimum Purchase</th>
+                          <th class="textOrange">Start Date</th>
+                          <th class="textOrange">Usage Limit</th>
+                          <th class="textOrange">Used Count</th>
+                          <th class="textOrange">Expiration Date</th>
+                          <th class="textOrange">Status</th>
+                          <th class="textOrange">Actions</th>
+                      </tr>
+                  </thead>
+                  <tbody id="couponTableBody">
+                      <% coupons.forEach(coupon => { %>
+                      <tr>
+                          <td><%= coupon.code %></td>
+                          <td>₹<%= coupon.offerPrice %></td>
+                          <td>₹<%= coupon.minimumPrice %></td>
+                          <td><%= new Date(coupon.startOn).toISOString().split('T')[0] %></td>
+                          <td><%= coupon.maxUses %></td>
+                          <td><%= coupon.usesCount %></td>
+                          <td><%= new Date(coupon.expireOn).toISOString().split('T')[0] %></td>
+                          <td><%= coupon.isListed ? 'Active' : 'Inactive' %></td>
+                          <td>
+                              <button 
+                                  class="btn btn-sm gradientButton me-2" 
+                                  data-coupon="<%= coupon._id %>"
+                                  onclick="openEditModal(this.getAttribute('data-coupon'))"
+                              >
+                                  Edit
+                              </button>
+                              <button 
+                                  class="btn btn-sm gradientButton" 
+                                  onclick="toggleCouponStatus('<%= coupon._id %>', '<%= coupon.isListed %>')"
+                              >
+                                  <%= coupon.isListed ? 'Unlist' : 'List' %>
+                              </button>
+                          </td>
+                      </tr>
+                      <% }); %>
+                  </tbody>
+              </table>
+          </div>
       </div>
       <div class="card-footer">
-        <nav aria-label="Page navigation" class="d-flex justify-content-center mt-4">
-          <ul class="pagination">
-            <% if (hasPrevPage) { %>
-              <li class="page-item">
-                <a class="page-link" href="?page=<%= currentPage - 1 %>" aria-label="Previous">
-                  <span aria-hidden="true">«</span>
-                </a>
-              </li>
-            <% } %>
-            <% for(let i = 1; i <= totalPages; i++) { %>
-              <li class="page-item <%= currentPage === i ? 'active' : '' %>">
-                <a class="page-link" href="?page=<%= i %>"><%= i %></a>
-              </li>
-            <% } %>
-            <% if (hasNextPage) { %>
-              <li class="page-item">
-                <a class="page-link" href="?page=<%= currentPage + 1 %>" aria-label="Next">
-                  <span aria-hidden="true">»</span>
-                </a>
-              </li>
-            <% } %>
-          </ul>
-        </nav>
+          <nav aria-label="Page navigation" class="d-flex justify-content-center mt-4">
+              <ul class="pagination">
+                  <% if (hasPrevPage) { %>
+                  <li class="page-item">
+                      <a class="page-link" href="?page=<%= currentPage - 1 %>&search=<%= typeof search !== 'undefined' ? search : '' %>" aria-label="Previous">
+                          <span aria-hidden="true">«</span>
+                      </a>
+                  </li>
+                  <% } %>
+                  <% for(let i = 1; i <= totalPages; i++) { %>
+                  <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                      <a class="page-link" href="?page=<%= i %>&search=<%= typeof search !== 'undefined' ? search : '' %>"><%= i %></a>
+                  </li>
+                  <% } %>
+                  <% if (hasNextPage) { %>
+                  <li class="page-item">
+                      <a class="page-link" href="?page=<%= currentPage + 1 %>&search=<%= typeof search !== 'undefined' ? search : '' %>" aria-label="Next">
+                          <span aria-hidden="true">»</span>
+                      </a>
+                  </li>
+                  <% } %>
+              </ul>
+          </nav>
       </div>
-    </div>
   </div>
-  
-  <!-- Fix for MIME type errors - use CDN versions if local files are not accessible -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.all.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    function displayError(fieldId, message) {
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  let debounceTimeout;
+
+  function clearSearch() {
+      const searchInput = document.getElementById('searchInput');
+      searchInput.value = '';
+      searchCoupons('');
+  }
+
+  function searchCoupons(searchTerm) {
+      clearTimeout(debounceTimeout);
+      debounceTimeout = setTimeout(() => {
+          $.ajax({
+              url: '/admin/coupon',
+              method: 'GET',
+              data: { search: searchTerm, page: `<%= currentPage %>` },
+              success: function(response) {
+                  const parser = new DOMParser();
+                  const doc = parser.parseFromString(response, 'text/html');
+                  const newTableBody = doc.querySelector('#couponTableBody');
+                  if (newTableBody) {
+                      document.getElementById('couponTableBody').innerHTML = newTableBody.innerHTML;
+                  }
+              },
+              error: function(err) {
+                  console.error('Search error:', err);
+              }
+          });
+      }, 300);
+  }
+
+  $('#searchInput').on('input', function() {
+      const searchTerm = $(this).val().trim();
+      searchCoupons(searchTerm);
+  });
+
+  function displayError(fieldId, message) {
       const field = document.getElementById(fieldId);
       const errorDiv = document.createElement('div');
       errorDiv.className = 'errorMessage';
       errorDiv.textContent = message;
       field.parentNode.appendChild(errorDiv);
-    }
-  
-    function clearForm() {
+  }
+
+  function clearForm() {
       document.getElementById('addCouponForm').reset();
       document.querySelectorAll('.errorMessage').forEach(el => el.remove());
-    }
-  
-    async function toggleCouponStatus(couponId, currentStatus) {
+  }
+
+  async function toggleCouponStatus(couponId, currentStatus) {
       try {
-        const result = await Swal.fire({
-          title: 'Are you sure?',
-          text: `This coupon will be ${currentStatus === 'true' ? 'unlisted' : 'listed'}!`,
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#DB4437',
-          cancelButtonColor: '#d33',
-          confirmButtonText: `Yes, ${currentStatus === 'true' ? 'unlist' : 'list'} it!`
-        });
-  
-        if (result.isConfirmed) {
-          const response = await fetch(`/admin/toggleCouponStatus/${couponId}`, {
-            method: 'PATCH'
+          const result = await Swal.fire({
+              title: 'Are you sure?',
+              text: `This coupon will be ${currentStatus === 'true' ? 'unlisted' : 'listed'}!`,
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonColor: '#DB4437',
+              cancelButtonColor: '#d33',
+              confirmButtonText: `Yes, ${currentStatus === 'true' ? 'unlist' : 'list'} it!`
           });
-          const data = await response.json();
-          
-          if (data.success) {
-            await Swal.fire('Success!', `The coupon has been ${data.isListed ? 'listed' : 'unlisted'}.`, 'success');
-            location.reload();
-          } else {
-            Swal.fire('Error!', data.message || 'Error updating coupon status', 'error');
+
+          if (result.isConfirmed) {
+              const response = await fetch(`/admin/toggleCouponStatus/${couponId}`, {
+                  method: 'PATCH'
+              });
+              const data = await response.json();
+
+              if (data.success) {
+                  await Swal.fire('Success!', `The coupon has been ${data.isListed ? 'listed' : 'unlisted'}.`, 'success');
+                  location.reload();
+              } else {
+                  Swal.fire('Error!', data.message || 'Error updating coupon status', 'error');
+              }
           }
-        }
       } catch (error) {
-        console.error('Error:', error);
-        Swal.fire('Error!', 'An error occurred while updating the coupon status', 'error');
+          console.error('Error:', error);
+          Swal.fire('Error!', 'An error occurred while updating the coupon status', 'error');
       }
-    }
-  
-    document.getElementById('addCouponModal')?.addEventListener('hidden.bs.modal', function () {
+  }
+
+  document.getElementById('addCouponModal')?.addEventListener('hidden.bs.modal', function () {
       clearForm();
-    });
-  
-    document.addEventListener('DOMContentLoaded', function() {
+  });
+
+  document.addEventListener('DOMContentLoaded', function() {
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('startDate').setAttribute('min', today);
-      
+
       document.getElementById('startDate').addEventListener('change', function() {
-        const startDate = this.value;
-        document.getElementById('expirationDate').setAttribute('min', startDate);
-        const expirationDate = document.getElementById('expirationDate');
-        if (expirationDate.value && expirationDate.value <= startDate) {
-          expirationDate.value = '';
-        }
+          const startDate = this.value;
+          document.getElementById('expirationDate').setAttribute('min', startDate);
+          const expirationDate = document.getElementById('expirationDate');
+          if (expirationDate.value && expirationDate.value <= startDate) {
+              expirationDate.value = '';
+          }
       });
-  
-      // Set the same constraints for the edit form
+
       document.getElementById('editStartDate').addEventListener('change', function() {
-        const startDate = this.value;
-        document.getElementById('editExpirationDate').setAttribute('min', startDate);
-        const expirationDate = document.getElementById('editExpirationDate');
-        if (expirationDate.value && expirationDate.value <= startDate) {
-          expirationDate.value = '';
-        }
+          const startDate = this.value;
+          document.getElementById('editExpirationDate').setAttribute('min', startDate);
+          const expirationDate = document.getElementById('editExpirationDate');
+          if (expirationDate.value && expirationDate.value <= startDate) {
+              expirationDate.value = '';
+          }
       });
-    });
-  
+  });
+
     document.getElementById('addCouponForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       document.querySelectorAll('.errorMessage').forEach(el => el.remove());

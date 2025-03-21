@@ -2,303 +2,350 @@
 <%- include("../../views/partials/admin/header") %>
 
 <section class="content-main">
-  <div class="content-header">
-    <div>
-      <h2 class="content-title card-title">Brands</h2>
-    </div>
-  </div>
-  
-  <div class="card">
-    <div class="card-body">
-      <div class="row">
-        <div class="col-md-3">
-          <form method="post" action="/admin/addBrand" enctype="multipart/form-data" id="brandForm">
-            <div class="mb-4">
-              <label for="brand_name" class="form-label">Brand Name</label>
-              <input type="text" name="name" id="brand_name" placeholder="Type here" class="form-control"  />
-              <small class="text-danger d-none" id="nameError">Brand Name is required</small>
-            </div>
-            <label for="brand_image" class="form-label">Brand Image</label>
-            <div class="input-upload">
-              <img src="" alt="" id="previewImage" />
-              <input class="form-control border" name="image" type="file" id="brand_image" accept="image/png, image/jpeg, image/jpg"  />
-              <small class="text-danger d-none" id="imageError">Only JPG, JPEG, and PNG formats are allowed.</small>
-            </div>
-            <div class="d-grid mt-3">
-              <button class="btn btn-primary mt-20" type="submit">Add Brand</button>
-              <button type="button" class="btn btn-secondary mt-2" id="clearBtn">Clear</button>
-            </div>
-          </form>
+    <div class="content-header">
+        <div>
+            <h2 class="content-title card-title">Brands</h2>
         </div>
-        <div class="col-md-7 ml-105">
-          <div class="table-responsive">
-            <table class="table table-hover">
-              <thead>
-                <tr>
-                  <th>Brand</th>
-                  <th>Logo</th>
-                  <th>Status</th>
-                  <th>Block/Unblock/Delete</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% data.reverse().forEach((brand, index) => { %>
-                <tr>
-                  <td class="text-start"><%= brand.brandName %></td>
-                  <td class="text-start">
-                    <div class="d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden;">
-                      <img src="/uploads/re-image/<%= brand.brandImage[0] %>" alt="<%= brand.brandName %>" class="img-fluid rounded-circle" style="width: 100%; height: auto" />
+    </div>
+
+    <header class="search-container text-center mb-4">
+        <form action="/admin/brands" method="get" class="d-inline" id="searchForm">
+            <div class="input-group input-group-sm rounded-pill" style="width: 500px; margin: 0 auto;">
+                <input type="text" class="form-control rounded-pill" 
+                       placeholder="Search brands or status..." 
+                       name="search" 
+                       id="searchInput" 
+                       value="<%= typeof search !== 'undefined' ? search : '' %>" 
+                       autocomplete="off"/>
+                <button class="btn" type="submit" style="display: none;">Search</button>
+                <button class="btn btn-secondary" type="button" onclick="clearSearch()">Clear</button>
+            </div>
+        </form>
+        <div class="search-suggestions" id="searchSuggestions"></div>
+    </header>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <form method="post" action="/admin/addBrand" enctype="multipart/form-data" id="brandForm">
+                        <div class="mb-4">
+                            <label for="brand_name" class="form-label">Brand Name</label>
+                            <input type="text" name="name" id="brand_name" placeholder="Type here" class="form-control" />
+                            <small class="text-danger d-none" id="nameError">Brand Name is required</small>
+                        </div>
+                        <label for="brand_image" class="form-label">Brand Image</label>
+                        <div class="input-upload">
+                            <img src="" alt="" id="previewImage" />
+                            <input class="form-control border" name="image" type="file" id="brand_image" accept="image/png, image/jpeg, image/jpg" />
+                            <small class="text-danger d-none" id="imageError">Only JPG, JPEG, and PNG formats are allowed.</small>
+                        </div>
+                        <div class="d-grid mt-3">
+                            <button class="btn btn-primary mt-20" type="submit">Add Brand</button>
+                            <button type="button" class="btn btn-secondary mt-2" id="clearBtn">Clear</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-7 ml-105">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Brand</th>
+                                    <th>Logo</th>
+                                    <th>Status</th>
+                                    <th>Block/Unblock/Delete</th>
+                                </tr>
+                            </thead>
+                            <tbody id="brandTableBody">
+                                <% data.reverse().forEach((brand, index) => { %>
+                                <tr>
+                                    <td class="text-start"><%= brand.brandName %></td>
+                                    <td class="text-start">
+                                        <div class="d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden;">
+                                            <img src="/uploads/re-image/<%= brand.brandImage[0] %>" alt="<%= brand.brandName %>" class="img-fluid rounded-circle" style="width: 100%; height: auto" />
+                                        </div>
+                                    </td>
+                                    <td class="text-start">
+                                        <% if (brand.isBlocked === true) { %>
+                                        <span class="badge rounded-pill alert-danger" style="width: 60px">Blocked</span>
+                                        <% } else { %>
+                                        <span class="badge rounded-pill alert-success" style="width: 60px; color: green;">Active</span>
+                                        <% } %>
+                                    </td>
+                                    <td class="text-start">
+                                        <% if (brand.isBlocked === false) { %>
+                                        <button class="btn btn-danger block-btn" data-id="<%= brand._id %>" data-name="<%= brand.brandName %>" style="width: 90px">Block</button>
+                                        <% } else { %>
+                                        <button class="btn btn-success unblock-btn" data-id="<%= brand._id %>" data-name="<%= brand.brandName %>" style="width: 90px">Unblock</button>
+                                        <% } %>
+                                        <button class="btn btn-danger delete-btn" data-id="<%= brand._id %>" data-name="<%= brand.brandName %>" style="width: 90px">Delete</button>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
                     </div>
-                  </td>
-                  <td class="text-start">
-                    <% if (brand.isBlocked === true) { %>
-                    <span class="badge rounded-pill alert-danger" style="width: 60px">Blocked</span>
-                    <% } else { %>
-                    <span class="badge rounded-pill alert-success" style="width: 60px; color: green;">Active</span>
-                    <% } %>
-                  </td>
-                  <td class="text-start">
-                    <% if (brand.isBlocked === false) { %>
-                      <button class="btn btn-danger block-btn" data-id="<%= brand._id %>" data-name="<%= brand.brandName %>" style="width: 90px">
-                        Block
-                      </button>
-                    <% } else { %>
-                      <button class="btn btn-success unblock-btn" data-id="<%= brand._id %>" data-name="<%= brand.brandName %>" style="width: 90px">
-                        Unblock
-                      </button>
-                    <% } %>
-                    <button class="btn btn-danger delete-btn" data-id="<%= brand._id %>" data-name="<%= brand.brandName %>" style="width: 90px">
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-                <% }) %>
-              </tbody>
-            </table>
-          </div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
-  <div class="container mt-3">
-    <nav aria-label="Page navigation">
-      <ul class="pagination justify-content-center mb-20" style="margin-right: 200px;">
-        <% for (let i = 1; i <= totalPages; i++) { %>
-        <li class="page-item <%= (i === currentPage) ? 'active' : '' %>">
-          <a class="page-link" href="?page=<%= i %>"> <%= i %> </a>
-        </li>
-        <% } %>
-      </ul>
-    </nav>
-  </div>
+    <div class="container mt-3">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mb-20" style="margin-right: 200px;">
+                <% for (let i = 1; i <= totalPages; i++) { %>
+                <li class="page-item <%= (i === currentPage) ? 'active' : '' %>">
+                    <a class="page-link" href="?page=<%= i %>&search=<%= typeof search !== 'undefined' ? search : '' %>"> <%= i %> </a>
+                </li>
+                <% } %>
+            </ul>
+        </nav>
+    </div>
 </section>
 
 <!-- SweetAlert2 CSS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.7.12/sweetalert2.min.css">
-<!-- SweetAlert2 JS -->
+<!-- SweetAlert2 JS and jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.7.12/sweetalert2.all.min.js"></script>
 
+<style>
+    .search-container {
+        position: relative;
+        display: inline-block;
+    }
+    .search-suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+    }
+    .search-suggestions div {
+        padding: 8px;
+        cursor: pointer;
+    }
+    .search-suggestions div:hover {
+        background-color: #f0f0f0;
+    }
+</style>
+
 <script>
-  // Form Validation
-  document.getElementById("brandForm").addEventListener("submit", function (e) {
-    e.preventDefault(); // Prevent default submission
-    
-    let valid = true;
-    
-    const brandName = document.getElementById("brand_name").value.trim();
-    const brandImage = document.getElementById("brand_image").files[0];
-    const nameError = document.getElementById("nameError");
-    const imageError = document.getElementById("imageError");
+    let debounceTimeout;
 
-    // Validate brand name
-    if (brandName === "") {
-      nameError.classList.remove("d-none");
-      valid = false;
-    } else {
-      nameError.classList.add("d-none");
+    function clearSearch() {
+        const searchInput = document.getElementById('searchInput');
+        searchInput.value = '';
+        searchBrands('');
     }
 
-    // Validate brand image
-    if (brandImage) {
-      const allowedExtensions = ["image/jpeg", "image/jpg", "image/png"];
-      if (!allowedExtensions.includes(brandImage.type)) {
-        imageError.classList.remove("d-none");
-        valid = false;
-      } else {
-        imageError.classList.add("d-none");
-      }
-    } else {
-      imageError.classList.remove("d-none");
-      valid = false;
+    function searchBrands(searchTerm) {
+        clearTimeout(debounceTimeout);
+        debounceTimeout = setTimeout(() => {
+            $.ajax({
+                url: '/admin/brands',
+                method: 'GET',
+                data: { search: searchTerm, page: `<%= currentPage %>` },
+                success: function(response) {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(response, 'text/html');
+                    const newTableBody = doc.querySelector('#brandTableBody');
+                    if (newTableBody) {
+                        document.getElementById('brandTableBody').innerHTML = newTableBody.innerHTML;
+                    }
+                },
+                error: function(err) {
+                    console.error('Search error:', err);
+                }
+            });
+        }, 300);
     }
 
-    if (valid) {
-      // Show loading state
-      Swal.fire({
-        title: 'Adding Brand',
-        text: 'Please wait...',
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
+    $('#searchInput').on('input', function() {
+        const searchTerm = $(this).val().trim();
+        searchBrands(searchTerm);
+    });
+
+    // Form Validation
+    document.getElementById("brandForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+        let valid = true;
+        const brandName = document.getElementById("brand_name").value.trim();
+        const brandImage = document.getElementById("brand_image").files[0];
+        const nameError = document.getElementById("nameError");
+        const imageError = document.getElementById("imageError");
+
+        if (brandName === "") {
+            nameError.classList.remove("d-none");
+            valid = false;
+        } else {
+            nameError.classList.add("d-none");
         }
-      });
-      
-      // Submit the form
-      this.submit();
-    } else {
-      // Show error message
-      Swal.fire({
-        icon: 'error',
-        title: 'Validation Error',
-        text: 'Please check the form for errors',
-        confirmButtonColor: '#3085d6'
-      });
-    }
-  });
 
-  
-
-  // Delete brand with confirmation
-  document.querySelectorAll('.delete-btn').forEach(button => {
-    button.addEventListener('click', function(e) {
-      e.preventDefault();
-      const brandId = this.getAttribute('data-id');
-      const brandName = this.getAttribute('data-name');
-      
-      Swal.fire({
-        title: 'Are you sure?',
-        text: `You are about to delete the brand "${brandName}". This action cannot be undone!`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Yes, delete it!',
-        cancelButtonText: 'Cancel'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          window.location.href = `/admin/deleteBrand?id=${brandId}`;
+        if (brandImage) {
+            const allowedExtensions = ["image/jpeg", "image/jpg", "image/png"];
+            if (!allowedExtensions.includes(brandImage.type)) {
+                imageError.classList.remove("d-none");
+                valid = false;
+            } else {
+                imageError.classList.add("d-none");
+            }
+        } else {
+            imageError.classList.remove("d-none");
+            valid = false;
         }
-      });
-    });
-  });
 
-  // Block brand with confirmation
-  document.querySelectorAll('.block-btn').forEach(button => {
-    button.addEventListener('click', function(e) {
-      e.preventDefault();
-      const brandId = this.getAttribute('data-id');
-      const brandName = this.getAttribute('data-name');
-      
-      Swal.fire({
-        title: 'Block Brand?',
-        text: `Are you sure you want to block "${brandName}"?`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Yes, block it',
-        cancelButtonText: 'Cancel'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          window.location.href = `/admin/blockBrand?id=${brandId}`;
+        if (valid) {
+            Swal.fire({
+                title: 'Adding Brand',
+                text: 'Please wait...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            this.submit();
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Validation Error',
+                text: 'Please check the form for errors',
+                confirmButtonColor: '#3085d6'
+            });
         }
-      });
     });
-  });
 
-  // Unblock brand with confirmation
-  document.querySelectorAll('.unblock-btn').forEach(button => {
-    button.addEventListener('click', function(e) {
-      e.preventDefault();
-      const brandId = this.getAttribute('data-id');
-      const brandName = this.getAttribute('data-name');
-      
-      Swal.fire({
-        title: 'Unblock Brand?',
-        text: `Are you sure you want to unblock "${brandName}"?`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#28a745',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Yes, unblock it',
-        cancelButtonText: 'Cancel'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          window.location.href = `/admin/unBlockBrand?id=${brandId}`;
+    // Delete brand with confirmation
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const brandId = this.getAttribute('data-id');
+            const brandName = this.getAttribute('data-name');
+            Swal.fire({
+                title: 'Are you sure?',
+                text: `You are about to delete the brand "${brandName}". This action cannot be undone!`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = `/admin/deleteBrand?id=${brandId}`;
+                }
+            });
+        });
+    });
+
+    // Block brand with confirmation
+    document.querySelectorAll('.block-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const brandId = this.getAttribute('data-id');
+            const brandName = this.getAttribute('data-name');
+            Swal.fire({
+                title: 'Block Brand?',
+                text: `Are you sure you want to block "${brandName}"?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, block it',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = `/admin/blockBrand?id=${brandId}`;
+                }
+            });
+        });
+    });
+
+    // Unblock brand with confirmation
+    document.querySelectorAll('.unblock-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const brandId = this.getAttribute('data-id');
+            const brandName = this.getAttribute('data-name');
+            Swal.fire({
+                title: 'Unblock Brand?',
+                text: `Are you sure you want to unblock "${brandName}"?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, unblock it',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = `/admin/unBlockBrand?id=${brandId}`;
+                }
+            });
+        });
+    });
+
+    // Clear Form Button
+    document.getElementById("clearBtn").addEventListener("click", function () {
+        document.getElementById("brandForm").reset();
+        document.getElementById("previewImage").src = "";
+        document.getElementById("nameError").classList.add("d-none");
+        document.getElementById("imageError").classList.add("d-none");
+        Swal.fire({
+            icon: 'info',
+            title: 'Form Cleared',
+            text: 'The form has been reset',
+            timer: 1500,
+            showConfirmButton: false
+        });
+    });
+
+    // Image Preview
+    document.getElementById("brand_image").addEventListener("change", function (event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function () {
+                document.getElementById("previewImage").src = reader.result;
+            };
+            reader.readAsDataURL(file);
+        } else {
+            document.getElementById("previewImage").src = "";
         }
-      });
     });
-  });
 
-  // Clear Form Button
-  document.getElementById("clearBtn").addEventListener("click", function () {
-    document.getElementById("brandForm").reset();
-    document.getElementById("previewImage").src = "";
-    document.getElementById("nameError").classList.add("d-none");
-    document.getElementById("imageError").classList.add("d-none");
-    
-    Swal.fire({
-      icon: 'info',
-      title: 'Form Cleared',
-      text: 'The form has been reset',
-      timer: 1500,
-      showConfirmButton: false
+    // Success/Error toast notification
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const successMsg = urlParams.get('success');
+        const errorMsg = urlParams.get('error');
+
+        if (successMsg) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: decodeURIComponent(successMsg),
+                timer: 2000,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false
+            });
+        } else if (errorMsg) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: decodeURIComponent(errorMsg),
+                timer: 3000,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false
+            });
+        }
     });
-  });
-
-  // Image Preview
-  document.getElementById("brand_image").addEventListener("change", function (event) {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function () {
-        document.getElementById("previewImage").src = reader.result;
-      };
-      reader.readAsDataURL(file);
-    } else {
-      document.getElementById("previewImage").src = "";
-    }
-  });
-
-  // Success toast notification (for when redirected back after an operation)
-  document.addEventListener('DOMContentLoaded', function() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const successMsg = urlParams.get('success');
-  const errorMsg = urlParams.get('error');
-
-  if (successMsg) {
-    Swal.fire({
-      icon: 'success',
-      title: 'Success!',
-      text: decodeURIComponent(successMsg),
-      timer: 2000,
-      toast: true,
-      position: 'top-end',
-      showConfirmButton: false
-    });
-  } else if (errorMsg) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Error!',
-      text: decodeURIComponent(errorMsg), // Will show "Brand already exists"
-      timer: 3000,
-      toast: true,
-      position: 'top-end',
-      showConfirmButton: false
-    });
-  }
-});
-
-
-//   const updateBrandNamesToLowercase = async () => {
-//   const brands = await Brand.find();
-//   for (const brand of brands) {
-//     brand.brandName = brand.brandName.toLowerCase();
-//     await brand.save();
-//   }
-//   console.log("All brand names have been updated to lowercase.");
-// };
-
-// updateBrandNamesToLowercase();
 </script>
-<%- include("../../views/partials/admin/footer") %>
+<%- include("../../views/partials/admin/footer") %>
