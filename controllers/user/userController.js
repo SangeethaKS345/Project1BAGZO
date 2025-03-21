@@ -11,29 +11,67 @@ const Brand = require("../../models/brandSchema");
 const loadHomepage = async (req, res, next) => {
     try {
         const user = req.session.user;
-
-        console.log("user in session", user)
-        // Fetch categories and brands
         const categories = await Category.find({ isListed: true });
         const brand = await Brand.find({ isBlocked: false });
 
-        // Fetch products with sorting directly in the query
+        // Fetch products with populated category
         const productData = await Product.find({
             isBlocked: false,
             category: { $in: categories.map(category => category._id) },
             brand: { $in: brand.map(brand => brand._id) }
-        }).sort({ createdAt: -1 });
+        })
+        .populate('category')
+        .sort({ createdAt: -1 });
 
-        //console.log(productData);
+        // Calculate effective price for each product
+        const currentDate = new Date();
+        const productsWithOffers = productData.map(product => {
+            let effectivePrice = product.salesPrice;
+            let offerPercentage = 0;
+            let offerType = '';
+
+            // Check product-specific offer
+            if (product.productOffer > 0 && 
+                (!product.offerEndDate || product.offerEndDate > currentDate)) {
+                effectivePrice = product.regularPrice * (1 - product.productOffer/100);
+                offerPercentage = product.productOffer;
+                offerType = 'product';
+            }
+            
+            // Check category offer if no product offer or if category offer is higher
+            if (product.category?.categoryOffer > offerPercentage && 
+                (!product.category.offerEndDate || product.category.offerEndDate > currentDate)) {
+                effectivePrice = product.regularPrice * (1 - product.category.categoryOffer/100);
+                offerPercentage = product.category.categoryOffer;
+                offerType = 'category';
+            }
+
+            return {
+                ...product._doc,
+                effectivePrice: Math.round(effectivePrice),
+                offerPercentage,
+                offerType
+            };
+        });
 
         if (user) {
             const userData = await User.findById(req.session.user.id);
-            return res.render("home", { userData, products: productData, categories, brand });
+            return res.render("home", { 
+                userData, 
+                products: productsWithOffers, 
+                categories, 
+                brand 
+            });
         } else {
-            return res.render("home", { products: productData, userData: "", categories, brand });
+            return res.render("home", { 
+                products: productsWithOffers, 
+                userData: "", 
+                categories, 
+                brand 
+            });
         }
     } catch (error) {
-        next(error);  // Pass error to errorHandler
+        next(error);
     }
 };
 

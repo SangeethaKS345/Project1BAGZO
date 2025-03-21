@@ -1,5 +1,12 @@
 <%- include('../../views/partials/user/header') %>
 <link rel="stylesheet" href="/css/home.css" type="text/css">
+<style>
+    .product-price .offer-percentage {
+        color: #e91e63;
+        font-size: 12px;
+        margin-left: 5px;
+    }
+</style>
 <section class="hero">
     <div class="hero__slider owl-carousel">
         <div class="hero__items set-bg" data-setbg="/img/banner/banner1.jpg">
@@ -61,7 +68,9 @@
                                     <i class="fas fa-heart"></i>
                                 </button>
                             </div>
-                            <% if(products[i].regularPrice > products[i].salesPrice) { %>
+                            <% if(products[i].offerPercentage > 0) { %>
+                                <div class="product-badge">Offer</div>
+                            <% } else if(products[i].regularPrice > products[i].salesPrice) { %>
                                 <div class="product-badge">Sale</div>
                             <% } %>
                         </div>
@@ -69,10 +78,16 @@
                             <span class="product-brand"><%=products[i].brandName %></span>
                             <h6 class="product-title"><%=products[i].productName%></h6>
                             <div class="product-price">
-                                <% if(products[i].regularPrice > products[i].salesPrice) { %>
+                                <% if(products[i].offerPercentage > 0) { %>
                                     <span class="old-price">₹<%=products[i].regularPrice%></span>
+                                    <span class="current-price">₹<%=products[i].effectivePrice%></span>
+                                    <span class="offer-percentage">(<%=products[i].offerPercentage%>% OFF)</span>
+                                <% } else if(products[i].regularPrice > products[i].salesPrice) { %>
+                                    <span class="old-price">₹<%=products[i].regularPrice%></span>
+                                    <span class="current-price">₹<%=products[i].salesPrice%></span>
+                                <% } else { %>
+                                    <span class="current-price">₹<%=products[i].regularPrice%></span>
                                 <% } %>
-                                <span class="current-price">₹<%=products[i].salesPrice%></span>
                             </div>
                             <a href="javascript:void(0)" onclick="addToCart('<%= products[i]._id %>')" class="add-to-cart-btn">Add to Cart</a>
                         </div>
