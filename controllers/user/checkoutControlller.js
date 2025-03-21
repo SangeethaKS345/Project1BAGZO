@@ -1,9 +1,11 @@
+const mongoose = require('mongoose'); // Add this with other imports
 const Address = require('../../models/addressSchema');
 const Cart = require('../../models/cartSchema');
 const Product = require('../../models/productSchema');
 const Category = require('../../models/categorySchema');
 const Brand = require('../../models/brandSchema');
 const Order = require('../../models/orderSchema');
+const Coupon = require('../../models/couponSchema');
 const razorpay = require('../../config/razorpay');
 const  Wallet = require('../../models/walletSchema');
 const { addWalletTransaction } = require('../../controllers/user/walletController');
@@ -42,13 +44,29 @@ const getCheckoutPage = async (req, res) => {
     const wallet = await Wallet.findOne({ user: userId });
     const walletBalance = wallet ? wallet.balance : 0;
 
+    // Fetch available coupons
+    const coupons = await Coupon.find({
+      isListed: true,
+      isDeleted: false,
+      startOn: { $lte: new Date() },
+      expireOn: { $gte: new Date() },
+      $expr: { $lt: ["$usesCount", "$maxUses"] } // Compare usesCount with maxUses
+    }).lean();
+
+    // Filter out coupons already used by the user
+    const availableCoupons = coupons.filter(coupon => {
+      const userUse = coupon.userUses.find(use => use.userId.toString() === userId.toString());
+      return !userUse || userUse.count < 1; // Show only if user hasn't used it
+    });
+
     res.render('checkout', { 
       user: req.user, 
       addresses, 
       cartItems, 
       cartSubtotal, 
       finalAmount,
-      walletBalance, // Add this line
+      walletBalance,
+      coupons: availableCoupons,
       error: req.session.error || null 
     });
     req.session.error = null;
@@ -98,7 +116,7 @@ async function getCartDataForUser(userId) {
 
 const placeOrder = async (req, res) => {
   try {
-    const { addressId, paymentMethod } = req.body;
+    const { addressId, paymentMethod, couponCode } = req.body;
     const userId = req.user._id;
 
     console.log("Place Order Request Body:", req.body);
@@ -139,6 +157,34 @@ const placeOrder = async (req, res) => {
       return sum + (price * item.quantity);
     }, 0);
 
+    // Coupon logic
+    let discount = 0;
+    if (couponCode) {
+      const coupon = await Coupon.findOne({ 
+        code: couponCode.toUpperCase(),
+        isListed: true,
+        isDeleted: false,
+        startOn: { $lte: new Date() },
+        expireOn: { $gte: new Date() }
+      });
+
+      if (coupon && finalAmount >= coupon.minimumPrice && coupon.usesCount < coupon.maxUses) {
+        const userUse = coupon.userUses.find(use => use.userId.toString() === userId.toString());
+        if (!userUse || userUse.count < 1) {
+          discount = coupon.offerPrice;
+          coupon.usesCount += 1;
+          if (userUse) {
+            userUse.count += 1;
+          } else {
+            coupon.userUses.push({ userId, count: 1 });
+          }
+          await coupon.save();
+        }
+      }
+    }
+
+    const discountedAmount = finalAmount - discount;
+
     // Validate selected address
     const selectedAddress = await Address.findById(addressId).lean();
     if (!selectedAddress || selectedAddress.userId.toString() !== userId.toString()) {
@@ -154,17 +200,19 @@ const placeOrder = async (req, res) => {
         price: item.productDetails.salesPrice
       })),
       totalPrice: finalAmount,
-      finalAmount: finalAmount,
+      finalAmount: discountedAmount,
       address: addressId,
-      status: paymentMethod === 'razorpay' ? 'Pending' : 'Processing', // Pending for Razorpay until payment is verified
-      paymentMethod: paymentMethod
+      status: paymentMethod === 'razorpay' ? 'Pending' : 'Processing',
+      paymentMethod: paymentMethod,
+      couponCode: couponCode || null,
+      discount: discount
     });
 
     await order.save();
 
     if (paymentMethod === 'razorpay') {
       const razorpayOrder = await razorpay.orders.create({
-        amount: finalAmount * 100, // Convert to paise
+        amount: discountedAmount * 100, // Use discounted amount in paise
         currency: 'INR',
         receipt: order.orderId
       });
@@ -181,7 +229,7 @@ const placeOrder = async (req, res) => {
     // Handle wallet payment
     if (paymentMethod === 'wallet') {
       try {
-        await addWalletTransaction(userId, finalAmount, 'debit', `Payment for order #${order.orderId}`);
+        await addWalletTransaction(userId, discountedAmount, 'debit', `Payment for order #${order.orderId}`);
       } catch (error) {
         return res.status(400).json({ 
           success: false, 
@@ -379,6 +427,47 @@ const verifyRetryPayment = async (req, res) => {
   }
 };
 
+const applyCoupon = async (req, res) => {
+  try {
+    const { couponCode, subtotal } = req.body;
+    const userId = req.user._id;
+
+    const coupon = await Coupon.findOne({ 
+      code: couponCode.toUpperCase(),
+      isListed: true,
+      isDeleted: false,
+      startOn: { $lte: new Date() },
+      expireOn: { $gte: new Date() }
+    });
+
+    if (!coupon) {
+      return res.json({ success: false, message: 'Invalid or expired coupon' });
+    }
+
+    if (subtotal < coupon.minimumPrice) {
+      return res.json({ 
+        success: false, 
+        message: `Minimum purchase of ₹${coupon.minimumPrice} required` 
+      });
+    }
+
+    if (coupon.usesCount >= coupon.maxUses) {
+      return res.json({ success: false, message: 'Coupon usage limit reached' });
+    }
+
+    const userUse = coupon.userUses.find(use => use.userId.toString() === userId.toString());
+    if (userUse && userUse.count >= 1) { // Assuming one use per user
+      return res.json({ success: false, message: 'You have already used this coupon' });
+    }
+
+    const discount = coupon.offerPrice;
+    return res.json({ success: true, discount });
+  } catch (error) {
+    console.error('Error applying coupon:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
 module.exports = {
   getCartPage,
   getCheckoutPage,
@@ -387,5 +476,6 @@ module.exports = {
   verifyPayment,
   getOrderFailurePage,
   retryPayment,
-  verifyRetryPayment
+  verifyRetryPayment,
+  applyCoupon
 };

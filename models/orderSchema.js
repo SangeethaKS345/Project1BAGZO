@@ -28,6 +28,14 @@ const orderSchema = new Schema({
       required: true
     }
   }],
+  couponCode: {
+    type: String,
+    default: null
+  },
+  discount: {
+    type: Number,
+    default: 0
+  },
   totalPrice: {
     type: Number,
     default: 0
