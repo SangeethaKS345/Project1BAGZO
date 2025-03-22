@@ -153,22 +153,22 @@ const postNewPassword = async (req, res) => {
 };
 
 const userProfile = async (req, res) => {
-  try {
-      console.log("UserProfile Controller Called");
-      const userData = req.user;
-      if (!userData) {
-          console.log("No user data found");
-          return res.redirect("/login");
-      }
-      console.log("User Data:", userData); // Log to verify profileImage exists
-      res.render("profile", { 
-          userData: userData,
-          user: userData
-      });
-  } catch (error) {
-      console.error("Profile Controller Error:", error);
-      res.redirect("/pageNotFound");
-  }
+    try {
+        console.log("UserProfile Controller Called");
+        const userData = req.user;
+        if (!userData) {
+            console.log("No user data found");
+            return res.redirect("/login");
+        }
+        console.log("User Data:", userData);
+        res.render("profile", { 
+            userData: userData,
+            user: userData
+        });
+    } catch (error) {
+        console.error("Profile Controller Error:", error);
+        res.redirect("/pageNotFound");
+    }
 };
 
 const getEditProfile = async (req, res) => {

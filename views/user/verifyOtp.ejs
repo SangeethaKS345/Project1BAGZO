@@ -59,34 +59,38 @@
     }
     startTimer();
 
-    function validateOTPForm(event){
-        event.preventDefault();
-        const otpInput = document.getElementById("otp").value;
-        $.ajax({
-            type: "POST",
-            url: "/verify-otp",
-            contentType: "application/json",
-            data: JSON.stringify({ otp: otpInput }),
-            success: function(response) {
-                if (response.success) {
-                    Swal.fire({
-                        icon: "success",
-                        title: "OTP verified successfully",
-                        showConfirmButton: false,
-                        timer: 1500,
-                    }).then(() => {
-                        window.location.href = response.redirectUrl;
-                    });
-                } else {
-                    Swal.fire({ icon: "error", title: "Error", text: response.message });
-                }
-            },
-            error: function() {
-                Swal.fire({ icon: "error", title: "Invalid OTP", text: "Please try again" });
-            }
-        });
+    function validateOTPForm(event) {
+    event.preventDefault();
+    const otpInput = document.getElementById("otp");
+    if (otpInput.disabled) {
+        Swal.fire({ icon: "error", title: "OTP Expired", text: "Please resend OTP" });
         return false;
     }
+    console.log("Submitting OTP:", otpInput.value);
+    $.ajax({
+        type: "POST",
+        url: "/verify-otp",
+        contentType: "application/json",
+        data: JSON.stringify({ otp: otpInput.value }),
+        success: function(response) {
+            if (response.success) {
+                Swal.fire({
+                    icon: "success",
+                    title: "OTP verified successfully",
+                    timer: 1500
+                }).then(() => {
+                    window.location.href = response.redirectUrl;
+                });
+            } else {
+                Swal.fire({ icon: "error", title: "Error", text: response.message });
+            }
+        },
+        error: function() {
+            Swal.fire({ icon: "error", title: "Invalid OTP", text: "Please try again" });
+        }
+    });
+    return false;
+}
 
     function resendOTP(){
         clearInterval(timerInterval);

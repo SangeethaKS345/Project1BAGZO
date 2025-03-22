@@ -47,6 +47,10 @@
                     <i class="password-toggle fa fa-eye-slash" onclick="togglePasswordVisibility('cPassword')"></i>
                     <div id="error5" class="error-message"></div>
                 </div>
+                <div class="input-container">
+                    <input type="text" id="referralCode" placeholder="Referral Code (Optional)" name="referralCode" />
+                    <div id="error6" class="error-message"></div>
+                </div>
                 <button type="button" id="submitBtn">Sign Up</button>
                 <a href="/auth/google" class="gmail-btn"><i class="fab fa-google"></i> Sign up with Gmail</a>
                 
@@ -117,6 +121,7 @@
         const phone = document.getElementById('phone').value.trim();
         const password = document.getElementById('password').value.trim();
         const cPassword = document.getElementById('cPassword').value.trim();
+        const referralCode = document.getElementById('referralCode').value.trim();
         
         // Name validation
         if (fullName === '') {

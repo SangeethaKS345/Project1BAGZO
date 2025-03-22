@@ -41,8 +41,10 @@ const userSchema = new Schema({
         ref: "Cart",
         default: []
     }],
-    referalCode: {
-        type: String
+    referralCode: { 
+        type: String, 
+        unique: true, 
+        sparse: true 
     },
     redeemed: {
         type: Boolean,
