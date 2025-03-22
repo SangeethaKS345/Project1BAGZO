@@ -448,41 +448,67 @@
     }
   
     document.getElementById('editCouponForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      document.querySelectorAll('.errorMessage').forEach(el => el.remove());
-  
-      const couponId = document.getElementById('editCouponId').value;
-      const formData = {
+    e.preventDefault();
+    document.querySelectorAll('.errorMessage').forEach(el => el.remove());
+
+    const couponId = document.getElementById('editCouponId').value;
+    const offerAmount = Number(document.getElementById('editOfferAmount').value);
+    const minimumPurchase = Number(document.getElementById('editMinimumPurchase').value);
+    const startDate = new Date(document.getElementById('editStartDate').value);
+    const expirationDate = new Date(document.getElementById('editExpirationDate').value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let hasError = false;
+    if (offerAmount >= minimumPurchase) {
+        displayError('editOfferAmount', 'Offer amount must be less than minimum purchase amount');
+        hasError = true;
+    }
+    if (startDate < today) {
+        displayError('editStartDate', 'Start date cannot be in the past');
+        hasError = true;
+    }
+    if (expirationDate <= startDate) {
+        displayError('editExpirationDate', 'Expiry date must be after start date');
+        hasError = true;
+    }
+    const usageLimit = Number(document.getElementById('editUsageLimit').value);
+    if (usageLimit <= 0) {
+        displayError('editUsageLimit', 'Usage limit must be greater than 0');
+        hasError = true;
+    }
+    if (hasError) return;
+
+    const formData = {
         code: document.getElementById('editCouponCode').value.toUpperCase(),
-        offerPrice: Number(document.getElementById('editOfferAmount').value),
-        minimumPrice: Number(document.getElementById('editMinimumPurchase').value),
+        offerPrice: offerAmount,
+        minimumPrice: minimumPurchase,
         startOn: document.getElementById('editStartDate').value,
-        maxUses: Number(document.getElementById('editUsageLimit').value),
+        maxUses: usageLimit,
         expireOn: document.getElementById('editExpirationDate').value
-      };
-  
-      try {
+    };
+
+    try {
         const response = await fetch(`/admin/editCoupon/${couponId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
         });
         const data = await response.json();
-  
+
         if (data.success) {
-          await Swal.fire({ icon: 'success', title: 'Success!', text: 'Coupon updated successfully', timer: 1500 });
-          const modal = bootstrap.Modal.getInstance(document.getElementById('editCouponModal'));
-          modal.hide();
-          location.reload();
+            await Swal.fire({ icon: 'success', title: 'Success!', text: 'Coupon updated successfully', timer: 1500 });
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editCouponModal'));
+            modal.hide();
+            location.reload();
         } else {
-          Swal.fire({ icon: 'error', title: 'Error!', text: data.message || 'Error updating coupon' });
+            Swal.fire({ icon: 'error', title: 'Error!', text: data.message || 'Error updating coupon' });
         }
-      } catch (error) {
+    } catch (error) {
         console.error('Error:', error);
         Swal.fire({ icon: 'error', title: 'Error!', text: 'An error occurred while updating the coupon' });
-      }
-    });
-  
+    }
+});
     async function deleteCoupon() {
       const couponId = document.getElementById('editCouponId').value;
   
