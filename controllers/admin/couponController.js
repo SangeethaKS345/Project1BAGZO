@@ -123,9 +123,6 @@ const toggleCouponStatus = async (req, res) => {
     }
 };
 
-const applyCoupon = async (req, res) => {
-    // ... existing code ...
-};
 
 const editCoupon = async (req, res) => {
     try {
@@ -212,7 +209,6 @@ module.exports = {
     getCouponPage,
     addCoupon,
     toggleCouponStatus,
-    applyCoupon,
     editCoupon,
     deleteCoupon,
     getCoupon

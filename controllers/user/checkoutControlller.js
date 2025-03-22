@@ -56,7 +56,7 @@ const getCheckoutPage = async (req, res) => {
     // Filter out coupons already used by the user
     const availableCoupons = coupons.filter(coupon => {
       const userUse = coupon.userUses.find(use => use.userId.toString() === userId.toString());
-      return !userUse || userUse.count < 1; // Show only if user hasn't used it
+      return !userUse || userUse.count <= coupon.usesCount; // Show only if user hasn't used it
     });
 
     res.render('checkout', { 
@@ -170,7 +170,7 @@ const placeOrder = async (req, res) => {
 
       if (coupon && finalAmount >= coupon.minimumPrice && coupon.usesCount < coupon.maxUses) {
         const userUse = coupon.userUses.find(use => use.userId.toString() === userId.toString());
-        if (!userUse || userUse.count < 1) {
+        if (!userUse || userUse.count < coupon.userUses) {
           discount = coupon.offerPrice;
           coupon.usesCount += 1;
           if (userUse) {
@@ -456,7 +456,7 @@ const applyCoupon = async (req, res) => {
     }
 
     const userUse = coupon.userUses.find(use => use.userId.toString() === userId.toString());
-    if (userUse && userUse.count >= 1) { // Assuming one use per user
+    if (userUse && userUse.count <= coupon.userUses) { // Assuming one use per user
       return res.json({ success: false, message: 'You have already used this coupon' });
     }
 

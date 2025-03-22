@@ -36,7 +36,7 @@ const couponSchema = new Schema({
   },
   maxUses: {  
     type: Number,
-    default: 5,  
+    default: 0,  
   },
   usesCount: {  
     type: Number,
