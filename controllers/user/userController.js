@@ -89,7 +89,7 @@ const loadSignup = async (req, res, next) => {
 
 // Generate a 6-digit OTP
 const generateOtp = () => {
-    return String(Math.floor(100000 + Math.random() * 900000)); // Ensures it's always a 6-digit string
+    return String(Math.floor(100000 + Math.random() * 900000)); 
 };
 
 // Send OTP via Email
@@ -109,8 +109,10 @@ const sendVerificationEmail = async (email, otp) => {
             subject: "Verify Your Account",
             text: `Your OTP is ${otp}`,
         });
+        console.log("OTP sent to email:", email, otp);
 
         return { success: true, message: "Email sent successfully" };
+       
     } catch (error) {
         console.error("Error sending email:", error);
         return { success: false, message: error.message };
