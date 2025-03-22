@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const {Schema} = mongoose;
+const { Schema } = mongoose;
 
 const userSchema = new Schema({
     name: {
@@ -22,7 +22,7 @@ const userSchema = new Schema({
     googleId: {
         type: String,
         unique: true,
-        sparse: true  // Allows multiple null values
+        sparse: true
     },
     password: {
         type: String,
@@ -45,16 +45,9 @@ const userSchema = new Schema({
         type: String, 
         unique: true, 
         sparse: true 
-    },
-    redeemed: {
-        type: Boolean,
-        default: false
-    },
+    }
+    // Removed redeemed field
 }, { timestamps: true }); 
 
-
-
 const User = mongoose.model("User", userSchema);
-
 module.exports = User;
-

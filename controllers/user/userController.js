@@ -236,7 +236,7 @@ const verifyOtp = async (req, res, next) => {
         // Handle optional referral code from signup
         if (referralCode) {
             const referrer = await User.findOne({ referralCode });
-            if (referrer && !referrer.redeemed) {
+            if (referrer) { 
                 // Credit 500 to new user's wallet with transaction
                 newWallet.balance += 500;
                 newWallet.transactions.push({
@@ -267,12 +267,11 @@ const verifyOtp = async (req, res, next) => {
                 await referrerWallet.save();
                 console.log("Referrer wallet after referral bonus:", referrerWallet);
 
-                // Mark referrer as redeemed
-                referrer.redeemed = true;
-                await referrer.save();
-                console.log("Referrer marked as redeemed:", referrer.referralCode);
+                // We’re not updating redeemed anymore
+                // referrer.redeemed = true;
+                // await referrer.save();
             } else {
-                console.log("Referral code invalid or already redeemed:", referralCode);
+                console.log("Invalid referral code provided:", referralCode);
             }
         } else {
             console.log("No referral code provided during signup");
