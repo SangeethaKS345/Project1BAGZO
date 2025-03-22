@@ -6,7 +6,7 @@ const couponSchema = new Schema({
     type: String,
     required: true,
     unique: true,
-    trim: true, 
+    trim: true,
     uppercase: true,
   },
   createdOn: {
@@ -24,7 +24,7 @@ const couponSchema = new Schema({
   },
   description: {
     type: String,
-    default: 'for mass sale',
+    default: "for mass sale",
   },
   offerPrice: {
     type: Number,
@@ -34,25 +34,34 @@ const couponSchema = new Schema({
     type: Number,
     required: true,
   },
-  maxUses: {  
+  maxUses: {
     type: Number,
-    default: 0,  
+    required: true, // Total uses across all users
+    min: 1,
   },
-  usesCount: {  
+  maxUsesPerUser: {
+    type: Number,
+    required: true, // Maximum uses per user
+    min: 1,
+  },
+  usesCount: {
     type: Number,
     default: 0,
   },
-  userUses: [{
-    userId: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
-      required: true
+  userUses: [
+    {
+      userId: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+      },
+      count: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
     },
-    count: {
-      type: Number,
-      default: 0
-    }
-  }],
+  ],
   isListed: {
     type: Boolean,
     default: true,
@@ -62,7 +71,6 @@ const couponSchema = new Schema({
     default: false,
   },
 });
-
 
 const Coupon = mongoose.model("Coupon", couponSchema);
 
