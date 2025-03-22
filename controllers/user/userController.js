@@ -212,7 +212,8 @@ const verifyOtp = async (req, res, next) => {
         const { name, phone, email, password, referralCode } = req.session.userData;
         const hashedPassword = await securePassword(password);
         const userReferralCode = await generateReferralCode();
-        console.log("Generated referral code:", userReferralCode);
+        console.log("Generated referral code for new user:", userReferralCode);
+
         const newUser = new User({ 
             name, 
             phone, 
@@ -221,33 +222,60 @@ const verifyOtp = async (req, res, next) => {
             referralCode: userReferralCode 
         });
         await newUser.save();
-        console.log("Saved user with referral code:", newUser);
+        console.log("Saved new user with referral code:", newUser.referralCode);
 
         // Create wallet for new user
-        const newWallet = new Wallet({
+        let newWallet = new Wallet({
             user: newUser._id,
-            balance: 0
+            balance: 0,
+            transactions: []
         });
         await newWallet.save();
+        console.log("New user wallet created:", newWallet);
 
         // Handle optional referral code from signup
         if (referralCode) {
             const referrer = await User.findOne({ referralCode });
             if (referrer && !referrer.redeemed) {
-                // Credit 500 to new user's wallet
-                await Wallet.updateOne(
-                    { user: newUser._id },
-                    { $inc: { balance: 500 } }
-                );
-                // Credit 500 to referrer's wallet
-                await Wallet.updateOne(
-                    { user: referrer._id },
-                    { $inc: { balance: 500 } }
-                );
+                // Credit 500 to new user's wallet with transaction
+                newWallet.balance += 500;
+                newWallet.transactions.push({
+                    type: 'credit',
+                    amount: 500,
+                    description: 'Referral bonus for signing up',
+                    date: new Date()
+                });
+                await newWallet.save();
+                console.log("New user wallet after referral bonus:", newWallet);
+
+                // Credit 500 to referrer's wallet with transaction
+                let referrerWallet = await Wallet.findOne({ user: referrer._id });
+                if (!referrerWallet) {
+                    referrerWallet = new Wallet({ 
+                        user: referrer._id, 
+                        balance: 0, 
+                        transactions: [] 
+                    });
+                }
+                referrerWallet.balance += 500;
+                referrerWallet.transactions.push({
+                    type: 'credit',
+                    amount: 500,
+                    description: `Referral bonus for referring ${newUser.name}`,
+                    date: new Date()
+                });
+                await referrerWallet.save();
+                console.log("Referrer wallet after referral bonus:", referrerWallet);
+
                 // Mark referrer as redeemed
                 referrer.redeemed = true;
                 await referrer.save();
+                console.log("Referrer marked as redeemed:", referrer.referralCode);
+            } else {
+                console.log("Referral code invalid or already redeemed:", referralCode);
             }
+        } else {
+            console.log("No referral code provided during signup");
         }
 
         // Set session user

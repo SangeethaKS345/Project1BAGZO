@@ -17,17 +17,23 @@ const loadWalletPage = async (req, res, next) => {
 
         let wallet = await Wallet.findOne({ user: req.user._id });
         if (!wallet) {
-            wallet = new Wallet({ user: req.user._id });
+            wallet = new Wallet({ user: req.user._id, balance: 0, transactions: [] });
             await wallet.save();
+            console.log("Created new wallet for user:", req.user._id);
         }
+
+        console.log("Wallet data retrieved:", wallet);
+        console.log("Total transactions in wallet:", wallet.transactions.length);
 
         // Get total number of transactions
         const totalTransactions = wallet.transactions.length;
         
         // Sort transactions and apply pagination
         const transactions = wallet.transactions
-            .sort((a, b) => b.date - a.date)
+            .sort((a, b) => b.date - a.date) // Sort by date descending
             .slice(skip, skip + limit);
+
+        console.log("Paginated transactions to display:", transactions);
 
         // Calculate total pages
         const totalPages = Math.ceil(totalTransactions / limit);
@@ -42,6 +48,7 @@ const loadWalletPage = async (req, res, next) => {
             hasNext: page < totalPages
         });
     } catch (error) {
+        console.error("Error loading wallet page:", error);
         next(error);
     }
 };
