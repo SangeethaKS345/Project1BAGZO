@@ -30,7 +30,6 @@ const loadHomepage = async (req, res, next) => {
             let offerPercentage = 0;
             let offerType = '';
 
-            // Check product-specific offer
             if (product.productOffer > 0 && 
                 (!product.offerEndDate || product.offerEndDate > currentDate)) {
                 effectivePrice = product.regularPrice * (1 - product.productOffer/100);
@@ -38,7 +37,6 @@ const loadHomepage = async (req, res, next) => {
                 offerType = 'product';
             }
             
-            // Check category offer if no product offer or if category offer is higher
             if (product.category?.categoryOffer > offerPercentage && 
                 (!product.category.offerEndDate || product.category.offerEndDate > currentDate)) {
                 effectivePrice = product.regularPrice * (1 - product.category.categoryOffer/100);
@@ -54,22 +52,23 @@ const loadHomepage = async (req, res, next) => {
             };
         });
 
-        if (user) {
-            const userData = await User.findById(req.session.user.id);
+        let userData = null;
+        if (user && user.id) {
+            userData = await User.findById(user.id);
             return res.render("home", { 
                 userData, 
                 products: productsWithOffers, 
                 categories, 
                 brand 
             });
-        } else {
-            return res.render("home", { 
-                products: productsWithOffers, 
-                userData: "", 
-                categories, 
-                brand 
-            });
         }
+
+        return res.render("home", { 
+            userData, // Pass null explicitly if no user
+            products: productsWithOffers, 
+            categories, 
+            brand 
+        });
     } catch (error) {
         next(error);
     }
@@ -192,23 +191,30 @@ const verifyOtp = async (req, res, next) => {
         const newUser = new User({ name, phone, email, password: hashedPassword });
         await newUser.save();
 
+        // Set session data
         req.session.user = {
-            _id: newUser._id.toString(),
+            id: newUser._id.toString(), // Use 'id' to match loadHomepage
             name: newUser.name,
             email: newUser.email
         };
 
-        // Clear session
+        // Clear OTP and temporary user data from session
         req.session.userOtp = null;
         req.session.userData = null;
-        req.session.save();
 
-        console.log(`Sign up verification OTP :  ${otp}`);
-        return res.json({ success: true, redirectUrl: "/" });
-   
+        // Ensure session is saved before redirect
+        req.session.save((err) => {
+            if (err) {
+                console.error("Session save error:", err);
+                return res.json({ success: false, message: "Session error" });
+            }
+
+            console.log(`Sign up verification OTP: ${otp}`);
+            return res.json({ success: true, redirectUrl: "/" });
+        });
     } catch (error) {
         console.error("Error verifying OTP:", error);
-        next(error); 
+        next(error);
     }
 };
 
