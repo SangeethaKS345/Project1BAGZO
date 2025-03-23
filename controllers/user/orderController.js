@@ -1,26 +1,50 @@
 const Order = require('../../models/orderSchema');
-const Product = require('../../models/productSchema'); 
-const User = require('../../models/userSchema'); 
+const Product = require('../../models/productSchema');
+const User = require('../../models/userSchema');
 const Wallet = require('../../models/walletSchema');
-const walletController = require('./walletController'); 
-const addressController = require('./addressController');
+const walletController = require('./walletController');
 const PDFDocument = require('pdfkit');
 
+// Constants
+const ORDERS_PER_PAGE = 3;
+const STATUS_MAP = {
+  'Pending': 1,
+  'Pending COD': 1,
+  'Processing': 2,
+  'Shipped': 3,
+  'Delivered': 4,
+  'Return Request': 5,
+  'Returned': 6,
+  'Cancelled': 0
+};
+
+// Helper Functions
+const getOrderStatus = (status) => STATUS_MAP[status] || 0;
+
+const validateAuth = (req) => {
+  if (!req.user) {
+    const err = new Error("User not authenticated");
+    err.status = 401;
+    throw err;
+  }
+  return req.user._id;
+};
+
+// Main Controllers
 const getOrderPlaced = async (req, res, next) => {
   try {
-    if (!req.user) throw new Error("User not authenticated");
-
+    validateAuth(req);
     const { orderId, totalAmount, placedAt } = req.query;
 
-    // Check if order details are provided via query parameters
     if (!orderId || !totalAmount || !placedAt) {
-      return res.status(400).render("orderPlaced", { order: null, message: "Order details not found." });
+      const err = new Error("Order details not found");
+      err.status = 400;
+      throw err;
     }
 
-    // Format the order details from query parameters
     const orderDetails = {
       orderId,
-      totalAmount: parseFloat(totalAmount).toFixed(2),
+      totalAmount: Number(totalAmount).toFixed(2),
       placedAt: new Date(placedAt).toLocaleString()
     };
 
@@ -30,314 +54,146 @@ const getOrderPlaced = async (req, res, next) => {
   }
 };
 
-const cancelOrder = async (req, res) => {
+const cancelOrder = async (req, res, next) => {
   try {
+    const userId = validateAuth(req);
     const { orderId } = req.params;
-    const userId = req.user._id;
     const { cancellationReason } = req.body || {};
 
     if (!cancellationReason) {
-      return res.status(400).json({
-        success: false,
-        message: 'Cancellation reason is required',
-      });
+      const err = new Error("Cancellation reason is required");
+      err.status = 400;
+      throw err;
     }
 
     const order = await Order.findOne({ orderId, userId });
     if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: 'Order not found',
-      });
+      const err = new Error("Order not found");
+      err.status = 404;
+      throw err;
     }
 
-    // console.log(`[INFO] Order details: ${JSON.stringify({
-    //   orderId: order.orderId,
-    //   paymentMethod: order.paymentMethod,
-    //   paymentStatus: order.paymentStatus,
-    //   finalAmount: order.finalAmount,
-    //   status: order.status
-    // })}`);
-
-    const currentStatus = getOrderStatus(order.status);
-    if (currentStatus === 0) {
-      //console.log(`[ERROR] Order #${orderId} already cancelled`);
-      return res.status(400).json({
-        success: false,
-        message: 'Order is already cancelled',
-      });
+    const statusNumber = getOrderStatus(order.status);
+    if (statusNumber === 0) {
+      const err = new Error("Order is already cancelled");
+      err.status = 400;
+      throw err;
     }
-    if (currentStatus >= 4) {
-     //console.log(`[ERROR] Order #${orderId} cannot be cancelled (status: ${order.status})`);
-      return res.status(400).json({
-        success: false,
-        message: 'Order cannot be cancelled after delivery',
-      });
+    if (statusNumber >= 4) {
+      const err = new Error("Order cannot be cancelled after delivery");
+      err.status = 400;
+      throw err;
     }
 
-    // Update order status
-    order.status = 'Cancelled';
-    order.cancellation_reason = cancellationReason;
-    await order.save();
-//console.log(`[SUCCESS] Order #${orderId} status updated to Cancelled`);
+    await Promise.all([
+      Order.updateOne({ _id: order._id }, {
+        status: 'Cancelled',
+        cancellation_reason: cancellationReason
+      }),
+      Promise.all(order.OrderItems.map(async item => {
+        await Product.updateOne(
+          { _id: item.product },
+          { $inc: { quantity: item.quantity } }
+        );
+      }))
+    ]);
 
-    // Restore product quantities
-    for (const item of order.OrderItems) {
-      const product = await Product.findById(item.product);
-      if (product) {
-        product.quantity += item.quantity;
-        await product.save();
-      }
-    }
-
-    // Handle refund for Razorpay or Wallet payments
-    if (order.paymentMethod === 'razorpay' || order.paymentMethod === 'wallet') {
-      const refundAmount = order.finalAmount;
-    
-
-      if (!refundAmount || refundAmount <= 0) {
-        return res.status(500).json({
-          success: false,
-          message: 'Invalid refund amount detected',
-        });
-      }
-
-      const walletBefore = await Wallet.findOne({ user: userId });
-
-      const updatedWallet = await walletController.addWalletTransaction(
+    if (['razorpay', 'wallet'].includes(order.paymentMethod) && order.finalAmount > 0) {
+      await walletController.addWalletTransaction(
         userId,
-        refundAmount,
+        order.finalAmount,
         'credit',
         `Refund for cancelled order #${order.orderId}`
       );
-
-      const walletAfter = await Wallet.findOne({ user: userId });
-     // console.log(`[VERIFY] Wallet after update: Balance=₹${walletAfter.balance}, Last Transaction=${JSON.stringify(walletAfter.transactions[walletAfter.transactions.length - 1])}`);
-    } else {
-      //console.log(`[SKIP] No refund needed for order #${orderId} (Method: ${order.paymentMethod}, Status: ${order.paymentStatus})`);
     }
 
-   // console.log(`[END] Order #${orderId} cancellation completed successfully`);
     res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      message: 'Server error: ' + error.message 
-    });
+  } catch (err) {
+    next(err);
   }
 };
 
 const loadMyOrders = async (req, res, next) => {
   try {
-    if (!req.user) throw new Error("User not authenticated");
+    const userId = validateAuth(req);
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const skip = (page - 1) * ORDERS_PER_PAGE;
 
-    const page = parseInt(req.query.page) || 1;
-    const limit = 3; 
-    const skip = (page - 1) * limit;
+    const [orders, totalOrders] = await Promise.all([
+      Order.find({ userId })
+        .sort({ createdOn: -1 })
+        .skip(skip)
+        .limit(ORDERS_PER_PAGE)
+        .populate('OrderItems.product')
+        .lean(),
+      Order.countDocuments({ userId })
+    ]);
 
-    const orders = await Order.find({ userId: req.user._id })
-      .sort({ createdOn: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate('OrderItems.product');
-
-    const totalOrders = await Order.countDocuments({ userId: req.user._id });
-    const totalPages = Math.ceil(totalOrders / limit);
-
-    const formattedOrders = orders.map(order => {
-      const statusNumber = getOrderStatus(order.status);
-     
-      return {
-        orderId: order.orderId,
-        product: order.OrderItems[0].product,
-        quantity: order.OrderItems.reduce((sum, item) => sum + item.quantity, 0),
-        totalAmount: order.finalAmount,
-        placedOn: order.createdOn.toLocaleString(),
-        status: statusNumber,
-        cancellation_reason: order.cancellation_reason,
-        return_reason: order.return_reason
-      };
-    });
+    const formattedOrders = orders.map(order => ({
+      orderId: order.orderId,
+      product: order.OrderItems[0].product,
+      quantity: order.OrderItems.reduce((sum, item) => sum + item.quantity, 0),
+      totalAmount: order.finalAmount,
+      placedOn: order.createdOn.toLocaleString(),
+      status: getOrderStatus(order.status),
+      cancellation_reason: order.cancellation_reason,
+      return_reason: order.return_reason
+    }));
 
     res.render("myOrder", {
       orders: formattedOrders,
       currentPage: page,
-      totalPages: totalPages
+      totalPages: Math.ceil(totalOrders / ORDERS_PER_PAGE)
     });
   } catch (err) {
     next(err);
   }
 };
 
-function getOrderStatus(status) {
-  const statusMap = {
-      'Pending': 1,
-      'Pending COD': 1,
-      'Processing': 2,
-      'Shipped': 3,
-      'Delivered': 4,
-      'Return Request': 5,
-      'Returned': 6, 
-      'Cancelled': 0
-  };
-  return statusMap[status] || 0;
-}
-
-const returnOrder = async (req, res) => {
+const returnOrder = async (req, res, next) => {
   try {
+    const userId = validateAuth(req);
     const { orderId } = req.params;
-    const userId = req.user._id;
     const { returnReason } = req.body;
 
     if (!returnReason) {
-      return res.status(400).json({
-        success: false,
-        message: 'Return reason is required',
-      });
+      const err = new Error("Return reason is required");
+      err.status = 400;
+      throw err;
     }
 
     const order = await Order.findOne({ orderId, userId });
-
     if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: 'Order not found',
-      });
+      const err = new Error("Order not found");
+      err.status = 404;
+      throw err;
     }
-
     if (order.status !== 'Delivered') {
-      return res.status(400).json({
-        success: false,
-        message: 'Only delivered orders can be returned',
-      });
+      const err = new Error("Only delivered orders can be returned");
+      err.status = 400;
+      throw err;
     }
-
     if (order.returnReason) {
-      return res.status(400).json({
-        success: false,
-        message: 'Return already requested',
-      });
+      const err = new Error("Return already requested");
+      err.status = 400;
+      throw err;
     }
 
-    order.status = 'Return Request';
-    order.returnReason = returnReason;
-    await order.save();
+    await Order.updateOne({ _id: order._id }, {
+      status: 'Return Request',
+      returnReason
+    });
 
     res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      message: 'Server error: ' + error.message 
-    });
+  } catch (err) {
+    next(err);
   }
 };
 
-const downloadInvoice = async (req, res) => {
+const downloadInvoice = async (req, res, next) => {
   try {
+    const userId = validateAuth(req);
     const { orderId } = req.params;
-    const userId = req.user._id;
-
-    // Fetch order details with populated fields
-    const order = await Order.findOne({ orderId, userId })
-      .populate('OrderItems.product')
-      .populate('address');
-
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: 'Order not found',
-      });
-    }
-
-
-    // Create a new PDF document
-    const doc = new PDFDocument({
-      size: 'A4',
-      margin: 50,
-    });
-
-    // Set response headers for PDF download
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=invoice_${orderId}.pdf`);
-
-    // Pipe the PDF into the response
-    doc.pipe(res);
-
-    // Header
-    doc.fontSize(20).text('Invoice', { align: 'center' });
-    doc.moveDown();
-    doc.fontSize(12).text(`Order #${order.orderId}`, { align: 'right' });
-    doc.text(`Date: ${new Date(order.createdOn).toLocaleDateString()}`, { align: 'right' });
-
-    // Billing Information
-    doc.moveDown();
-    doc.fontSize(14).text('Billing Information', { underline: true });
-    if (order.address) {
-      doc.fontSize(12)
-        .text(`Name: ${order.address.name}`)
-        .text(`Address: ${order.address.landMark}, ${order.address.city}, ${order.address.state} - ${order.address.pincode}`)
-        .text(`Phone: ${order.address.phone}`);
-    } else {
-      doc.fontSize(12).text('Address: Not available');
-    }
-
-    // Order Details Table
-    doc.moveDown(2);
-    doc.fontSize(14).text('Order Details', { underline: true });
-
-    // Table Header
-    const tableTop = doc.y + 15;
-    const itemX = 50;
-    const qtyX = 300;
-    const priceX = 400;
-    const totalX = 500;
-
-    doc.fontSize(12).font('Helvetica-Bold')
-      .text('Item', itemX, tableTop)
-      .text('Quantity', qtyX, tableTop)
-      .text('Price', priceX, tableTop)
-      .text('Total', totalX, tableTop);
-
-    // Table Content
-    let y = tableTop + 25;
-    order.OrderItems.forEach(item => {
-      const total = item.quantity * item.price;
-      doc.font('Helvetica')
-        .text(item.product.productName, itemX, y, { width: 250, ellipsis: true })
-        .text(item.quantity, qtyX, y)
-        .text(`₹${item.price.toFixed(2)}`, priceX, y)
-        .text(`₹${total.toFixed(2)}`, totalX, y);
-      y += 20;
-    });
-
-    // Total Amount
-    doc.moveDown(2);
-    doc.font('Helvetica-Bold')
-      .text(`Total Amount: ₹${order.finalAmount.toFixed(2)}`, { align: 'right' });
-
-    // Footer
-    doc.moveDown(2);
-    doc.fontSize(10).font('Helvetica')
-      .text('Thank you for shopping with BAGZO!', { align: 'center' });
-
-    // Finalize the PDF
-    doc.end();
-
-    // console.log(`Invoice for order ${orderId} generated successfully`);
-
-  } catch (error) {
-    //console.error('Error generating invoice:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error: ' + error.message,
-    });
-  }
-};
-
-const getOrderDetails = async (req, res) => {
-  try {
-    const { orderId } = req.params;
-    const userId = req.user._id;
 
     const order = await Order.findOne({ orderId, userId })
       .populate('OrderItems.product')
@@ -345,15 +201,92 @@ const getOrderDetails = async (req, res) => {
       .lean();
 
     if (!order) {
-      return res.status(404).json({ success: false, message: 'Order not found' });
+      const err = new Error("Order not found");
+      err.status = 404;
+      throw err;
     }
 
-    const user = await User.findById(userId).select('name email').lean();
+    const doc = new PDFDocument({ size: 'A4', margin: 50 });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=invoice_${orderId}.pdf`);
+    doc.pipe(res);
+
+    doc.fontSize(20).text('Invoice', { align: 'center' })
+      .moveDown()
+      .fontSize(12)
+      .text(`Order #${order.orderId}`, { align: 'right' })
+      .text(`Date: ${new Date(order.createdOn).toLocaleDateString()}`, { align: 'right' })
+      .moveDown()
+      .fontSize(14).text('Billing Information', { underline: true })
+      .fontSize(12);
+
+    if (order.address) {
+      doc.text(`Name: ${order.address.name}`)
+        .text(`Address: ${[order.address.landMark, order.address.city, order.address.state, order.address.pincode].join(', ')}`)
+        .text(`Phone: ${order.address.phone}`);
+    } else {
+      doc.text('Address: Not available');
+    }
+
+    doc.moveDown(2).fontSize(14).text('Order Details', { underline: true });
+    const tableTop = doc.y + 15;
+    const positions = { item: 50, qty: 300, price: 400, total: 500 };
+
+    doc.font('Helvetica-Bold').fontSize(12)
+      .text('Item', positions.item, tableTop)
+      .text('Quantity', positions.qty, tableTop)
+      .text('Price', positions.price, tableTop)
+      .text('Total', positions.total, tableTop);
+
+    let y = tableTop + 25;
+    order.OrderItems.forEach(item => {
+      const total = item.quantity * item.price;
+      doc.font('Helvetica')
+        .text(item.product.productName, positions.item, y, { width: 250, ellipsis: true })
+        .text(item.quantity, positions.qty, y)
+        .text(`₹${item.price.toFixed(2)}`, positions.price, y)
+        .text(`₹${total.toFixed(2)}`, positions.total, y);
+      y += 20;
+    });
+
+    doc.moveDown(2)
+      .font('Helvetica-Bold')
+      .text(`Total Amount: ₹${order.finalAmount.toFixed(2)}`, { align: 'right' })
+      .moveDown(2)
+      .fontSize(10)
+      .text('Thank you for shopping with BAGZO!', { align: 'center' });
+
+    doc.end();
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getOrderDetails = async (req, res, next) => {
+  try {
+    const userId = validateAuth(req);
+    const { orderId } = req.params;
+
+    const [order, user] = await Promise.all([
+      Order.findOne({ orderId, userId })
+        .populate('OrderItems.product')
+        .populate('address')
+        .lean(),
+      User.findById(userId).select('name email').lean()
+    ]);
+
+    if (!order) {
+      const err = new Error("Order not found");
+      err.status = 404;
+      throw err;
+    }
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+      const err = new Error("User not found");
+      err.status = 404;
+      throw err;
     }
 
-    const responseData = {
+    res.json({
       success: true,
       order: {
         orderId: order.orderId,
@@ -362,15 +295,7 @@ const getOrderDetails = async (req, res) => {
         finalAmount: order.finalAmount,
         userName: user.name,
         userEmail: user.email,
-        shippingAddress: {
-          name: order.address.name,
-          address: order.address.address,
-          landMark: order.address.landMark,
-          city: order.address.city,
-          state: order.address.state,
-          pincode: order.address.pincode,
-          phone: order.address.phone
-        },
+        shippingAddress: order.address,
         orderedItems: order.OrderItems.map(item => ({
           product: { name: item.product.name },
           price: item.price,
@@ -378,16 +303,13 @@ const getOrderDetails = async (req, res) => {
         })),
         status: order.status
       }
-    };
-
-    res.json(responseData);
-  } catch (error) {
-   // console.error('Error in getOrderDetails:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    });
+  } catch (err) {
+    next(err);
   }
 };
 
-module.exports = { 
+module.exports = {
   getOrderPlaced,
   loadMyOrders,
   cancelOrder,
