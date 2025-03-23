@@ -1,5 +1,3 @@
-
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,11 +8,14 @@
   <!--=============== FONT AWESOME ===============-->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
+  <!--=============== RAZORPAY SDK ===============-->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
   <!--=============== CSS ===============-->
   <link rel="stylesheet" href="/css/myOrders.css" />
-<title>My Orders | BAGZO</title>
+  <title>My Orders | BAGZO</title>
 
-<%- include('../../views/partials/user/header') %>
+  <%- include('../../views/partials/user/header') %>
 </head>
 
 <body>
@@ -80,7 +81,7 @@
             </div>
           </div>
           <div class="order-details">
-            <img src="/uploads/re-image/<%= order.product.productImage[0] %>" alt="<%= order.product.name %>" class="product-image">
+            <img src="/uploads/re-image/<%= order.product.productImage[0] || 'default.jpg' %>" alt="<%= order.product.name %>" class="product-image">
             <div class="product-info">
               <div class="status-tracker">
                 <div class="status-line <%= order.status >= 2 ? 'active' : '' %>"></div>
@@ -110,6 +111,9 @@
             </button>
             <button class="btn btn-primary download-invoice-btn" data-order-id="<%= order.orderId %>">
               <i class="fas fa-file-download"></i> Download Invoice
+            </button>
+            <button class="btn btn-info view-details-btn" data-order-id="<%= order.orderId %>">
+              <i class="fas fa-eye"></i> View Details
             </button>
           </div>
         </div>
@@ -166,10 +170,60 @@
     </div>
   </div>
 
+  <!-- Order Details Modal -->
+  <div id="orderDetailsModal" class="modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 700px; max-width: 90%; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-height: 80vh; overflow-y: auto;">
+    <div class="modal-content">
+      <h3>Order Details</h3>
+      <div class="order-info-section">
+        <h4>Order Information</h4>
+        <p><strong>Order ID:</strong> <span id="modal-order-id"></span></p>
+        <p><strong>Order Date:</strong> <span id="modal-order-date"></span></p>
+        <p><strong>Payment Method:</strong> <span id="modal-payment-method"></span></p>
+        <p><strong>Total Amount:</strong> <span id="modal-total-amount"></span></p>
+      </div>
+      <div class="customer-info-section">
+        <h4>Customer Information</h4>
+        <p><strong>Name:</strong> <span id="modal-customer-name"></span></p>
+        <p><strong>Email:</strong> <span id="modal-customer-email"></span></p>
+      </div>
+      <div class="shipping-info-section">
+        <h4>Shipping Address</h4>
+        <p><strong>Name:</strong> <span id="modal-shipping-name"></span></p>
+        <p><strong>Address:</strong> <span id="modal-shipping-address"></span></p>
+        <p><strong>Landmark:</strong> <span id="modal-shipping-landmark"></span></p>
+        <p><strong>City:</strong> <span id="modal-shipping-city"></span></p>
+        <p><strong>State:</strong> <span id="modal-shipping-state"></span></p>
+        <p><strong>Pincode:</strong> <span id="modal-shipping-pincode"></span></p>
+        <p><strong>Phone:</strong> <span id="modal-shipping-phone"></span></p>
+      </div>
+      <div class="order-items-section">
+        <h4>Order Items</h4>
+        <table id="modal-order-items">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Price</th>
+              <th>Quantity</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div style="text-align: right; margin-top: 20px;">
+        <button id="repayButton" style="display: none;" class="btn btn-warning">
+          <i class="fas fa-redo"></i> Repay with Razorpay
+        </button>
+        <button id="closeOrderModal">
+          <i class="fas fa-times"></i> Close
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Overlay -->
   <div id="modalOverlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.5); z-index: 999;"></div>
 </body>
-
 
 <%- include('../../views/partials/user/footer') %>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -182,22 +236,19 @@ document.querySelectorAll('.cancel-order-btn').forEach(button => {
   button.addEventListener('click', async (e) => {
     const orderId = e.target.closest('.cancel-order-btn').getAttribute('data-order-id');
     
-    // Show modal and overlay
     const modal = document.getElementById('cancelOrderModal');
     modal.style.display = 'block';
     modalOverlay.style.display = 'block';
 
-    // Handle modal close
     const closeModal = () => {
       modal.style.display = 'none';
       modalOverlay.style.display = 'none';
     };
 
-    document.getElementById('closeModal').addEventListener('click', closeModal);
-    modalOverlay.addEventListener('click', closeModal);
+    document.getElementById('closeModal').onclick = closeModal;
+    modalOverlay.onclick = closeModal;
 
-    // Handle cancel confirmation
-    document.getElementById('confirmCancel').addEventListener('click', async () => {
+    document.getElementById('confirmCancel').onclick = async () => {
       const cancellationReason = document.getElementById('cancellationReason').value.trim();
       
       if (!cancellationReason) {
@@ -222,7 +273,6 @@ document.querySelectorAll('.cancel-order-btn').forEach(button => {
             confirmButtonColor: '#FF4B2B'
           });
           
-          // Update the button
           const buttonToUpdate = document.querySelector(`.cancel-order-btn[data-order-id="${orderId}"]`);
           if (buttonToUpdate) {
             buttonToUpdate.innerHTML = '<i class="fas fa-ban"></i> Cancelled';
@@ -239,7 +289,7 @@ document.querySelectorAll('.cancel-order-btn').forEach(button => {
         console.error('Error:', error);
         Swal.fire('Error', 'Something went wrong', 'error');
       }
-    });
+    };
   });
 });
 
@@ -248,22 +298,19 @@ document.querySelectorAll('.return-order-btn').forEach(button => {
   button.addEventListener('click', async (e) => {
     const orderId = e.target.closest('.return-order-btn').getAttribute('data-order-id');
     
-    // Show modal and overlay
     const modal = document.getElementById('returnOrderModal');
     modal.style.display = 'block';
     modalOverlay.style.display = 'block';
 
-    // Handle modal close
     const closeModal = () => {
       modal.style.display = 'none';
       modalOverlay.style.display = 'none';
     };
 
-    document.getElementById('closeReturnModal').addEventListener('click', closeModal);
-    modalOverlay.addEventListener('click', closeModal);
+    document.getElementById('closeReturnModal').onclick = closeModal;
+    modalOverlay.onclick = closeModal;
 
-    // Handle return confirmation
-    document.getElementById('confirmReturn').addEventListener('click', async () => {
+    document.getElementById('confirmReturn').onclick = async () => {
       const returnReason = document.getElementById('returnReason').value.trim();
       
       if (!returnReason) {
@@ -288,7 +335,6 @@ document.querySelectorAll('.return-order-btn').forEach(button => {
             confirmButtonColor: '#FF4B2B'
           });
           
-          // Update the button
           button.innerHTML = '<i class="fas fa-clock"></i> Return Request In Process';
           button.disabled = true;
           button.classList.replace('btn-warning', 'btn-secondary');
@@ -299,9 +345,9 @@ document.querySelectorAll('.return-order-btn').forEach(button => {
         }
       } catch (error) {
         console.error('Return Order Error:', error);
-        Swal.fire('Error', 'Something went wrong: ' + error.message, 'error');
+        Swal.fire('Error', 'Something went wrong', 'error');
       }
-    });
+    };
   });
 });
 
@@ -322,6 +368,7 @@ document.querySelectorAll('.buy-again-btn').forEach(button => {
   });
 });
 
+// Download Invoice Handler
 document.querySelectorAll('.download-invoice-btn').forEach(button => {
   button.addEventListener('click', async (e) => {
     const orderId = e.target.closest('.download-invoice-btn').getAttribute('data-order-id');
@@ -329,16 +376,13 @@ document.querySelectorAll('.download-invoice-btn').forEach(button => {
     try {
       const response = await fetch(`/download-invoice/${orderId}`, {
         method: 'GET',
-        headers: {
-          'Accept': 'application/pdf'
-        }
+        headers: { 'Accept': 'application/pdf' }
       });
 
       if (!response.ok) {
         throw new Error('Failed to download invoice');
       }
 
-      // Create blob and trigger download
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -348,7 +392,6 @@ document.querySelectorAll('.download-invoice-btn').forEach(button => {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-
     } catch (error) {
       console.error('Error downloading invoice:', error);
       Swal.fire({
@@ -360,4 +403,160 @@ document.querySelectorAll('.download-invoice-btn').forEach(button => {
     }
   });
 });
+
+// View Details Handler
+document.querySelectorAll('.view-details-btn').forEach(button => {
+  button.addEventListener('click', async (e) => {
+    const orderId = e.target.closest('.view-details-btn').getAttribute('data-order-id');
+    const modal = document.getElementById('orderDetailsModal');
+    const overlay = document.getElementById('modalOverlay');
+    const repayButton = document.getElementById('repayButton');
+    
+    modal.style.display = 'block';
+    overlay.style.display = 'block';
+
+    try {
+      const response = await fetch(`/order-details/${orderId}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        const order = data.order;
+        document.getElementById('modal-order-id').textContent = order.orderId || 'N/A';
+        document.getElementById('modal-order-date').textContent = order.orderDate ? new Date(order.orderDate).toLocaleString() : 'N/A';
+        document.getElementById('modal-payment-method').textContent = order.paymentMethod || 'N/A';
+        document.getElementById('modal-total-amount').textContent = order.finalAmount ? `₹${order.finalAmount}` : 'N/A';
+        document.getElementById('modal-customer-name').textContent = order.userName || 'N/A';
+        document.getElementById('modal-customer-email').textContent = order.userEmail || 'N/A';
+        document.getElementById('modal-shipping-name').textContent = order.shippingAddress.name || 'N/A';
+        document.getElementById('modal-shipping-address').textContent = order.shippingAddress.address || 'N/A';
+        document.getElementById('modal-shipping-landmark').textContent = order.shippingAddress.landMark || 'N/A';
+        document.getElementById('modal-shipping-city').textContent = order.shippingAddress.city || 'N/A';
+        document.getElementById('modal-shipping-state').textContent = order.shippingAddress.state || 'N/A';
+        document.getElementById('modal-shipping-pincode').textContent = order.shippingAddress.pincode || 'N/A';
+        document.getElementById('modal-shipping-phone').textContent = order.shippingAddress.phone || 'N/A';
+
+        const itemsTable = document.getElementById('modal-order-items').getElementsByTagName('tbody')[0];
+        itemsTable.innerHTML = '';
+        (order.orderedItems || []).forEach(item => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${item.product.name || 'N/A'}</td>
+            <td>₹${item.price || 0}</td>
+            <td>${item.quantity || 0}</td>
+            <td>₹${(item.price * item.quantity) || 0}</td>
+          `;
+          itemsTable.appendChild(row);
+        });
+
+        // Handle repayment button visibility
+        if (order.paymentStatus === 'failed' && order.paymentMethod === 'razorpay') {
+          repayButton.style.display = 'inline-block';
+          repayButton.onclick = () => initiateRazorpayPayment(order.orderId, order.finalAmount);
+        } else {
+          repayButton.style.display = 'none';
+        }
+      } else {
+        Swal.fire('Error', data.message || 'Failed to load order details', 'error');
+      }
+    } catch (error) {
+      console.error('Error fetching order details:', error);
+      Swal.fire('Error', 'Something went wrong', 'error');
+    }
+
+    document.getElementById('closeOrderModal').onclick = () => {
+      modal.style.display = 'none';
+      overlay.style.display = 'none';
+    };
+    overlay.onclick = () => {
+      modal.style.display = 'none';
+      overlay.style.display = 'none';
+    };
+  });
+});
+
+// Razorpay Payment Function
+function initiateRazorpayPayment(orderId, amount) {
+  const options = {
+    key: 'YOUR_RAZORPAY_KEY', // Replace with your Razorpay key
+    amount: amount * 100, // Convert to paise
+    currency: 'INR',
+    name: 'BAGZO',
+    description: `Payment for Order #${orderId}`,
+    order_id: orderId, // Use Razorpay order ID if stored
+    handler: async function (response) {
+      try {
+        const verifyResponse = await fetch('/verify-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_signature: response.razorpay_signature
+          })
+        });
+        const verifyData = await verifyResponse.json();
+        if (verifyData.success) {
+          Swal.fire('Success', 'Payment completed successfully!', 'success');
+          window.location.reload();
+        } else {
+          Swal.fire('Error', 'Payment verification failed', 'error');
+        }
+      } catch (error) {
+        Swal.fire('Error', 'Payment processing failed', 'error');
+      }
+    },
+    prefill: {
+      name: 'Customer Name', // Fetch dynamically if possible
+      email: 'customer@example.com',
+      contact: '9999999999'
+    },
+    theme: {
+      color: '#FF4B2B'
+    }
+  };
+  const rzp = new Razorpay(options);
+  rzp.open();
+}
 </script>
+
+<style>
+  .modal-content {
+    padding: 20px;
+  }
+  .order-info-section, .customer-info-section, .shipping-info-section, .order-items-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+  }
+  .shipping-info-section p, .customer-info-section p, .order-info-section p {
+    margin: 10px 0;
+    line-height: 1.5;
+  }
+  .order-items-section table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+  .order-items-section th, .order-items-section td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  .order-items-section th {
+    background-color: #f1f1f1;
+  }
+  .btn-info {
+    background-color: #17a2b8;
+    color: white;
+  }
+  .btn-warning {
+    background-color: #ffc107;
+    color: #212529;
+  }
+</style>
