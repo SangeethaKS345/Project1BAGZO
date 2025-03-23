@@ -294,69 +294,62 @@ const downloadInvoice = async (req, res) => {
 
 const getOrderDetails = async (req, res) => {
   try {
-    const { orderId } = req.params;
-    const userId = req.user._id;
+      const order = await Order.findOne({ orderId: req.params.orderId })
+          .populate('userId', 'name email phone')
+          .populate('OrderItems.product')
+          .populate('address'); // Add this line to populate the address reference
 
-    // Fetch order with populated product and address details
-    const order = await Order.findOne({ orderId, userId })
-      .populate('OrderItems.product', 'productName') // Use productName instead of name
-      .populate('address')
-      .lean();
-
-    if (!order) {
-      return res.status(404).json({ success: false, message: 'Order not found' });
-    }
-
-    const user = await User.findById(userId).select('name email').lean();
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-
-    const responseData = {
-      success: true,
-      order: {
-        orderId: order.orderId,
-        orderDate: order.createdOn,
-        paymentMethod: order.paymentMethod || 'N/A',
-        finalAmount: order.finalAmount || 0,
-        paymentStatus: order.paymentStatus || 'pending',
-        userName: user.name || 'N/A',
-        userEmail: user.email || 'N/A',
-        shippingAddress: order.address ? {
-          name: order.address.name || 'N/A',
-          address: order.address.address || 'N/A',
-          landMark: order.address.landMark || 'N/A',
-          city: order.address.city || 'N/A',
-          state: order.address.state || 'N/A',
-          pincode: order.address.pincode || 'N/A',
-          phone: order.address.phone || 'N/A'
-        } : {
-          name: 'N/A',
-          address: 'N/A',
-          landMark: 'N/A',
-          city: 'N/A',
-          state: 'N/A',
-          pincode: 'N/A',
-          phone: 'N/A'
-        },
-        orderedItems: order.OrderItems.map(item => ({
-          product: { name: item.product?.productName || 'Unknown Product' }, // Use productName
-          price: item.price || 0,
-          quantity: item.quantity || 0
-        })),
-        status: order.status || 'Unknown'
+      if (!order) {
+          return res.status(404).json({ error: 'Order not found' });
       }
-    };
 
-    // Log for debugging
-    console.log('Order Items:', order.OrderItems);
+      // Log the populated order to verify
+      console.log('order:', order);
 
-    res.json(responseData);
+      // Since address is now populated, use it directly
+      const shippingAddress = order.address || {};
+
+      const formattedOrder = {
+          _id: order.orderId,
+          date: order.createdOn,
+          payment: order.paymentMethod,
+          total: order.finalAmount,
+          customer: {
+              name: order.userId?.name || 'N/A',
+              email: order.userId?.email || 'N/A',
+              phone: order.userId?.phone || 'N/A'
+          },
+          shippingAddress: {
+              fullName: shippingAddress.name || 'N/A',
+              address: shippingAddress.address || 'N/A', // Note: your addressSchema uses 'address' as a field
+              landMark: shippingAddress.landMark || 'N/A',
+              city: shippingAddress.city || 'N/A',
+              state: shippingAddress.state || 'N/A',
+              pincode: shippingAddress.pincode || 'N/A',
+              phone: shippingAddress.phone || 'N/A',
+              altPhone: shippingAddress.altPhone || 'N/A'
+          },
+          products: order.OrderItems.map(item => {
+              const imagePath = item.product.productImage[0];
+              const formattedImagePath = `/uploads/re-image/${imagePath}`;
+              return {
+                  name: item.product.productName,
+                  image: formattedImagePath,
+                  price: item.price,
+                  color: item.product.color,
+                  quantity: item.quantity,
+                  status: order.status
+              };
+          })
+      };
+
+      res.json(formattedOrder);
   } catch (error) {
-    console.error('Error in getOrderDetails:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
+      console.error('Error in getOrderDetails:', error);
+      res.status(500).json({ error: error.message || 'Internal server error' });
   }
 };
+
 // New endpoint to verify Razorpay payment
 const verifyPayment = async (req, res) => {
   try {

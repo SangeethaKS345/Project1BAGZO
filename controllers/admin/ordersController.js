@@ -51,61 +51,59 @@ const getAllOrders = async (req, res) => {
 };
 
 const getOrderDetails = async (req, res) => {
-    try {
-        const order = await Order.findOne({ orderId: req.params.orderId })
-            .populate('userId', 'name email phone')
-            .populate('OrderItems.product') // Populate address reference
-            console.log('order:', order);
+  try {
+    const order = await Order.findOne({ orderId: req.params.orderId })
+      .populate('userId', 'name email phone')
+      .populate('OrderItems.product')
+      .populate('address');
 
-        if (!order) {
-            return res.status(404).json({ error: 'Order not found' });
-        }
-
-        
-        const shippingAddress = order.address && order.address.address && order.address.address.length > 0 
-            ? order.address.address[0] 
-            : {};
-            console.log('shippingAddress:', shippingAddress);
-
-        const formattedOrder = {
-            _id: order.orderId,
-            date: order.createdOn,
-            payment: order.paymentMethod,
-            total: order.finalAmount,
-            customer: {
-                name: order.userId?.name || 'N/A',
-                email: order.userId?.email || 'N/A',
-                phone: order.userId?.phone || 'N/A'
-            },
-            shippingAddress: {
-                fullName: shippingAddress.name || 'N/A',
-                address: shippingAddress.address || 'N/A',
-                landMark: shippingAddress.landMark || 'N/A',
-                city: shippingAddress.city || 'N/A',
-                state: shippingAddress.state || 'N/A',
-                pincode: shippingAddress.pincode || 'N/A',
-                phone: shippingAddress.phone || 'N/A',
-                altPhone: shippingAddress.altPhone || 'N/A'
-            },
-            products: order.OrderItems.map(item => {
-                const imagePath = item.product.productImage[0];
-                const formattedImagePath = `/uploads/re-image/${imagePath}`;
-                return {
-                    name: item.product.productName,
-                    image: formattedImagePath,
-                    price: item.price,
-                    color: item.product.color,
-                    quantity: item.quantity,
-                    status: order.status
-                };
-            })
-        };
-
-        res.json(formattedOrder);
-    } catch (error) {
-        console.error('Error in getOrderDetails:', error);
-        res.status(500).json({ error: error.message || 'Internal server error' });
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
     }
+
+    console.log('Raw order:', JSON.stringify(order, null, 2));
+    console.log('Populated address:', order.address);
+
+    const shippingAddress = order.address || {};
+
+    const formattedOrder = {
+      _id: order.orderId,
+      date: order.createdOn,
+      payment: order.paymentMethod,
+      total: order.finalAmount,
+      customer: {
+        name: order.userId?.name || 'N/A',
+        email: order.userId?.email || 'N/A',
+        phone: order.userId?.phone || 'N/A'
+      },
+      shippingAddress: {
+        fullName: shippingAddress.name || 'N/A',
+        landMark: shippingAddress.landMark || 'N/A',
+        city: shippingAddress.city || 'N/A',
+        state: shippingAddress.state || 'N/A',
+        pincode: shippingAddress.pincode || 'N/A',
+        phone: shippingAddress.phone || 'N/A',
+        altPhone: shippingAddress.altPhone || 'N/A'
+      },
+      products: order.OrderItems.map(item => {
+        const imagePath = item.product.productImage[0];
+        const formattedImagePath = `/uploads/re-image/${imagePath}`;
+        return {
+          name: item.product.productName,
+          image: formattedImagePath,
+          price: item.price,
+          color: item.product.color,
+          quantity: item.quantity,
+          status: order.status
+        };
+      })
+    };
+
+    res.json(formattedOrder);
+  } catch (error) {
+    console.error('Error in getOrderDetails:', error);
+    res.status(500).json({ error: error.message || 'Internal server error' });
+  }
 };
 
 const updateOrderStatus = async (req, res) => {
