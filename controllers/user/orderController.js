@@ -292,6 +292,7 @@ const getOrderDetails = async (req, res, next) => {
         orderId: order.orderId,
         orderDate: order.createdOn,
         paymentMethod: order.paymentMethod,
+        paymentStatus: order.paymentStatus, // Add this
         finalAmount: order.finalAmount,
         userName: user.name,
         userEmail: user.email,

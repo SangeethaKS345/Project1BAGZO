@@ -46,7 +46,7 @@
         <div class="order-card">
           <div class="order-header">
             <div>
-              <h3><%= order.product.name %></h3>
+              <h3><%= order.product.productName %></h3>
               <p><i class="fas fa-hashtag"></i> Order #<%= order.orderId %></p>
               <p><i class="fas fa-calendar-alt"></i> Placed on: <%= order.placedOn %></p>
               <p><i class="fas fa-box"></i> Total Quantity: <%= order.quantity %></p>
@@ -82,7 +82,7 @@
             </div>
           </div>
           <div class="order-details">
-            <img src="/uploads/re-image/<%= order.product.productImage[0] || 'default.jpg' %>" alt="<%= order.product.name %>" class="product-image">
+            <img src="/uploads/re-image/<%= order.product.productImage[0] || 'default.jpg' %>" alt="<%= order.product.productName %>" class="product-image">
             <div class="product-info">
               <div class="status-tracker">
                 <div class="status-line <%= order.status >= 2 ? 'active' : '' %>"></div>
@@ -421,6 +421,7 @@ document.querySelectorAll('.view-details-btn').forEach(button => {
         headers: { 'Content-Type': 'application/json' }
       });
       const data = await response.json();
+      console.log('Full API Response:', JSON.stringify(data, null, 2));
 
       if (data.success) {
         const order = data.order;
@@ -432,26 +433,49 @@ document.querySelectorAll('.view-details-btn').forEach(button => {
         document.getElementById('modal-total-amount').textContent = order.finalAmount ? `₹${order.finalAmount}` : 'N/A';
         document.getElementById('modal-customer-name').textContent = order.userName || 'N/A';
         document.getElementById('modal-customer-email').textContent = order.userEmail || 'N/A';
-        document.getElementById('modal-shipping-name').textContent = order.shippingAddress.name || 'N/A';
-        document.getElementById('modal-shipping-landmark').textContent = order.shippingAddress.landMark || 'N/A';
-        document.getElementById('modal-shipping-city').textContent = order.shippingAddress.city || 'N/A';
-        document.getElementById('modal-shipping-state').textContent = order.shippingAddress.state || 'N/A';
-        document.getElementById('modal-shipping-pincode').textContent = order.shippingAddress.pincode || 'N/A';
-        document.getElementById('modal-shipping-phone').textContent = order.shippingAddress.phone || 'N/A';
+        document.getElementById('modal-shipping-name').textContent = order.shippingAddress?.name || 'N/A';
+        document.getElementById('modal-shipping-landmark').textContent = order.shippingAddress?.landMark || 'N/A';
+        document.getElementById('modal-shipping-city').textContent = order.shippingAddress?.city || 'N/A';
+        document.getElementById('modal-shipping-state').textContent = order.shippingAddress?.state || 'N/A';
+        document.getElementById('modal-shipping-pincode').textContent = order.shippingAddress?.pincode || 'N/A';
+        document.getElementById('modal-shipping-phone').textContent = order.shippingAddress?.phone || 'N/A';
 
         // Populate order items table
         const itemsTable = document.getElementById('modal-order-items').getElementsByTagName('tbody')[0];
         itemsTable.innerHTML = '';
-        (order.orderedItems || []).forEach(item => {
+
+        let items = [];
+        // Try multiple possible structures
+        if (order.orderedItems && Array.isArray(order.orderedItems)) {
+          items = order.orderedItems;
+        } else if (order.OrderItems && Array.isArray(order.OrderItems)) {
+          items = order.OrderItems;
+        } else if (order.items && Array.isArray(order.items)) {
+          items = order.items;
+        }
+
+        if (items.length > 0) {
+          items.forEach((item, index) => {
+            console.log(`Processing Item ${index}:`, item);
+            const productName = item.product?.name || item.product?.productName || item.name || 'N/A';
+            const price = item.price || item.unitPrice || 0;
+            const quantity = item.quantity || item.qty || 0;
+            const total = item.total || (price * quantity) || 0;
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${productName}</td>
+              <td>₹${price}</td>
+              <td>${quantity}</td>
+              <td>₹${total}</td>
+            `;
+            itemsTable.appendChild(row);
+          });
+        } else {
+          console.log('No items found in any structure');
           const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${item.product.name || 'N/A'}</td>
-            <td>₹${item.price || 0}</td>
-            <td>${item.quantity || 0}</td>
-            <td>₹${item.total || 0}</td>
-          `;
+          row.innerHTML = `<td colspan="4">No item details available</td>`;
           itemsTable.appendChild(row);
-        });
+        }
 
         // Handle repayment button visibility
         if (order.paymentStatus === 'failed' && order.paymentMethod === 'razorpay') {
