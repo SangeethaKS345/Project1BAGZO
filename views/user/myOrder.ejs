@@ -79,6 +79,7 @@
   font-size: 1rem;
   color: #555;
   margin: 8px 0;
+  padding: 5px 0;
 }
 
 .order-info-section p strong,
@@ -393,7 +394,6 @@
       <div class="shipping-info-section">
         <h4>Shipping Address</h4>
         <p><strong>Name:</strong> <span id="modal-shipping-name"></span></p>
-        <p><strong>Address:</strong> <span id="modal-shipping-address"></span></p>
         <p><strong>Landmark:</strong> <span id="modal-shipping-landmark"></span></p>
         <p><strong>City:</strong> <span id="modal-shipping-city"></span></p>
         <p><strong>State:</strong> <span id="modal-shipping-state"></span></p>
@@ -637,7 +637,6 @@ document.querySelectorAll('.view-details-btn').forEach(button => {
         document.getElementById('modal-customer-name').textContent = order.userName || 'N/A';
         document.getElementById('modal-customer-email').textContent = order.userEmail || 'N/A';
         document.getElementById('modal-shipping-name').textContent = order.shippingAddress.name || 'N/A';
-        document.getElementById('modal-shipping-address').textContent = order.shippingAddress.address || 'N/A';
         document.getElementById('modal-shipping-landmark').textContent = order.shippingAddress.landMark || 'N/A';
         document.getElementById('modal-shipping-city').textContent = order.shippingAddress.city || 'N/A';
         document.getElementById('modal-shipping-state').textContent = order.shippingAddress.state || 'N/A';
