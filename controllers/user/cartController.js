@@ -196,12 +196,12 @@ async function addToCart(req, res) {
       }
 
       // Check category status
-      if (!product.category || product.category.isListed === false) { // Assuming `isListed` is the field
+      if (!product.category || product.category.isListed === false) { 
           return res.status(400).json({ message: "This product's category is unlisted" });
       }
 
       // Check brand status
-      if (!product.brand || product.brand.isBlocked) { // Assuming `isBlocked` is the field
+      if (!product.brand || product.brand.isBlocked) {
           return res.status(400).json({ message: "This product's brand is blocked" });
       }
 
