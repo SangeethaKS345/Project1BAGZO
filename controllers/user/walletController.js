@@ -1,4 +1,5 @@
 const path = require('path');
+const mongoose = require('mongoose');
 const User = require('../../models/userSchema');
 const Wallet = require('../../models/walletSchema');
 const Address = require('../../models/addressSchema');
@@ -173,29 +174,50 @@ const verifyPayment = async (req, res, next) => {
 
 const addWalletTransaction = async (userId, amount, type, description) => {
     try {
-        let wallet = await Wallet.findOne({ user: userId });
-        if (!wallet) {
-            wallet = new Wallet({ user: userId });
-        }
-
-        if (type === 'debit' && wallet.balance < amount) {
-            throw new Error('Insufficient wallet balance');
-        }
-
-        wallet.balance = type === 'credit' ? wallet.balance + amount : wallet.balance - amount;
-        wallet.transactions.push({
-            type,
-            amount,
-            description,
-            date: new Date()
-        });
-
-        await wallet.save();
-        return wallet;
+      console.log(`[WALLET START] Transaction for user ${userId}: Type=${type}, Amount=${amount}, Description=${description}`);
+  
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        console.log(`[WALLET ERROR] Invalid userId: ${userId}`);
+        throw new Error('Invalid user ID');
+      }
+  
+      if (!amount || amount <= 0) {
+        console.log(`[WALLET ERROR] Invalid amount: ${amount}`);
+        throw new Error('Transaction amount must be greater than 0');
+      }
+  
+      let wallet = await Wallet.findOne({ user: userId });
+      if (!wallet) {
+        console.log(`[WALLET INFO] No wallet found, creating new for user ${userId}`);
+        wallet = new Wallet({ user: userId, balance: 0, transactions: [] });
+      }
+  
+      console.log(`[WALLET BEFORE] Balance: ₹${wallet.balance}, Transaction count: ${wallet.transactions.length}`);
+  
+      if (type === 'debit' && wallet.balance < amount) {
+        console.log(`[WALLET ERROR] Insufficient balance: Current=₹${wallet.balance}, Required=₹${amount}`);
+        throw new Error('Insufficient wallet balance');
+      }
+  
+      const previousBalance = wallet.balance;
+      wallet.balance = type === 'credit' ? wallet.balance + amount : wallet.balance - amount;
+      wallet.transactions.push({
+        type,
+        amount,
+        description,
+        date: new Date()
+      });
+  
+      const savedWallet = await wallet.save();
+      console.log(`[WALLET SUCCESS] Transaction saved: Previous balance=₹${previousBalance}, New balance=₹${savedWallet.balance}`);
+      console.log(`[WALLET] Latest transaction: ${JSON.stringify(savedWallet.transactions[savedWallet.transactions.length - 1])}`);
+  
+      return savedWallet;
     } catch (error) {
-        throw new Error(`Wallet transaction failed: ${error.message}`);
+      console.error(`[WALLET FATAL] Transaction failed: ${error.stack}`);
+      throw new Error(`Wallet transaction failed: ${error.message}`);
     }
-};
+  };
 
 module.exports = {
     loadWalletPage,

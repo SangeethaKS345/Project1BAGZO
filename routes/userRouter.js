@@ -19,9 +19,6 @@ const { errorHandler } = require("../middlewares/errorHandler");
 router.use(errorHandler);
 
 
-
-
-
 // User Authentication Routes
 router.get("/", userController.loadHomepage);
 router.get("/signup", userController.loadSignup);
