@@ -10,6 +10,8 @@ const userRouter = require("./routes/userRouter");
 const adminRouter = require("./routes/adminRouter");
 const app = express();
 const {errorHandler, adminErrorHandler} = require("./middlewares/errorHandler.js");
+const nocache = require('nocache');
+app.use(nocache());
 
 // Connect to MongoDB
 db();
@@ -55,12 +57,12 @@ app.use(express.urlencoded({ extended: true }));
 // Session Configuration
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "your-secret-key",
+    secret: process.env.SESSION_SECRET ,
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true,
     store: MongoStore.create({
       mongoUrl:
-        process.env.MONGODB_URI || "mongodb://localhost:27017/your-db-name",
+        process.env.MONGODB_URI ,
       ttl: 24 * 60 * 60,
     }),
     cookie: {
@@ -77,19 +79,13 @@ app.use(passport.session());
 
 // Prevent Caching Globally
 // app.use((req, res, next) => {
-//   res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0");
-//   res.setHeader("Pragma", "no-cache");
-//   res.setHeader("Expires", "0");
+//   if (req.path.startsWith("/login")) {
+//     res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0");
+//     res.setHeader("Pragma", "no-cache");
+//     res.setHeader("Expires", "0");
+//   }
 //   next();
 // });
-app.use((req, res, next) => {
-  if (req.path.startsWith("/login")) {
-    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0");
-    res.setHeader("Pragma", "no-cache");
-    res.setHeader("Expires", "0");
-  }
-  next();
-});
 
 
 // Middleware to pass user data to all views

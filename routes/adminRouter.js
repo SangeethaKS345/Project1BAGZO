@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const adminController = require("../controllers/admin/adminController");
-const { adminAuth } = require("../middlewares/auth");
+const { adminAuth,redirectIfAuthenticated  } = require("../middlewares/auth");
 const customerController = require("../controllers/admin/customerController");
 const categoryController = require("../controllers/admin/categoryController");
 const brandController = require("../controllers/admin/brandController");
@@ -16,8 +16,8 @@ const { adminErrorHandler } = require("../middlewares/errorHandler");
 router.use(adminErrorHandler);
 
 // Admin Login & Logout Routes
-router.get("/login", adminController.loadLogin);
-router.post("/login", adminController.login);
+router.get("/login", redirectIfAuthenticated ,adminController.loadLogin);
+router.post("/login",redirectIfAuthenticated , adminController.login);
 router.get("/logout", adminController.logout);
 
 // Dashboard Routes

@@ -10,6 +10,7 @@ const Wallet = require("../../models/walletSchema");
 
 // Load Home Page
 const loadHomepage = async (req, res, next) => {
+    console.log(req.session.user,"user session in loadHomepage");
     try {
         const user = req.session.user;
         const categories = await Category.find({ isListed: true });
@@ -387,13 +388,15 @@ const resendOtp = async (req, res) => {
 
 const logout = async (req, res, next) => {
     try {
-        req.session.destroy((err) => {
-            if (err) {
-                console.error("Session destruction error:", err.message);
-                return next(err); 
-            }
-            return res.redirect("/login");
-        });
+        // req.session.destroy((err) => {
+        //     if (err) {
+        //         console.error("Session destruction error:", err.message);
+        //         return next(err); 
+        //     }
+        //     return res.redirect("/login");
+        // });
+        req.session.user = null;
+        res.redirect("/signin");
     } catch (error) {
         console.error("Logout error:", error);
         next(error); 
