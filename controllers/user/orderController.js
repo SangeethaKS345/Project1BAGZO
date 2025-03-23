@@ -1,3 +1,4 @@
+
 const Order = require('../../models/orderSchema');
 const Product = require('../../models/productSchema');
 const User = require('../../models/userSchema');
@@ -294,59 +295,49 @@ const downloadInvoice = async (req, res) => {
 
 const getOrderDetails = async (req, res) => {
   try {
-      const order = await Order.findOne({ orderId: req.params.orderId })
-          .populate('userId', 'name email phone')
-          .populate('OrderItems.product')
-          .populate('address'); // Add this line to populate the address reference
+    const order = await Order.findOne({ orderId: req.params.orderId })
+      .populate('userId', 'name email phone')
+      .populate('OrderItems.product')
+      .populate('address');
 
-      if (!order) {
-          return res.status(404).json({ error: 'Order not found' });
-      }
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
 
-      // Log the populated order to verify
-      console.log('order:', order);
+    const shippingAddress = order.address || {};
 
-      // Since address is now populated, use it directly
-      const shippingAddress = order.address || {};
+    const formattedOrder = {
+      orderId: order.orderId,
+      orderDate: order.createdOn,
+      paymentMethod: order.paymentMethod,
+      finalAmount: order.finalAmount,
+      paymentStatus: order.paymentStatus, // Add this for repay button logic
+      userName: order.userId?.name || 'N/A',
+      userEmail: order.userId?.email || 'N/A',
+      shippingAddress: {
+        name: shippingAddress.name || 'N/A',
+        address: shippingAddress.address || 'N/A',
+        landMark: shippingAddress.landMark || 'N/A',
+        city: shippingAddress.city || 'N/A',
+        state: shippingAddress.state || 'N/A',
+        pincode: shippingAddress.pincode || 'N/A',
+        phone: shippingAddress.phone || 'N/A'
+      },
+      orderedItems: order.OrderItems.map(item => ({
+        product: {
+          name: item.product.productName,
+          productImage: item.product.productImage // Optional, if needed
+        },
+        price: item.price,
+        quantity: item.quantity,
+        total: item.price * item.quantity // Add total for the table
+      }))
+    };
 
-      const formattedOrder = {
-          _id: order.orderId,
-          date: order.createdOn,
-          payment: order.paymentMethod,
-          total: order.finalAmount,
-          customer: {
-              name: order.userId?.name || 'N/A',
-              email: order.userId?.email || 'N/A',
-              phone: order.userId?.phone || 'N/A'
-          },
-          shippingAddress: {
-              fullName: shippingAddress.name || 'N/A',
-              address: shippingAddress.address || 'N/A', // Note: your addressSchema uses 'address' as a field
-              landMark: shippingAddress.landMark || 'N/A',
-              city: shippingAddress.city || 'N/A',
-              state: shippingAddress.state || 'N/A',
-              pincode: shippingAddress.pincode || 'N/A',
-              phone: shippingAddress.phone || 'N/A',
-              altPhone: shippingAddress.altPhone || 'N/A'
-          },
-          products: order.OrderItems.map(item => {
-              const imagePath = item.product.productImage[0];
-              const formattedImagePath = `/uploads/re-image/${imagePath}`;
-              return {
-                  name: item.product.productName,
-                  image: formattedImagePath,
-                  price: item.price,
-                  color: item.product.color,
-                  quantity: item.quantity,
-                  status: order.status
-              };
-          })
-      };
-
-      res.json(formattedOrder);
+    res.json({ success: true, order: formattedOrder });
   } catch (error) {
-      console.error('Error in getOrderDetails:', error);
-      res.status(500).json({ error: error.message || 'Internal server error' });
+    console.error('Error in getOrderDetails:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 
