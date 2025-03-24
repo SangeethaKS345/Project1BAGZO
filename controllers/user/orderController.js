@@ -10,6 +10,7 @@ const ORDERS_PER_PAGE = 3;
 const STATUS_MAP = {
   'Pending': 1,
   'Pending COD': 1,
+  'Failed': -1,
   'Processing': 2,
   'Shipped': 3,
   'Delivered': 4,
@@ -129,16 +130,25 @@ const loadMyOrders = async (req, res, next) => {
       Order.countDocuments({ userId })
     ]);
 
-    const formattedOrders = orders.map(order => ({
-      orderId: order.orderId,
-      product: order.OrderItems[0].product,
-      quantity: order.OrderItems.reduce((sum, item) => sum + item.quantity, 0),
-      totalAmount: order.finalAmount,
-      placedOn: order.createdOn.toLocaleString(),
-      status: getOrderStatus(order.status),
-      cancellation_reason: order.cancellation_reason,
-      return_reason: order.return_reason
-    }));
+    const formattedOrders = orders.map(order => {
+      console.log(`Order ${order.orderId}: status=${order.status}, paymentStatus=${order.paymentStatus}`);
+      let orderStatus = getOrderStatus(order.status);
+      if (order.paymentStatus === 'failed') {
+        orderStatus = STATUS_MAP['Failed'];
+      }
+      return {
+        orderId: order.orderId,
+        product: order.OrderItems[0].product,
+        quantity: order.OrderItems.reduce((sum, item) => sum + item.quantity, 0),
+        totalAmount: order.finalAmount,
+        placedOn: order.createdOn.toLocaleString(),
+        status: orderStatus,
+        paymentStatus: order.paymentStatus,
+        paymentMethod: order.paymentMethod, // Add paymentMethod
+        cancellation_reason: order.cancellation_reason,
+        return_reason: order.return_reason
+      };
+    });
 
     res.render("myOrder", {
       orders: formattedOrders,

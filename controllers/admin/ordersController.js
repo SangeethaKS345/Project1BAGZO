@@ -218,10 +218,48 @@ const updateReturnStatus = async (req, res) => {
     }
   };
 
+  const getOrderDetailsForPayment = async (req, res, next) => {
+    try {
+      const userId = validateAuth(req);
+      const { orderId } = req.params;
+  
+      const order = await Order.findOne({ orderId, userId })
+        .populate('userId', 'name email')
+        .populate('address')
+        .lean();
+  
+      if (!order) {
+        const err = new Error("Order not found");
+        err.status = 404;
+        throw err;
+      }
+  
+      if (order.paymentStatus !== 'failed') {
+        const err = new Error("Payment retry only available for failed payments");
+        err.status = 400;
+        throw err;
+      }
+  
+      res.json({
+        success: true,
+        order: {
+          orderId: order.orderId,
+          amount: order.finalAmount,
+          customerName: order.userId.name,
+          customerEmail: order.userId.email,
+          customerPhone: order.address.phone
+        }
+      });
+    } catch (err) {
+      next(err);
+    }
+  };
+
 module.exports = {
     getAllOrders,
     getOrderDetails,
     updateOrderStatus,
     getReturnRequests,
     updateReturnStatus,
+    getOrderDetailsForPayment
 };

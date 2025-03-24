@@ -62,6 +62,10 @@
                 <button class="btn btn-secondary cancel-order-btn" data-order-id="<%= order.orderId %>" disabled>
                   <i class="fas fa-ban"></i> Cancelled
                 </button>
+              <% } else if (order.paymentStatus === 'failed' || (order.paymentMethod === 'razorpay' && order.status === 1 && order.paymentStatus === 'pending')) { %>
+                <button class="btn btn-warning pay-now-btn" data-order-id="<%= order.orderId %>">
+                  <i class="fas fa-redo"></i> Pay
+                </button>
               <% } else if (order.status === 4 && !order.return_reason) { %>
                 <button class="btn btn-warning return-order-btn" data-order-id="<%= order.orderId %>">
                   <i class="fas fa-undo"></i> Return Order
@@ -86,22 +90,29 @@
             <div class="product-info">
               <div class="status-tracker">
                 <div class="status-line <%= order.status >= 2 ? 'active' : '' %>"></div>
-                <div class="status-step <%= order.status >= 1 ? 'active' : '' %>">
-                  <div class="status-dot <%= order.status >= 1 ? 'active' : '' %>"></div>
-                  <span>Order Placed</span>
-                </div>
-                <div class="status-step <%= order.status >= 2 ? 'active' : '' %>">
-                  <div class="status-dot <%= order.status >= 2 ? 'active' : '' %>"></div>
-                  <span>Processing</span>
-                </div>
-                <div class="status-step <%= order.status >= 3 ? 'active' : '' %>">
-                  <div class="status-dot <%= order.status >= 3 ? 'active' : '' %>"></div>
-                  <span>Shipped</span>
-                </div>
-                <div class="status-step <%= order.status >= 4 ? 'active' : '' %>">
-                  <div class="status-dot <%= order.status >= 4 ? 'active' : '' %>"></div>
-                  <span>Delivered</span>
-                </div>
+                <% if (order.paymentStatus === 'failed' || (order.paymentMethod === 'razorpay' && order.status === 1 && order.paymentStatus === 'pending')) { %>
+                  <div class="status-step active">
+                    <div class="status-dot active"></div>
+                    <span>Failed</span>
+                  </div>
+                <% } else { %>
+                  <div class="status-step <%= order.status >= 1 ? 'active' : '' %>">
+                    <div class="status-dot <%= order.status >= 1 ? 'active' : '' %>"></div>
+                    <span>Order Placed</span>
+                  </div>
+                  <div class="status-step <%= order.status >= 2 ? 'active' : '' %>">
+                    <div class="status-dot <%= order.status >= 2 ? 'active' : '' %>"></div>
+                    <span>Processing</span>
+                  </div>
+                  <div class="status-step <%= order.status >= 3 ? 'active' : '' %>">
+                    <div class="status-dot <%= order.status >= 3 ? 'active' : '' %>"></div>
+                    <span>Shipped</span>
+                  </div>
+                  <div class="status-step <%= order.status >= 4 ? 'active' : '' %>">
+                    <div class="status-dot <%= order.status >= 4 ? 'active' : '' %>"></div>
+                    <span>Delivered</span>
+                  </div>
+                <% } %>
               </div>
             </div>
           </div>
@@ -542,9 +553,109 @@ function initiateRazorpayPayment(orderId, amount) {
     },
     theme: {
       color: '#FF4B2B'
+    },
+    modal: {
+      ondismiss: async function () {
+        // Handle payment window close (abandonment)
+        try {
+          await fetch('/payment-failed', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId })
+          });
+          window.location.reload();
+        } catch (error) {
+          console.error('Error updating payment failure:', error);
+        }
+      }
     }
   };
   const rzp = new Razorpay(options);
+  rzp.on('payment.failed', async function (response) {
+    // Handle payment failure
+    try {
+      await fetch('/payment-failed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId })
+      });
+      window.location.reload();
+    } catch (error) {
+      console.error('Error updating payment failure:', error);
+    }
+  });
   rzp.open();
 }
+
+// Pay Now Handler
+document.querySelectorAll('.pay-now-btn').forEach(button => {
+  button.addEventListener('click', async (e) => {
+    const orderId = e.target.closest('.pay-now-btn').getAttribute('data-order-id');
+    
+    try {
+      const response = await fetch(`/retry-payment/${orderId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        const options = {
+          key: data.key, // Use the key from backend
+          amount: data.amount,
+          currency: 'INR',
+          name: 'BAGZO',
+          description: `Retry Payment for Order #${orderId}`,
+          order_id: data.razorpayOrderId,
+          handler: async function (response) {
+            const verifyResponse = await fetch('/verify-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                orderId: data.orderId,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature
+              })
+            });
+            
+            const verifyData = await verifyResponse.json();
+            if (verifyData.success) {
+              Swal.fire('Success', 'Payment completed successfully!', 'success')
+                .then(() => window.location.reload());
+            } else {
+              Swal.fire('Error', verifyData.error || 'Payment verification failed', 'error');
+            }
+          },
+          prefill: {
+            name: req.user.name || 'Customer', // Use actual user data if available
+            email: req.user.email || '',
+            contact: '' // Add phone if available
+          },
+          theme: {
+            color: '#FF4B2B'
+          },
+          modal: {
+            ondismiss: async function () {
+              await fetch('/payment-failed', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId: data.orderId })
+              });
+            }
+          }
+        };
+        
+        const rzp = new Razorpay(options);
+        rzp.open();
+      } else {
+        Swal.fire('Error', data.error || 'Failed to initiate payment retry', 'error');
+      }
+    } catch (error) {
+      console.error('Payment retry error:', error);
+      Swal.fire('Error', 'Something went wrong', 'error');
+    }
+  });
+});
 </script>
