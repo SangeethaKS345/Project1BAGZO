@@ -8,7 +8,7 @@ const userSchema = new Schema({
     },
     profileImage: {
         type: String,
-        default: 'null' 
+        default: '/img/customers-icon-15.png' 
     },
     email: {
         type: String,
@@ -46,7 +46,7 @@ const userSchema = new Schema({
         unique: true, 
         sparse: true 
     }
-    // Removed redeemed field
+   
 }, { timestamps: true }); 
 
 const User = mongoose.model("User", userSchema);

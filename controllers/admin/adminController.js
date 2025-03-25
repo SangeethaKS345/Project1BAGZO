@@ -5,7 +5,7 @@ const bcrypt = require("bcrypt");
 const loadLogin = async (req, res, next) => {
     try {
         console.log("Admin loadLogin called, rendering login.ejs");
-        return res.render("login", { message: "" }); // Renders views/login.ejs
+        return res.render("login", { message: "" }); 
     } catch (error) {
         next(error);
     }

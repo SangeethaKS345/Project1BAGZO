@@ -10,13 +10,12 @@ const Wallet = require("../../models/walletSchema");
 
 // Load Home Page
 const loadHomepage = async (req, res, next) => {
-    console.log(req.session.user,"user session in loadHomepage");
+    console.log(req.session.user, "user session in loadHomepage");
     try {
         const user = req.session.user;
         const categories = await Category.find({ isListed: true });
         const brand = await Brand.find({ isBlocked: false });
 
-        // Fetch products with populated category
         const productData = await Product.find({
             isBlocked: false,
             category: { $in: categories.map(category => category._id) },
@@ -25,7 +24,6 @@ const loadHomepage = async (req, res, next) => {
         .populate('category')
         .sort({ createdAt: -1 });
 
-        // Calculate effective price for each product
         const currentDate = new Date();
         const productsWithOffers = productData.map(product => {
             let effectivePrice = product.salesPrice;
@@ -57,16 +55,11 @@ const loadHomepage = async (req, res, next) => {
         let userData = null;
         if (user && user.id) {
             userData = await User.findById(user.id);
-            return res.render("home", { 
-                userData, 
-                products: productsWithOffers, 
-                categories, 
-                brand 
-            });
+            console.log("User Data for rendering:", userData); // Add this line
         }
 
         return res.render("home", { 
-            userData, // Pass null explicitly if no user
+            userData, 
             products: productsWithOffers, 
             categories, 
             brand 
@@ -81,7 +74,7 @@ const loadHomepage = async (req, res, next) => {
 // Load Signup Page
 const loadSignup = async (req, res, next) => {
     try {
-        return res.render('signup', { message: "" }); // Ensuring 'message' is always passed
+        return res.render('signup', { message: "" }); 
     } catch (error) {
         next(error); 
     }

@@ -21,7 +21,7 @@
         <div class="form-group">
           <label><i class="fas fa-camera field-icon"></i>Profile Image:</label>
           <div style="text-align: center; margin-bottom: 20px;">
-            <img src="<%= user.profileImage ? '/uploads/' + user.profileImage : '/images/default-profile.jpg' %>" 
+            <img src="<%= user.profileImage.startsWith('/uploads/') ? user.profileImage : '/img/customers-icon-15.png' %>" 
                  alt="Profile Image" 
                  class="profile-img">
           </div>
