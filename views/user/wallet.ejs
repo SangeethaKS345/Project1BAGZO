@@ -26,10 +26,14 @@
 
                 <div class="card sidebar" style="height: auto; overflow: visible;">
                     <div class="profile-photo-container">
-                        <% if (user?.profileImage) { %>
-                            <img src="/uploads/<%= user.profileImage %>" alt="Profile Photo" class="profile-photo" style="display: block;">
+                        <% if (userData) { %>
+                            <% if (userData.profileImage && userData.profileImage.startsWith('/uploads/')) { %>
+                                <img src="<%= userData.profileImage %>" alt="Profile Photo" class="profile-photo" style="display: block;">
+                            <% } else { %>
+                                <img src="/img/customers-icon-15.png" alt="Default Profile Image" class="profile-photo" style="display: block;">
+                            <% } %>
                         <% } else { %>
-                            <i class="fas fa-user profile-photo-placeholder"></i>
+                            <img src="/img/customers-icon-15.png" alt="Default Profile Image" class="profile-photo" style="display: block;">
                         <% } %>
                     </div>
                     <div class="text-center">
