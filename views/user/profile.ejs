@@ -77,7 +77,11 @@
                             <p><strong>Name:</strong> <%= user.name %></p>
                             <p><strong>Email:</strong> <%= user.email %></p>
                             <p><strong>Phone:</strong> <%= user.phone || 'Not provided' %></p>
-                            <p><strong>Referral Code:</strong> <%= user.referralCode %></p>
+                            <p>
+                                <strong>Referral Code:</strong> 
+                                <span id="referralCode"><%= user.referralCode %></span>
+                                <i class="fas fa-copy copy-icon" id="copyReferral" title="Copy to clipboard" style="cursor: pointer; margin-left: 10px;"></i>
+                            </p>
                         </div>
                        
                         <a href="/editProfile" class="gradient-btn mt-4"><i class="fas fa-edit"></i> Edit Profile</a>
@@ -106,6 +110,31 @@
             </div>
         </div>
     </div>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script>
+        document.getElementById('copyReferral').addEventListener('click', function() {
+    const referralCode = document.getElementById('referralCode').innerText;
+    
+    navigator.clipboard.writeText(referralCode)
+        .then(() => {
+            // Optional: Provide feedback to the user
+            const copyIcon = document.getElementById('copyReferral');
+            copyIcon.classList.remove('fas', 'fa-copy');
+            copyIcon.classList.add('fas', 'fa-check');
+            copyIcon.style.color = 'green';
+            
+            setTimeout(() => {
+                copyIcon.classList.remove('fas', 'fa-check');
+                copyIcon.classList.add('fas', 'fa-copy');
+                copyIcon.style.color = ''; // Reset to default color
+            }, 2000); // Reverts after 2 seconds
+        })
+        .catch(err => {
+            console.error('Failed to copy: ', err);
+            alert('Failed to copy referral code. Please try again.');
+        });
+});
+    </script>
     <%- include('../../views/partials/user/footer') %>
 </body>
 </html>
