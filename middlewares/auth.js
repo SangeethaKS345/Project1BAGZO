@@ -1,12 +1,21 @@
 
 const mongoose = require("mongoose");
+const User = require("../models/userSchema");
+
 const userAuth = (req, res, next) => {
+  console.log("Authentication Middleware Started");
+  console.log("Full Session Object:", req.session);
+  console.log("Session User:", req.session.user);
+
   if (!req.session || !req.session.user) {
+    console.log("No session or no user in session");
     return res.status(401).json({
       success: false,
       error: "Authentication required. Please log in."
     });
-  }userId;
+  }
+
+  let userId;
   try {
     if (req.session.user.id) {
       userId = req.session.user.id;

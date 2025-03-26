@@ -181,32 +181,37 @@ async function toggleWishlist(productId, button) {
 
 // Add to cart function
 function addToCart(productId) {
-  fetch('/add-to-cart', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ productId })
-  })
-  .then(response => {
-    Swal.fire({
-                icon: 'warning',
-                title: 'Login Required',
-                text: 'Please log in to manage your wishlist.',
-            }).then(() => {
-                window.location.href = '/login';
+    fetch('/add-to-cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId }) 
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message === "Product added to cart successfully!") {
+            Swal.fire({
+                icon: 'success',
+                title: 'Added to Cart!',
+                text: data.message,
+                timer: 1500,
+                showConfirmButton: false
             });
-  })
-  .then(data => {
-    if (data.message === "Product added to cart successfully!") {
-      // Optionally add visual feedback here if desired
-    } else {
-      console.error('Add to cart failed:', data.message);
-    }
-  })
-  .catch(error => {
-    if (error !== 'Unauthorized') { // Ignore the redirect error
-      console.error("Error:", error);
-    }
-  });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops!',
+                text: data.message
+            });
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Something went wrong. Try again!'
+        });
+    });
 }
 </script>
 
