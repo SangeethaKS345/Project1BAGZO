@@ -188,7 +188,9 @@ function addToCart(productId) {
     })
     .then(response => response.json())
     .then(data => {
-        if (data.message === "Product added to cart successfully!") {
+        if (data.redirectTo) {
+            window.location.href = data.redirectTo; // Redirect to login page
+        } else if (data.message === "Product added to cart successfully!") {
             Swal.fire({
                 icon: 'success',
                 title: 'Added to Cart!',
@@ -196,11 +198,25 @@ function addToCart(productId) {
                 timer: 1500,
                 showConfirmButton: false
             });
+        } else if (data.message === "Cart is full") {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Cart is Full',
+                text: 'You have reached the maximum number of items in your cart.',
+            });
+        } else if (data.message === "Please log in to add items to your cart") {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Login Required',
+                text: 'Please log in to manage your cart.',
+            }).then(() => {
+                window.location.href = '/login';
+            });
         } else {
             Swal.fire({
-                icon: 'error',
-                title: 'Oops!',
-                text: data.message
+                icon: 'warning',
+                title: 'Cart is Full',
+                text: 'You have reached the maximum number of items in your cart.',
             });
         }
     })
@@ -209,10 +225,12 @@ function addToCart(productId) {
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'Something went wrong. Try again!'
+            text: 'Something went wrong. Try again!',
         });
     });
 }
+
+
 </script>
 
 <!-- Footer Section Begin -->
