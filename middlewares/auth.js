@@ -1,18 +1,12 @@
 
 const mongoose = require("mongoose");
-const User = require("../models/userSchema");
-
 const userAuth = (req, res, next) => {
-  console.log("Authentication Middleware Started");
-  console.log("Full Session Object:", req.session);
-  console.log("Session User:", req.session.user);
-
   if (!req.session || !req.session.user) {
-    console.log("No session or no user in session, redirecting to login");
-    return res.redirect("/login");
-  }
-
-  let userId;
+    return res.status(401).json({
+      success: false,
+      error: "Authentication required. Please log in."
+    });
+  }userId;
   try {
     if (req.session.user.id) {
       userId = req.session.user.id;
@@ -22,19 +16,28 @@ const userAuth = (req, res, next) => {
       userId = req.session.user;
     } else {
       console.error("CANNOT EXTRACT USER ID. Session user structure:", req.session.user);
-      return res.redirect("/login");
+      return res.status(401).json({
+        success: false,
+        error: "Invalid session data"
+      });
     }
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       console.error("Invalid User ID format:", userId);
-      return res.redirect("/login");
+      return res.status(401).json({
+        success: false,
+        error: "Invalid user ID"
+      });
     }
 
     User.findById(userId)
       .then((user) => {
         if (!user) {
           console.log(`No user found with ID: ${userId}`);
-          return res.redirect("/login");
+          return res.status(401).json({
+            success: false,
+            error: "User not found"
+          });
         }
 
         req.user = user;
@@ -47,12 +50,17 @@ const userAuth = (req, res, next) => {
       })
       .catch((err) => {
         console.error("Database lookup error:", err);
-        res.redirect("/login");
+        res.status(500).json({
+          success: false,
+          error: "Server error during authentication"
+        });
       });
-
   } catch (error) {
     console.error("Authentication middleware error:", error);
-    res.redirect("/login");
+    res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    });
   }
 };
 

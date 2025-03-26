@@ -67,6 +67,14 @@ const addToWishlist = async (req, res) => {
         });
     }
 
+    // Check if user is authenticated
+    if (!req.user) {
+        return res.status(401).json({
+            success: false,
+            error: 'Authentication required. Please log in.'
+        });
+    }
+
     try {
         const productId = req.params.productId;
         const userId = req.user._id;
@@ -99,7 +107,7 @@ const addToWishlist = async (req, res) => {
         await wishlist.save();
         res.json({ 
             success: true,
-            message: `Product "${productExists.name}" added to wishlist successfully` // Enhanced message
+            message: `Product "${productExists.name}" added to wishlist successfully`
         });
     } catch (error) {
         console.error('Wishlist error:', error);
@@ -109,6 +117,8 @@ const addToWishlist = async (req, res) => {
         });
     }
 };
+
+
 
 const removeFromWishlist = async (req, res) => {
     try {
