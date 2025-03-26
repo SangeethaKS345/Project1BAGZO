@@ -125,9 +125,9 @@ const adminAuth = async (req, res, next) => {
 };
 
 const redirectIfAuthenticated = (req, res, next) => {
-  console.log(req.session.user,'in new auth');
-  if (req.session.user) {
-    return res.redirect("/dashboard"); // Redirect logged-in users
+  console.log(req.session.admin,'in new auth');
+  if (req.session.admin) {
+    return res.redirect("/admin/dashboard"); // Redirect logged-in users
   }
   next(); // Proceed if not logged in
 };
