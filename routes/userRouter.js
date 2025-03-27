@@ -85,7 +85,7 @@ router.get('/address', userAuth, addressController.getAddresses);
 router.get('/address/new', userAuth, addressController.addAddressForm);
 router.post('/address', userAuth, addressController.addAddress);
 router.get('/address/edit/:id', userAuth, addressController.editAddressForm);
-router.post('/address/edit/:id', userAuth, addressController.updateAddress);
+router.post('/address/edit/:id', userAuth, addressController.updateAddress); 
 router.delete('/address/:id', userAuth, addressController.deleteAddress);
 
 // Cart Management

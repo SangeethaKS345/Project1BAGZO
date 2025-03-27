@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Address</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="/css/styles.css">
     <link rel="stylesheet" href="/css/addAddress.css">
-      <%- include("../../views/partials/user/header") %>
+    <%- include("../../views/partials/user/header") %>
 </head>
 <body>
     <div class="container mt-5">
@@ -85,39 +85,50 @@
                         </div>
                         <div class="mb-3">
                             <label for="name" class="form-label">Full Name</label>
-                            <input type="text" class="form-control" id="name" name="name" required>
-                            <div class="invalid-feedback">Please enter your full name.</div>
+                            <input type="text" class="form-control" id="name" name="name" pattern="[A-Za-z\s]+" required>
+                            <small class="form-text text-muted">Letters and spaces only.</small>
+                            <div class="invalid-feedback">Please enter a valid name (letters only).</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="houseNo" class="form-label">House No/Building Name</label>
+                            <input type="text" class="form-control" id="houseNo" name="houseNo" required>
+                            <small class="form-text text-muted">e.g., 123 Main St or Apt 4B</small>
+                            <div class="invalid-feedback">Please enter a valid house number or building name.</div>
                         </div>
                         <div class="mb-3">
                             <label for="city" class="form-label">City</label>
-                            <input type="text" class="form-control" id="city" name="city" required>
-                            <div class="invalid-feedback">Please enter your city.</div>
+                            <input type="text" class="form-control" id="city" name="city" pattern="[A-Za-z\s]+" required>
+                            <small class="form-text text-muted">Letters and spaces only.</small>
+                            <div class="invalid-feedback">Please enter a valid city name (letters only).</div>
                         </div>
                         <div class="mb-3">
                             <label for="landMark" class="form-label">Landmark</label>
                             <input type="text" class="form-control" id="landMark" name="landMark" required>
-                            <div class="invalid-feedback">Please enter a landmark.</div>
+                            <small class="form-text text-muted">e.g., Near Park</small>
+                            <div class="invalid-feedback">Please enter a valid landmark.</div>
                         </div>
                         <div class="mb-3">
                             <label for="state" class="form-label">State</label>
-                            <input type="text" class="form-control" id="state" name="state" required>
-                            <div class="invalid-feedback">Please enter your state.</div>
+                            <input type="text" class="form-control" id="state" name="state" pattern="[A-Za-z\s]+" required>
+                            <small class="form-text text-muted">Letters and spaces only.</small>
+                            <div class="invalid-feedback">Please enter a valid state name (letters only).</div>
                         </div>
                         <div class="mb-3">
                             <label for="pincode" class="form-label">Pincode</label>
                             <input type="number" class="form-control" id="pincode" name="pincode" min="100000" max="999999" required>
+                            <small class="form-text text-muted">6-digit number.</small>
                             <div class="invalid-feedback">Please enter a valid 6-digit pincode.</div>
                         </div>
                         <div class="mb-3">
                             <label for="phone" class="form-label">Phone Number</label>
                             <input type="tel" class="form-control" id="phone" name="phone" pattern="[1-9][0-9]{9}" required>
-                            <small class="form-text text-muted">Enter a valid 10-digit phone number (cannot be all zeros).</small>
-                            <div class="invalid-feedback">Please enter a valid 10-digit phone number (e.g., 9876543210).</div>
+                            <small class="form-text text-muted">10-digit number, no leading zero.</small>
+                            <div class="invalid-feedback">Please enter a valid 10-digit phone number.</div>
                         </div>
                         <div class="mb-3">
                             <label for="altPhone" class="form-label">Alternate Phone</label>
                             <input type="tel" class="form-control" id="altPhone" name="altPhone" pattern="[1-9][0-9]{9}" required>
-                            <small class="form-text text-muted">Enter a valid 10-digit phone number (must differ from Phone).</small>
+                            <small class="form-text text-muted">Must differ from Phone.</small>
                             <div class="invalid-feedback">Please enter a valid 10-digit phone number different from Phone.</div>
                         </div>
                         <div class="mt-3">
@@ -139,13 +150,24 @@
             const form = document.getElementById('addAddressForm');
             const phoneInput = document.getElementById('phone');
             const altPhoneInput = document.getElementById('altPhone');
+            const pincodeInput = document.getElementById('pincode');
+            const nameInput = document.getElementById('name');
+            const cityInput = document.getElementById('city');
+            const stateInput = document.getElementById('state');
+            const houseNoInput = document.getElementById('houseNo');
+            const landMarkInput = document.getElementById('landMark');
 
             form.addEventListener('submit', function(event) {
                 let isValid = true;
                 const inputs = form.querySelectorAll('input[required], select[required]');
                 const phoneValue = phoneInput.value;
                 const altPhoneValue = altPhoneInput.value;
+                const pincodeValue = pincodeInput.value;
+                const nameValue = nameInput.value;
+                const cityValue = cityInput.value;
+                const stateValue = stateInput.value;
 
+                // Check all required fields
                 inputs.forEach(input => {
                     if (!input.value.trim()) {
                         input.classList.add('is-invalid');
@@ -156,19 +178,36 @@
                     }
                 });
 
-                if (/^0{10}$/.test(phoneValue) || !/^[1-9][0-9]{9}$/.test(phoneValue)) {
+                // Name, City, State: Letters and spaces only
+                const textOnlyRegex = /^[A-Za-z\s]+$/;
+                if (!textOnlyRegex.test(nameValue)) {
+                    nameInput.classList.add('is-invalid');
+                    isValid = false;
+                }
+                if (!textOnlyRegex.test(cityValue)) {
+                    cityInput.classList.add('is-invalid');
+                    isValid = false;
+                }
+                if (!textOnlyRegex.test(stateValue)) {
+                    stateInput.classList.add('is-invalid');
+                    isValid = false;
+                }
+
+                // Phone validation
+                if (!/^[1-9][0-9]{9}$/.test(phoneValue)) {
                     phoneInput.classList.add('is-invalid');
                     isValid = false;
                 }
 
-                if (/^0{10}$/.test(altPhoneValue) || !/^[1-9][0-9]{9}$/.test(altPhoneValue)) {
+                // Alternate phone validation
+                if (!/^[1-9][0-9]{9}$/.test(altPhoneValue) || phoneValue === altPhoneValue) {
                     altPhoneInput.classList.add('is-invalid');
                     isValid = false;
                 }
 
-                if (phoneValue === altPhoneValue && phoneValue && altPhoneValue) {
-                    altPhoneInput.classList.add('is-invalid');
-                    altPhoneInput.nextElementSibling.textContent = "Alternate phone must differ from Phone.";
+                // Pincode validation
+                if (!/^[1-9][0-9]{5}$/.test(pincodeValue)) {
+                    pincodeInput.classList.add('is-invalid');
                     isValid = false;
                 }
 
@@ -183,10 +222,25 @@
                 }
             });
 
+            // Real-time validation for text-only fields
+            [nameInput, cityInput, stateInput].forEach(input => {
+                input.addEventListener('input', function() {
+                    const textOnlyRegex = /^[A-Za-z\s]+$/;
+                    if (textOnlyRegex.test(this.value) && this.value.trim()) {
+                        this.classList.remove('is-invalid');
+                        this.classList.add('is-valid');
+                    } else {
+                        this.classList.add('is-invalid');
+                        this.classList.remove('is-valid');
+                    }
+                });
+            });
+
+            // Real-time validation for phone numbers
             [phoneInput, altPhoneInput].forEach(input => {
                 input.addEventListener('input', function() {
                     const otherInput = this.id === 'phone' ? altPhoneInput : phoneInput;
-                    if (this.value.length === 10 && /^[1-9][0-9]{9}$/.test(this.value) && !/^0{10}$/.test(this.value)) {
+                    if (this.value.length === 10 && /^[1-9][0-9]{9}$/.test(this.value)) {
                         this.classList.remove('is-invalid');
                         this.classList.add('is-valid');
                         if (this.value === otherInput.value) {
@@ -196,6 +250,30 @@
                             otherInput.classList.remove('is-invalid');
                             otherInput.nextElementSibling.textContent = "Please enter a valid 10-digit phone number different from Phone.";
                         }
+                    } else {
+                        this.classList.add('is-invalid');
+                        this.classList.remove('is-valid');
+                    }
+                });
+            });
+
+            // Real-time validation for pincode
+            pincodeInput.addEventListener('input', function() {
+                if (/^[1-9][0-9]{5}$/.test(this.value)) {
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                } else {
+                    this.classList.add('is-invalid');
+                    this.classList.remove('is-valid');
+                }
+            });
+
+            // HouseNo and Landmark can have numbers and letters, just ensure not empty
+            [houseNoInput, landMarkInput].forEach(input => {
+                input.addEventListener('input', function() {
+                    if (this.value.trim()) {
+                        this.classList.remove('is-invalid');
+                        this.classList.add('is-valid');
                     } else {
                         this.classList.add('is-invalid');
                         this.classList.remove('is-valid');

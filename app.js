@@ -9,6 +9,7 @@ const db = require("./config/db");
 const userRouter = require("./routes/userRouter");
 const adminRouter = require("./routes/adminRouter");
 const app = express();
+
 const {errorHandler, adminErrorHandler} = require("./middlewares/errorHandler.js");
 const nocache = require('nocache');
 app.use(nocache());

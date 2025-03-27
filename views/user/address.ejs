@@ -44,7 +44,6 @@
                         <li class="nav-item"><a href="/cart" class="nav-link"><i class="fas fa-shopping-cart"></i> Cart</a></li>
                         <li class="nav-item"><a href="/wishlist" class="nav-link"><i class="fas fa-heart"></i> Wishlist</a></li>
                         <li class="nav-item"><a href="/user/wallet" class="nav-link"><i class="fas fa-wallet"></i> Wallet</a></li>
-                        <!-- <li class="nav-item"><a href="/user/coupons" class="nav-link"><i class="fas fa-ticket-alt"></i> Coupons</a></li> -->
                         <li class="nav-item"><a href="/logout" class="nav-link logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                     </ul>                 
                 </div>
@@ -74,6 +73,7 @@
                                         <div class="address-type"><%= addr.addressType %> Address</div>
                                         <div class="address-details">
                                             <p><i class="fas fa-user me-2"></i> <strong><%= addr.name %></strong></p>
+                                            <p><i class="fas fa-home me-2"></i> <%= addr.houseNo %></p> <!-- Added houseNo -->
                                             <p><i class="fas fa-map-pin me-2"></i> <%= addr.city %>, <%= addr.state %> <%= addr.pincode %></p>
                                             <p><i class="fas fa-landmark me-2"></i> <%= addr.landMark %></p>
                                             <p><i class="fas fa-phone me-2"></i> <%= addr.phone %></p>
