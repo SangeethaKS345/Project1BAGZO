@@ -215,8 +215,10 @@ function addToCart(productId) {
         } else {
             Swal.fire({
                 icon: 'warning',
-                title: 'Cart is Full',
-                text: 'You have reached the maximum number of items in your cart.',
+                title: 'Login Required',
+                text: 'Please log in to manage your cart.',
+            }).then(() => {
+                window.location.href = '/login';
             });
         }
     })
