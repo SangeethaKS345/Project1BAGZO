@@ -121,7 +121,11 @@
             <button class="btn btn-primary buy-again-btn" data-product-id="<%= order.product._id %>">
               <i class="fas fa-shopping-cart"></i> Buy Again
             </button>
-            <button class="btn btn-primary download-invoice-btn" data-order-id="<%= order.orderId %>">
+            <button 
+              class="btn btn-primary download-invoice-btn" 
+              data-order-id="<%= order.orderId %>"
+              <% if (order.paymentStatus === 'failed' || order.status === 0 || order.status === 6) { %>disabled<% } %>
+            >
               <i class="fas fa-file-download"></i> Download Invoice
             </button>
             <button class="btn btn-info view-details-btn" data-order-id="<%= order.orderId %>">
@@ -393,6 +397,7 @@ document.querySelectorAll('.buy-again-btn').forEach(button => {
 });
 
 // Download Invoice Handler
+// Download Invoice Handler
 document.querySelectorAll('.download-invoice-btn').forEach(button => {
   button.addEventListener('click', async (e) => {
     const orderId = e.target.closest('.download-invoice-btn').getAttribute('data-order-id');
@@ -404,7 +409,8 @@ document.querySelectorAll('.download-invoice-btn').forEach(button => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to download invoice');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to download invoice');
       }
 
       const blob = await response.blob();
@@ -420,7 +426,7 @@ document.querySelectorAll('.download-invoice-btn').forEach(button => {
       console.error('Error downloading invoice:', error);
       Swal.fire({
         title: 'Error',
-        text: 'Failed to download invoice. Please try again.',
+        text: error.message || 'Failed to download invoice. Please try again.',
         icon: 'error',
         confirmButtonColor: '#FF4B2B'
       });

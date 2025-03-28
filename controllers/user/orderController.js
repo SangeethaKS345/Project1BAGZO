@@ -218,6 +218,14 @@ const downloadInvoice = async (req, res, next) => {
       throw err;
     }
 
+    // Check if order is in a state where invoice should not be downloadable
+    const statusNumber = getOrderStatus(order.status);
+    if (order.paymentStatus === 'failed' || statusNumber === 0 || statusNumber === 6) {
+      const err = new Error("Invoice not available for failed, cancelled, or returned orders");
+      err.status = 403; // Forbidden
+      throw err;
+    }
+
     const doc = new PDFDocument({ size: 'A4', margin: 50 });
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename=invoice_${orderId}.pdf`);
