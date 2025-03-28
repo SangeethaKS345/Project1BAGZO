@@ -201,11 +201,13 @@
       <div class="shipping-info-section">
         <h4>Shipping Address</h4>
         <p><strong>Name:</strong> <span id="modal-shipping-name"></span></p>
+        <p><strong>House No:</strong> <span id="modal-shipping-house-no"></span></p>
         <p><strong>Landmark:</strong> <span id="modal-shipping-landmark"></span></p>
         <p><strong>City:</strong> <span id="modal-shipping-city"></span></p>
         <p><strong>State:</strong> <span id="modal-shipping-state"></span></p>
         <p><strong>Pincode:</strong> <span id="modal-shipping-pincode"></span></p>
         <p><strong>Phone:</strong> <span id="modal-shipping-phone"></span></p>
+        <p><strong>Alternate Phone:</strong> <span id="modal-shipping-alt-phone"></span></p> <!-- New field -->
       </div>
       <div class="order-items-section">
         <h4>Order Items</h4>
@@ -454,11 +456,13 @@ document.querySelectorAll('.view-details-btn').forEach(button => {
         document.getElementById('modal-customer-name').textContent = order.userName || 'N/A';
         document.getElementById('modal-customer-email').textContent = order.userEmail || 'N/A';
         document.getElementById('modal-shipping-name').textContent = order.shippingAddress?.name || 'N/A';
+        document.getElementById('modal-shipping-house-no').textContent = order.shippingAddress?.houseNo || 'N/A';
         document.getElementById('modal-shipping-landmark').textContent = order.shippingAddress?.landMark || 'N/A';
         document.getElementById('modal-shipping-city').textContent = order.shippingAddress?.city || 'N/A';
         document.getElementById('modal-shipping-state').textContent = order.shippingAddress?.state || 'N/A';
         document.getElementById('modal-shipping-pincode').textContent = order.shippingAddress?.pincode || 'N/A';
         document.getElementById('modal-shipping-phone').textContent = order.shippingAddress?.phone || 'N/A';
+        document.getElementById('modal-shipping-alt-phone').textContent = order.shippingAddress?.altPhone || 'N/A'; // New field
 
         const itemsTable = document.getElementById('modal-order-items').getElementsByTagName('tbody')[0];
         itemsTable.innerHTML = '';

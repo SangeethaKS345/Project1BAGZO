@@ -308,9 +308,18 @@ const getOrderDetails = async (req, res, next) => {
         finalAmount: order.finalAmount,
         userName: user.name,
         userEmail: user.email,
-        shippingAddress: order.address,
+        shippingAddress: {
+          name: order.address?.name,
+          houseNo: order.address?.houseNo,
+          landMark: order.address?.landMark,
+          city: order.address?.city,
+          state: order.address?.state,
+          pincode: order.address?.pincode,
+          phone: order.address?.phone,
+          altPhone: order.address?.altPhone // Added new field
+        },
         orderedItems: order.OrderItems.map(item => ({
-          product: { productName: item.product.productName }, // Changed from 'name' to 'productName'
+          product: { productName: item.product.productName },
           price: item.price,
           quantity: item.quantity
         })),
