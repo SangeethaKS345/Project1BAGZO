@@ -443,7 +443,6 @@ document.querySelectorAll('.view-details-btn').forEach(button => {
         headers: { 'Content-Type': 'application/json' }
       });
       const data = await response.json();
-      console.log('Full API Response:', JSON.stringify(data, null, 2));
 
       if (data.success) {
         const order = data.order;
@@ -464,21 +463,12 @@ document.querySelectorAll('.view-details-btn').forEach(button => {
         const itemsTable = document.getElementById('modal-order-items').getElementsByTagName('tbody')[0];
         itemsTable.innerHTML = '';
 
-        let items = [];
-        if (order.orderedItems && Array.isArray(order.orderedItems)) {
-          items = order.orderedItems;
-        } else if (order.OrderItems && Array.isArray(order.OrderItems)) {
-          items = order.OrderItems;
-        } else if (order.items && Array.isArray(order.items)) {
-          items = order.items;
-        }
-
+        let items = order.orderedItems || [];
         if (items.length > 0) {
-          items.forEach((item, index) => {
-            console.log(`Processing Item ${index}:`, item);
-            const productName = item.product?.name || item.product?.productName || item.name || 'N/A';
-            const price = item.price || item.unitPrice || 0;
-            const quantity = item.quantity || item.qty || 0;
+          items.forEach((item) => {
+            const productName = item.product?.productName || 'N/A';
+            const price = item.price || 0;
+            const quantity = item.quantity || 0;
             const total = item.total || (price * quantity) || 0;
             const row = document.createElement('tr');
             row.innerHTML = `
@@ -490,7 +480,6 @@ document.querySelectorAll('.view-details-btn').forEach(button => {
             itemsTable.appendChild(row);
           });
         } else {
-          console.log('No items found in any structure');
           const row = document.createElement('tr');
           row.innerHTML = `<td colspan="4">No item details available</td>`;
           itemsTable.appendChild(row);

@@ -304,13 +304,13 @@ const getOrderDetails = async (req, res, next) => {
         orderId: order.orderId,
         orderDate: order.createdOn,
         paymentMethod: order.paymentMethod,
-        paymentStatus: order.paymentStatus, // Add this
+        paymentStatus: order.paymentStatus,
         finalAmount: order.finalAmount,
         userName: user.name,
         userEmail: user.email,
         shippingAddress: order.address,
         orderedItems: order.OrderItems.map(item => ({
-          product: { name: item.product.name },
+          product: { productName: item.product.productName }, // Changed from 'name' to 'productName'
           price: item.price,
           quantity: item.quantity
         })),
