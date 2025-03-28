@@ -379,18 +379,28 @@ const getOrderFailurePage = async (req, res) => {
 const retryPayment = async (req, res, next) => {
   try {
     const { orderId } = req.params;
-    if (!req.user) throw new Error("User not authenticated");
+    if (!req.user) {
+      return res.status(401).json({ success: false, error: "User not authenticated" });
+    }
 
     const order = await Order.findOne({ orderId, userId: req.user._id });
     if (!order) {
       return res.status(404).json({ success: false, error: "Order not found" });
     }
 
-    if (order.status !== "Pending" && order.status !== "Cancelled") {
+    // Check if the order is eligible for retry
+    if (order.paymentMethod !== "razorpay" || (order.paymentStatus !== "failed" && order.paymentStatus !== "pending")) {
       return res.status(400).json({
         success: false,
         error: "Payment retry not allowed for this order status",
       });
+    }
+
+    // If paymentStatus is pending, mark it as failed before retrying
+    if (order.paymentStatus === "pending") {
+      order.paymentStatus = "failed";
+      order.status = "Failed";
+      await order.save();
     }
 
     const razorpayOrder = await razorpay.orders.create({
@@ -412,7 +422,7 @@ const retryPayment = async (req, res, next) => {
     });
   } catch (err) {
     console.error("Error in retryPayment:", err);
-    res.status(500).json({ success: false, error: "Server error" });
+    res.status(500).json({ success: false, error: "Server error: " + err.message });
   }
 };
 
@@ -502,7 +512,7 @@ const paymentFailed = async (req, res) => {
     if (!order) {
       return res.status(404).json({ success: false, error: "Order not found" });
     }
-    if (order.paymentMethod === 'razorpay' && order.paymentStatus === 'pending') {
+    if (order.paymentMethod === "razorpay" && order.paymentStatus !== "success") {
       order.status = "Failed";
       order.paymentStatus = "failed";
       await order.save();

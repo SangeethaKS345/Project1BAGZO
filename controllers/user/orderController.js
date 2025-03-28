@@ -120,14 +120,15 @@ const loadMyOrders = async (req, res, next) => {
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const skip = (page - 1) * ORDERS_PER_PAGE;
 
-    const [orders, totalOrders] = await Promise.all([
+    const [orders, totalOrders, user] = await Promise.all([
       Order.find({ userId })
         .sort({ createdOn: -1 })
         .skip(skip)
         .limit(ORDERS_PER_PAGE)
         .populate('OrderItems.product')
         .lean(),
-      Order.countDocuments({ userId })
+      Order.countDocuments({ userId }),
+      User.findById(userId).select('name email phone').lean()
     ]);
 
     const formattedOrders = orders.map(order => {
@@ -144,22 +145,23 @@ const loadMyOrders = async (req, res, next) => {
         placedOn: order.createdOn.toLocaleString(),
         status: orderStatus,
         paymentStatus: order.paymentStatus,
-        paymentMethod: order.paymentMethod, // Add paymentMethod
+        paymentMethod: order.paymentMethod,
         cancellation_reason: order.cancellation_reason,
         return_reason: order.return_reason
       };
     });
 
+    console.log('User data passed to template:', user); // Debug log
     res.render("myOrder", {
       orders: formattedOrders,
       currentPage: page,
-      totalPages: Math.ceil(totalOrders / ORDERS_PER_PAGE)
+      totalPages: Math.ceil(totalOrders / ORDERS_PER_PAGE),
+      user: user
     });
   } catch (err) {
     next(err);
   }
 };
-
 const returnOrder = async (req, res, next) => {
   try {
     const userId = validateAuth(req);

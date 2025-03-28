@@ -98,7 +98,7 @@ router.post('/place-order', userAuth, checkoutController.placeOrder);
 router.post('/verify-payment', userAuth, checkoutController.verifyPayment);
 router.post('/apply-coupon', userAuth, checkoutController.applyCoupon);
 router.post('/payment-failed', userAuth, checkoutController.paymentFailed);
-
+router.post('/retry-payment/:orderId', userAuth, checkoutController.retryPayment);
 // Order Management
 router.get('/orderPlaced', userAuth, orderController.getOrderPlaced);
 router.get('/my-orders', userAuth, orderController.loadMyOrders);

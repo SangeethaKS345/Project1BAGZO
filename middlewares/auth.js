@@ -7,6 +7,13 @@ const userAuth = (req, res, next) => {
   console.log("Full Session Object:", req.session);
   console.log("Session User:", req.session.user);
 
+  // Skip authentication for static file paths
+  if (req.path.startsWith("/public/") || req.path.startsWith("/assets/")) {
+    console.log("Skipping auth for static path:", req.path);
+    return next();
+  }
+
+  // Check if session and user exist
   if (!req.session || !req.session.user) {
     console.log("No session or no user in session");
     return res.status(401).json({
@@ -17,6 +24,7 @@ const userAuth = (req, res, next) => {
 
   let userId;
   try {
+    // Extract user ID from session.user
     if (req.session.user.id) {
       userId = req.session.user.id;
     } else if (req.session.user._id) {
@@ -31,6 +39,7 @@ const userAuth = (req, res, next) => {
       });
     }
 
+    // Validate userId format
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       console.error("Invalid User ID format:", userId);
       return res.status(401).json({
@@ -39,6 +48,7 @@ const userAuth = (req, res, next) => {
       });
     }
 
+    // Fetch user from database
     User.findById(userId)
       .then((user) => {
         if (!user) {
@@ -49,6 +59,20 @@ const userAuth = (req, res, next) => {
           });
         }
 
+        // Check if user is blocked
+        if (user.isBlocked) {
+          console.log(`User ${userId} is blocked`);
+          req.session.destroy((err) => {
+            if (err) console.error("Session destruction error:", err);
+            return res.status(403).json({
+              success: false,
+              error: "Account is blocked"
+            });
+          });
+          return;
+        }
+
+        // Attach user to request and response locals
         req.user = user;
         req.userId = userId;
         res.locals.user = user;

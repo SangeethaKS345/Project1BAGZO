@@ -238,6 +238,17 @@
 
 <%- include('../../views/partials/user/footer') %>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- Inject user data from server to client -->
+<script>
+  const userData = {
+    name: <%- JSON.stringify(user?.name || 'Customer') %>,
+    email: <%- JSON.stringify(user?.email || '') %>,
+    phone: <%- JSON.stringify(user?.phone || '') %>
+  };
+</script>
+
+<!-- Main script with all handlers -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 // Modal overlay
 const modalOverlay = document.getElementById('modalOverlay');
@@ -437,7 +448,6 @@ document.querySelectorAll('.view-details-btn').forEach(button => {
       if (data.success) {
         const order = data.order;
 
-        // Populate modal fields
         document.getElementById('modal-order-id').textContent = order.orderId || 'N/A';
         document.getElementById('modal-order-date').textContent = order.orderDate ? new Date(order.orderDate).toLocaleString() : 'N/A';
         document.getElementById('modal-payment-method').textContent = order.paymentMethod || 'N/A';
@@ -451,12 +461,10 @@ document.querySelectorAll('.view-details-btn').forEach(button => {
         document.getElementById('modal-shipping-pincode').textContent = order.shippingAddress?.pincode || 'N/A';
         document.getElementById('modal-shipping-phone').textContent = order.shippingAddress?.phone || 'N/A';
 
-        // Populate order items table
         const itemsTable = document.getElementById('modal-order-items').getElementsByTagName('tbody')[0];
         itemsTable.innerHTML = '';
 
         let items = [];
-        // Try multiple possible structures
         if (order.orderedItems && Array.isArray(order.orderedItems)) {
           items = order.orderedItems;
         } else if (order.OrderItems && Array.isArray(order.OrderItems)) {
@@ -488,7 +496,6 @@ document.querySelectorAll('.view-details-btn').forEach(button => {
           itemsTable.appendChild(row);
         }
 
-        // Handle repayment button visibility
         if (order.paymentStatus === 'failed' && order.paymentMethod === 'razorpay') {
           repayButton.style.display = 'inline-block';
           repayButton.onclick = () => initiateRazorpayPayment(order.orderId, order.finalAmount);
@@ -518,11 +525,11 @@ document.querySelectorAll('.view-details-btn').forEach(button => {
 function initiateRazorpayPayment(orderId, amount) {
   const options = {
     key: 'YOUR_RAZORPAY_KEY', // Replace with your Razorpay key
-    amount: amount * 100, // Convert to paise
+    amount: amount * 100,
     currency: 'INR',
     name: 'BAGZO',
     description: `Payment for Order #${orderId}`,
-    order_id: orderId, // Use Razorpay order ID if stored
+    order_id: orderId,
     handler: async function (response) {
       try {
         const verifyResponse = await fetch('/verify-payment', {
@@ -547,16 +554,15 @@ function initiateRazorpayPayment(orderId, amount) {
       }
     },
     prefill: {
-      name: 'Customer Name', // Fetch dynamically if possible
-      email: 'customer@example.com',
-      contact: '9999999999'
+      name: userData.name,
+      email: userData.email,
+      contact: userData.phone
     },
     theme: {
       color: '#FF4B2B'
     },
     modal: {
       ondismiss: async function () {
-        // Handle payment window close (abandonment)
         try {
           await fetch('/payment-failed', {
             method: 'POST',
@@ -572,7 +578,6 @@ function initiateRazorpayPayment(orderId, amount) {
   };
   const rzp = new Razorpay(options);
   rzp.on('payment.failed', async function (response) {
-    // Handle payment failure
     try {
       await fetch('/payment-failed', {
         method: 'POST',
@@ -597,12 +602,18 @@ document.querySelectorAll('.pay-now-btn').forEach(button => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
-      
+
+      if (!response.ok) {
+        const text = await response.text();
+        console.error('Retry Payment Error - Non-JSON Response:', text);
+        throw new Error(`Server responded with status ${response.status}: ${text}`);
+      }
+
       const data = await response.json();
       
       if (data.success) {
         const options = {
-          key: data.key, // Use the key from backend
+          key: data.key,
           amount: data.amount,
           currency: 'INR',
           name: 'BAGZO',
@@ -629,9 +640,9 @@ document.querySelectorAll('.pay-now-btn').forEach(button => {
             }
           },
           prefill: {
-            name: req.user.name || 'Customer', // Use actual user data if available
-            email: req.user.email || '',
-            contact: '' // Add phone if available
+            name: userData.name,
+            email: userData.email,
+            contact: userData.phone
           },
           theme: {
             color: '#FF4B2B'
@@ -654,7 +665,7 @@ document.querySelectorAll('.pay-now-btn').forEach(button => {
       }
     } catch (error) {
       console.error('Payment retry error:', error);
-      Swal.fire('Error', 'Something went wrong', 'error');
+      Swal.fire('Error', 'Something went wrong: ' + error.message, 'error');
     }
   });
 });

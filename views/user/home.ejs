@@ -99,141 +99,442 @@
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- Inject user data from server to client -->
+<!-- In myOrder.ejs -->
 <script>
-// Check wishlist status on page load
-document.addEventListener('DOMContentLoaded', async () => {
-    const wishlistButtons = document.querySelectorAll('.wishlist-btn');
-    
-    wishlistButtons.forEach(async (btn) => {
-        const productId = btn.getAttribute('data-product-id');
+    const userData = {
+      name: `<%- JSON.stringify(user?.name || 'Customer') %>`,
+      email: `<%- JSON.stringify(user?.email || '') %>`,
+      phone: `<%- JSON.stringify(user?.phone || '') %>`
+    };
+  </script>
+  
+  <!-- Main script with all handlers -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+  // Modal overlay
+  const modalOverlay = document.getElementById('modalOverlay');
+  
+  // Cancel Order Handler
+  document.querySelectorAll('.cancel-order-btn').forEach(button => {
+    button.addEventListener('click', async (e) => {
+      const orderId = e.target.closest('.cancel-order-btn').getAttribute('data-order-id');
+      
+      const modal = document.getElementById('cancelOrderModal');
+      modal.style.display = 'block';
+      modalOverlay.style.display = 'block';
+  
+      const closeModal = () => {
+        modal.style.display = 'none';
+        modalOverlay.style.display = 'none';
+      };
+  
+      document.getElementById('closeModal').onclick = closeModal;
+      modalOverlay.onclick = closeModal;
+  
+      document.getElementById('confirmCancel').onclick = async () => {
+        const cancellationReason = document.getElementById('cancellationReason').value.trim();
+        
+        if (!cancellationReason) {
+          Swal.fire('Error', 'Please provide a reason for cancellation.', 'error');
+          return;
+        }
+  
         try {
-            const response = await fetch(`/wishlist/check-status?productId=${productId}`, {
-                credentials: 'include'
-            });
-            const data = await response.json();
-            if (data.success && data.inWishlist) {
-                btn.classList.add('active');
-            }
-        } catch (error) {
-            console.error('Error checking wishlist status:', error);
-        }
-    });
-});
-
-// Toggle wishlist function
-async function toggleWishlist(productId, button) {
-    try {
-        const isActive = button.classList.contains('active');
-        const response = await fetch(`/wishlist/toggle/${productId}`, {
+          const response = await fetch(`/cancel-order/${orderId}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include'
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            if (isActive) {
-                button.classList.remove('active');
-                button.classList.add('animate');
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Removed',
-                    text: data.message || 'Product removed from wishlist!',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-                setTimeout(() => button.classList.remove('animate'), 500);
-            } else {
-                button.classList.add('active');
-                button.classList.add('animate');
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Added',
-                    text: data.message || 'Product added to wishlist!',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-                setTimeout(() => button.classList.remove('animate'), 500);
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cancellationReason })
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            Swal.fire({
+              title: 'Order Cancelled',
+              text: 'Your order has been successfully cancelled.',
+              icon: 'success',
+              confirmButtonColor: '#FF4B2B'
+            });
+            
+            const buttonToUpdate = document.querySelector(`.cancel-order-btn[data-order-id="${orderId}"]`);
+            if (buttonToUpdate) {
+              buttonToUpdate.innerHTML = '<i class="fas fa-ban"></i> Cancelled';
+              buttonToUpdate.disabled = true;
+              buttonToUpdate.classList.remove('btn-danger');
+              buttonToUpdate.classList.add('btn-secondary');
             }
-        } else if (response.status === 401) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Login Required',
-                text: 'Please log in to manage your wishlist.',
-            }).then(() => {
-                window.location.href = '/login';
-            });
-        } else {
-            throw new Error(data.error || 'Unknown error');
+            
+            closeModal();
+          } else {
+            Swal.fire('Error', data.message || 'Failed to cancel order', 'error');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          Swal.fire('Error', 'Something went wrong', 'error');
         }
-    } catch (error) {
-        console.error('Wishlist toggle error:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Failed to update wishlist: ' + error.message,
-        });
-    }
-}
-
-// Add to cart function
-function addToCart(productId) {
-    fetch('/add-to-cart', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId }) 
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.redirectTo) {
-            window.location.href = data.redirectTo; // Redirect to login page
-        } else if (data.message === "Product added to cart successfully!") {
-            Swal.fire({
-                icon: 'success',
-                title: 'Added to Cart!',
-                text: data.message,
-                timer: 1500,
-                showConfirmButton: false
-            });
-        } else if (data.message === "Cart is full") {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Cart is Full',
-                text: 'You have reached the maximum number of items in your cart.',
-            });
-        } else if (data.message === "Please log in to add items to your cart") {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Login Required',
-                text: 'Please log in to manage your cart.',
-            }).then(() => {
-                window.location.href = '/login';
-            });
-        } else {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Login Required',
-                text: 'Please log in to manage your cart.',
-            }).then(() => {
-                window.location.href = '/login';
-            });
-        }
-    })
-    .catch(error => {
-        console.error("Error:", error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Something went wrong. Try again!',
-        });
+      };
     });
-}
+  });
+  
+  // Return Order Handling
+  document.querySelectorAll('.return-order-btn').forEach(button => {
+    button.addEventListener('click', async (e) => {
+      const orderId = e.target.closest('.return-order-btn').getAttribute('data-order-id');
+      
+      const modal = document.getElementById('returnOrderModal');
+      modal.style.display = 'block';
+      modalOverlay.style.display = 'block';
+  
+      const closeModal = () => {
+        modal.style.display = 'none';
+        modalOverlay.style.display = 'none';
+      };
+  
+      document.getElementById('closeReturnModal').onclick = closeModal;
+      modalOverlay.onclick = closeModal;
+  
+      document.getElementById('confirmReturn').onclick = async () => {
+        const returnReason = document.getElementById('returnReason').value.trim();
+        
+        if (!returnReason) {
+          Swal.fire('Error', 'Please provide a reason for return.', 'error');
+          return;
+        }
+  
+        try {
+          const response = await fetch(`/return-order/${orderId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ returnReason })
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            Swal.fire({
+              title: 'Return Requested',
+              text: 'Your return request has been successfully submitted.',
+              icon: 'success',
+              confirmButtonColor: '#FF4B2B'
+            });
+            
+            button.innerHTML = '<i class="fas fa-clock"></i> Return Request In Process';
+            button.disabled = true;
+            button.classList.replace('btn-warning', 'btn-secondary');
+            
+            closeModal();
+          } else {
+            Swal.fire('Error', data.message || 'Failed to process return request', 'error');
+          }
+        } catch (error) {
+          console.error('Return Order Error:', error);
+          Swal.fire('Error', 'Something went wrong', 'error');
+        }
+      };
+    });
+  });
+  
+  // Buy Again Handler
+  document.querySelectorAll('.buy-again-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+      const productId = e.target.closest('.buy-again-btn').getAttribute('data-product-id');
+      if (productId) {
+        window.location.href = `/productDetails?id=${productId}`;
+      } else {
+        Swal.fire({
+          title: 'Error',
+          text: 'Product ID not found',
+          icon: 'error',
+          confirmButtonColor: '#FF4B2B'
+        });
+      }
+    });
+  });
+  
+  // Download Invoice Handler
+  document.querySelectorAll('.download-invoice-btn').forEach(button => {
+    button.addEventListener('click', async (e) => {
+      const orderId = e.target.closest('.download-invoice-btn').getAttribute('data-order-id');
+      
+      try {
+        const response = await fetch(`/download-invoice/${orderId}`, {
+          method: 'GET',
+          headers: { 'Accept': 'application/pdf' }
+        });
+  
+        if (!response.ok) {
+          throw new Error('Failed to download invoice');
+        }
+  
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `invoice_${orderId}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Error downloading invoice:', error);
+        Swal.fire({
+          title: 'Error',
+          text: 'Failed to download invoice. Please try again.',
+          icon: 'error',
+          confirmButtonColor: '#FF4B2B'
+        });
+      }
+    });
+  });
+  
+  // View Details Handler
+  document.querySelectorAll('.view-details-btn').forEach(button => {
+    button.addEventListener('click', async (e) => {
+      const orderId = e.target.closest('.view-details-btn').getAttribute('data-order-id');
+      const modal = document.getElementById('orderDetailsModal');
+      const overlay = document.getElementById('modalOverlay');
+      const repayButton = document.getElementById('repayButton');
+  
+      modal.style.display = 'block';
+      overlay.style.display = 'block';
+  
+      try {
+        const response = await fetch(`/order-details/${orderId}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await response.json();
+        console.log('Full API Response:', JSON.stringify(data, null, 2));
+  
+        if (data.success) {
+          const order = data.order;
+  
+          // Populate modal fields
+          document.getElementById('modal-order-id').textContent = order.orderId || 'N/A';
+          document.getElementById('modal-order-date').textContent = order.orderDate ? new Date(order.orderDate).toLocaleString() : 'N/A';
+          document.getElementById('modal-payment-method').textContent = order.paymentMethod || 'N/A';
+          document.getElementById('modal-total-amount').textContent = order.finalAmount ? `₹${order.finalAmount}` : 'N/A';
+          document.getElementById('modal-customer-name').textContent = order.userName || 'N/A';
+          document.getElementById('modal-customer-email').textContent = order.userEmail || 'N/A';
+          document.getElementById('modal-shipping-name').textContent = order.shippingAddress?.name || 'N/A';
+          document.getElementById('modal-shipping-landmark').textContent = order.shippingAddress?.landMark || 'N/A';
+          document.getElementById('modal-shipping-city').textContent = order.shippingAddress?.city || 'N/A';
+          document.getElementById('modal-shipping-state').textContent = order.shippingAddress?.state || 'N/A';
+          document.getElementById('modal-shipping-pincode').textContent = order.shippingAddress?.pincode || 'N/A';
+          document.getElementById('modal-shipping-phone').textContent = order.shippingAddress?.phone || 'N/A';
+  
+          // Populate order items table
+          const itemsTable = document.getElementById('modal-order-items').getElementsByTagName('tbody')[0];
+          itemsTable.innerHTML = '';
+  
+          let items = [];
+          if (order.orderedItems && Array.isArray(order.orderedItems)) {
+            items = order.orderedItems;
+          } else if (order.OrderItems && Array.isArray(order.OrderItems)) {
+            items = order.OrderItems;
+          } else if (order.items && Array.isArray(order.items)) {
+            items = order.items;
+          }
+  
+          if (items.length > 0) {
+            items.forEach((item, index) => {
+              console.log(`Processing Item ${index}:`, item);
+              const productName = item.product?.name || item.product?.productName || item.name || 'N/A';
+              const price = item.price || item.unitPrice || 0;
+              const quantity = item.quantity || item.qty || 0;
+              const total = item.total || (price * quantity) || 0;
+              const row = document.createElement('tr');
+              row.innerHTML = `
+                <td>${productName}</td>
+                <td>₹${price}</td>
+                <td>${quantity}</td>
+                <td>₹${total}</td>
+              `;
+              itemsTable.appendChild(row);
+            });
+          } else {
+            console.log('No items found in any structure');
+            const row = document.createElement('tr');
+            row.innerHTML = `<td colspan="4">No item details available</td>`;
+            itemsTable.appendChild(row);
+          }
+  
+          // Handle repayment button visibility
+          if (order.paymentStatus === 'failed' && order.paymentMethod === 'razorpay') {
+            repayButton.style.display = 'inline-block';
+            repayButton.onclick = () => initiateRazorpayPayment(order.orderId, order.finalAmount);
+          } else {
+            repayButton.style.display = 'none';
+          }
+        } else {
+          Swal.fire('Error', data.message || 'Failed to load order details', 'error');
+        }
+      } catch (error) {
+        console.error('Error fetching order details:', error);
+        Swal.fire('Error', 'Something went wrong', 'error');
+      }
+  
+      document.getElementById('closeOrderModal').onclick = () => {
+        modal.style.display = 'none';
+        overlay.style.display = 'none';
+      };
+      overlay.onclick = () => {
+        modal.style.display = 'none';
+        overlay.style.display = 'none';
+      };
+    });
+  });
+  
+  // Razorpay Payment Function
+  function initiateRazorpayPayment(orderId, amount) {
+    const options = {
+      key: 'YOUR_RAZORPAY_KEY', // Replace with your Razorpay key
+      amount: amount * 100, // Convert to paise
+      currency: 'INR',
+      name: 'BAGZO',
+      description: `Payment for Order #${orderId}`,
+      order_id: orderId, // Use Razorpay order ID if stored
+      handler: async function (response) {
+        try {
+          const verifyResponse = await fetch('/verify-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orderId,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature
+            })
+          });
+          const verifyData = await verifyResponse.json();
+          if (verifyData.success) {
+            Swal.fire('Success', 'Payment completed successfully!', 'success');
+            window.location.reload();
+          } else {
+            Swal.fire('Error', 'Payment verification failed', 'error');
+          }
+        } catch (error) {
+          Swal.fire('Error', 'Payment processing failed', 'error');
+        }
+      },
+      prefill: {
+        name: userData.name,
+        email: userData.email,
+        contact: userData.phone
+      },
+      theme: {
+        color: '#FF4B2B'
+      },
+      modal: {
+        ondismiss: async function () {
+          try {
+            await fetch('/payment-failed', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ orderId })
+            });
+            window.location.reload();
+          } catch (error) {
+            console.error('Error updating payment failure:', error);
+          }
+        }
+      }
+    };
+    const rzp = new Razorpay(options);
+    rzp.on('payment.failed', async function (response) {
+      try {
+        await fetch('/payment-failed', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId })
+        });
+        window.location.reload();
+      } catch (error) {
+        console.error('Error updating payment failure:', error);
+      }
+    });
+    rzp.open();
+  }
+  
+  // Pay Now Handler
+  document.querySelectorAll('.pay-now-btn').forEach(button => {
+  button.addEventListener('click', async (e) => {
+    const orderId = e.target.closest('.pay-now-btn').getAttribute('data-order-id');
+    
+    try {
+      const response = await fetch(`/retry-payment/${orderId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
 
+      if (!response.ok) {
+        const text = await response.text();
+        console.error('Retry Payment Error - Non-JSON Response:', text);
+        throw new Error(`Server responded with status ${response.status}: ${text}`);
+      }
 
-</script>
+      const data = await response.json();
+      
+      if (data.success) {
+        const options = {
+          key: data.key,
+          amount: data.amount,
+          currency: 'INR',
+          name: 'BAGZO',
+          description: `Retry Payment for Order #${orderId}`,
+          order_id: data.razorpayOrderId,
+          handler: async function (response) {
+            const verifyResponse = await fetch('/verify-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                orderId: data.orderId,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature
+              })
+            });
+            
+            const verifyData = await verifyResponse.json();
+            if (verifyData.success) {
+              Swal.fire('Success', 'Payment completed successfully!', 'success')
+                .then(() => window.location.reload());
+            } else {
+              Swal.fire('Error', verifyData.error || 'Payment verification failed', 'error');
+            }
+          },
+          prefill: {
+            name: userData.name,
+            email: userData.email,
+            contact: userData.phone
+          },
+          theme: {
+            color: '#FF4B2B'
+          },
+          modal: {
+            ondismiss: async function () {
+              await fetch('/payment-failed', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId: data.orderId })
+              });
+            }
+          }
+        };
+        
+        const rzp = new Razorpay(options);
+        rzp.open();
+      } else {
+        Swal.fire('Error', data.error || 'Failed to initiate payment retry', 'error');
+      }
+    } catch (error) {
+      console.error('Payment retry error:', error);
+      Swal.fire('Error', 'Something went wrong: ' + error.message, 'error');
+    }
+  });
+});
+  </script>
 
 <!-- Footer Section Begin -->
 <%- include('../../views/partials/user/footer') %>
