@@ -428,7 +428,7 @@ document.querySelectorAll('.download-invoice-btn').forEach(button => {
   });
 });
 
-// View Details Handler
+// View Details Handler (modal)
 document.querySelectorAll('.view-details-btn').forEach(button => {
   button.addEventListener('click', async (e) => {
     const orderId = e.target.closest('.view-details-btn').getAttribute('data-order-id');
@@ -449,6 +449,7 @@ document.querySelectorAll('.view-details-btn').forEach(button => {
       if (data.success) {
         const order = data.order;
 
+        // Populate modal fields (unchanged)
         document.getElementById('modal-order-id').textContent = order.orderId || 'N/A';
         document.getElementById('modal-order-date').textContent = order.orderDate ? new Date(order.orderDate).toLocaleString() : 'N/A';
         document.getElementById('modal-payment-method').textContent = order.paymentMethod || 'N/A';
@@ -462,11 +463,10 @@ document.querySelectorAll('.view-details-btn').forEach(button => {
         document.getElementById('modal-shipping-state').textContent = order.shippingAddress?.state || 'N/A';
         document.getElementById('modal-shipping-pincode').textContent = order.shippingAddress?.pincode || 'N/A';
         document.getElementById('modal-shipping-phone').textContent = order.shippingAddress?.phone || 'N/A';
-        document.getElementById('modal-shipping-alt-phone').textContent = order.shippingAddress?.altPhone || 'N/A'; // New field
+        document.getElementById('modal-shipping-alt-phone').textContent = order.shippingAddress?.altPhone || 'N/A';
 
         const itemsTable = document.getElementById('modal-order-items').getElementsByTagName('tbody')[0];
         itemsTable.innerHTML = '';
-
         let items = order.orderedItems || [];
         if (items.length > 0) {
           items.forEach((item) => {
@@ -489,9 +489,76 @@ document.querySelectorAll('.view-details-btn').forEach(button => {
           itemsTable.appendChild(row);
         }
 
+        // Handle repayment button
         if (order.paymentStatus === 'failed' && order.paymentMethod === 'razorpay') {
           repayButton.style.display = 'inline-block';
-          repayButton.onclick = () => initiateRazorpayPayment(order.orderId, order.finalAmount);
+          repayButton.onclick = async () => {
+            try {
+              const response = await fetch(`/retry-payment/${order.orderId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+              });
+
+              if (!response.ok) {
+                throw new Error('Failed to initiate payment retry');
+              }
+
+              const data = await response.json();
+              if (data.success) {
+                const options = {
+                  key: data.key,
+                  amount: data.amount,
+                  currency: 'INR',
+                  name: 'BAGZO',
+                  description: `Retry Payment for Order #${order.orderId}`,
+                  order_id: data.razorpayOrderId,
+                  handler: async function (response) {
+                    const verifyResponse = await fetch('/verify-payment', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        orderId: data.orderId,
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_signature: response.razorpay_signature
+                      })
+                    });
+                    const verifyData = await verifyResponse.json();
+                    if (verifyData.success) {
+                      Swal.fire('Success', 'Payment completed successfully!', 'success')
+                        .then(() => window.location.reload());
+                    } else {
+                      Swal.fire('Error', verifyData.error || 'Payment verification failed', 'error');
+                    }
+                  },
+                  prefill: {
+                    name: userData.name,
+                    email: userData.email,
+                    contact: userData.phone
+                  },
+                  theme: {
+                    color: '#FF4B2B'
+                  },
+                  modal: {
+                    ondismiss: async function () {
+                      await fetch('/payment-failed', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ orderId: data.orderId })
+                      });
+                    }
+                  }
+                };
+                const rzp = new Razorpay(options);
+                rzp.open();
+              } else {
+                Swal.fire('Error', data.error || 'Failed to initiate payment retry', 'error');
+              }
+            } catch (error) {
+              console.error('Repayment error:', error);
+              Swal.fire('Error', 'Something went wrong during repayment', 'error');
+            }
+          };
         } else {
           repayButton.style.display = 'none';
         }
@@ -513,6 +580,8 @@ document.querySelectorAll('.view-details-btn').forEach(button => {
     };
   });
 });
+
+
 
 // Razorpay Payment Function
 function initiateRazorpayPayment(orderId, amount) {
