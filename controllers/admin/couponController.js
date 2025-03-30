@@ -7,25 +7,32 @@ const getCouponPage = async (req, res, next) => {
     const skip = (page - 1) * limit;
     const search = req.query.search || "";
 
-    let searchConditions = [];
+    const searchConditions = [];
     const searchRegex = new RegExp(search, "i");
     const searchNum = parseFloat(search);
 
     // Text-based searches
     searchConditions.push({ code: { $regex: searchRegex } });
+
     // Number-based searches
     if (!isNaN(searchNum)) {
-      searchConditions.push({ offerPrice: searchNum });
-      searchConditions.push({ minimumPrice: searchNum });
-      searchConditions.push({ maxUses: searchNum });
-      searchConditions.push({ maxUsesPerUser: searchNum });
-      searchConditions.push({ usesCount: searchNum });
+      searchConditions.push(
+        { offerPrice: searchNum },
+        { minimumPrice: searchNum },
+        { maxUses: searchNum },
+        { maxUsesPerUser: searchNum },
+        { usesCount: searchNum }
+      );
     }
+
     // Date searches (partial match on ISO string)
     if (search.length >= 4) {
-      searchConditions.push({ startOn: { $regex: searchRegex } });
-      searchConditions.push({ expireOn: { $regex: searchRegex } });
+      searchConditions.push(
+        { startOn: { $regex: searchRegex } },
+        { expireOn: { $regex: searchRegex } }
+      );
     }
+
     // Status search
     if (search.toLowerCase().includes("active")) {
       searchConditions.push({ isListed: true });
@@ -33,19 +40,21 @@ const getCouponPage = async (req, res, next) => {
       searchConditions.push({ isListed: false });
     }
 
-    const totalCoupons = await Coupons.countDocuments({
-      isDeleted: false,
-      $or: searchConditions,
-    });
-    const totalPages = Math.ceil(totalCoupons / limit);
+    const [totalCoupons, coupons] = await Promise.all([
+      Coupons.countDocuments({
+        isDeleted: false,
+        $or: searchConditions,
+      }),
+      Coupons.find({
+        isDeleted: false,
+        $or: searchConditions,
+      })
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 }),
+    ]);
 
-    const coupons = await Coupons.find({
-      isDeleted: false,
-      $or: searchConditions,
-    })
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 });
+    const totalPages = Math.ceil(totalCoupons / limit);
 
     res.render("coupon", {
       coupons,
@@ -53,7 +62,7 @@ const getCouponPage = async (req, res, next) => {
       totalPages,
       hasNextPage: page < totalPages,
       hasPrevPage: page > 1,
-      search: search,
+      search,
     });
   } catch (error) {
     next(error);
@@ -70,6 +79,7 @@ const addCoupon = async (req, res) => {
         message: "Valid coupon code is required",
       });
     }
+
     if (maxUsesPerUser > maxUses) {
       return res.status(400).json({
         success: false,
@@ -147,6 +157,7 @@ const editCoupon = async (req, res) => {
         message: "Total uses cannot be less than current uses count",
       });
     }
+
     if (maxUsesPerUser > maxUses) {
       return res.status(400).json({
         success: false,

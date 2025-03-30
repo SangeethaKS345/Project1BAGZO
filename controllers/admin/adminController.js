@@ -5,7 +5,7 @@ const bcrypt = require("bcrypt");
 const loadLogin = async (req, res, next) => {
     try {
         console.log("Admin loadLogin called, rendering login.ejs");
-        return res.render("login", { message: "" }); 
+        return res.render("login", { message: "" });
     } catch (error) {
         next(error);
     }
@@ -30,7 +30,7 @@ const login = async (req, res, next) => {
             return res.render("login", { message: "Incorrect password!" });
         }
 
-        req.session.admin = admin._id.toString(); 
+        req.session.admin = admin._id.toString();
 
         return res.redirect("/admin/dashboard");
     } catch (error) {
@@ -39,33 +39,22 @@ const login = async (req, res, next) => {
     }
 };
 
-
 // Load Admin Dashboard
 const loadDashboard = async (req, res, next) => {
-    console.log(1);
     if (!req.session.admin) {
         return res.redirect("/admin/login");
     }
     try {
         res.render("dashboard");
-        console.log(200);
     } catch (error) {
         console.error("Dashboard Error:", error);
         next(error);
     }
 };
 
-
 // Logout Admin
 const logout = async (req, res, next) => {
     try {
-        // req.session.destroy((err) => {
-        //     if (err) {
-        //         console.error("Error destroying session:", err);
-        //         return next(err); 
-        //     }
-        //     res.redirect("/admin/login");
-        // });
         req.session.admin = null;
         res.redirect("/admin/login");
     } catch (error) {
@@ -79,5 +68,5 @@ module.exports = {
     loadLogin,
     login,
     loadDashboard,
-    logout  
+    logout
 };

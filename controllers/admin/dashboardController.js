@@ -8,20 +8,35 @@ const PDFDocument = require('pdfkit');
 const loadDashboard = async (req, res, next) => {
   if (req.session.admin) {
     try {
-      const totalUsers = await User.countDocuments({ isAdmin: false });
-      const totalProducts = await Product.countDocuments();
-      const totalOrders = await Order.countDocuments();
+      const [
+        totalUsers,
+        totalProducts,
+        totalOrders,
+        orders,
+        recentOrdersData,
+        monthlyData,
+        topProductsData,
+        topCategoriesData,
+        topBrandsData
+      ] = await Promise.all([
+        User.countDocuments({ isAdmin: false }),
+        Product.countDocuments(),
+        Order.countDocuments(),
+        Order.find(),
+        Order.find()
+          .populate('userId', 'name')
+          .populate('OrderItems.product', 'productName')
+          .sort({ createdOn: -1 })
+          .limit(5),
+        getMonthlyData('yearly'),
+        getTopProductsData(),
+        getTopCategoriesData(),
+        getTopBrandsData()
+      ]);
 
-      const orders = await Order.find();
       const totalRevenue = orders.reduce((sum, order) => sum + order.finalAmount, 0);
 
-      const recentOrders = await Order.find()
-        .populate('userId', 'name')
-        .populate('OrderItems.product', 'productName')
-        .sort({ createdOn: -1 })
-        .limit(5);
-
-      const formattedRecentOrders = recentOrders.map(order => ({
+      const formattedRecentOrders = recentOrdersData.map(order => ({
         orderId: order.orderId,
         customerName: order.userId ? order.userId.name : 'Unknown Customer',
         productName: order.OrderItems.length > 0 && order.OrderItems[0].product ? order.OrderItems[0].product.productName : 'Unknown Product',
@@ -30,12 +45,7 @@ const loadDashboard = async (req, res, next) => {
         date: order.createdOn.toLocaleDateString()
       }));
 
-      const monthlyData = await getMonthlyData('yearly');
       const { revenueData, ordersData, chartLabels } = monthlyData;
-
-      const topProducts = await getTopProductsData();
-      const topCategories = await getTopCategoriesData();
-      const topBrands = await getTopBrandsData();
 
       res.render("dashboard", {
         totalUsers,
@@ -47,12 +57,12 @@ const loadDashboard = async (req, res, next) => {
           revenueData,
           ordersData,
           chartLabels,
-          topProductLabels: topProducts.productLabels,
-          topProductData: topProducts.productData,
-          topCategoryLabels: topCategories.categoryLabels,
-          topCategoryData: topCategories.categoryData,
-          topBrandLabels: topBrands.brandLabels,
-          topBrandData: topBrands.brandData
+          topProductLabels: topProductsData.productLabels,
+          topProductData: topProductsData.productData,
+          topCategoryLabels: topCategoriesData.categoryLabels,
+          topCategoryData: topCategoriesData.categoryData,
+          topBrandLabels: topBrandsData.brandLabels,
+          topBrandData: topBrandsData.brandData
         }
       });
     } catch (error) {
@@ -67,37 +77,7 @@ const loadDashboard = async (req, res, next) => {
 const getChartData = async (req, res) => {
   try {
     const { range, startDate, endDate } = req.query;
-
-    let dateFilter = {};
-    switch (range) {
-      case 'daily':
-        dateFilter = { createdOn: { $gte: new Date(new Date().setDate(new Date().getDate() - 1)) } };
-        break;
-      case 'last3days':
-        dateFilter = { createdOn: { $gte: new Date(new Date().setDate(new Date().getDate() - 3)) } };
-        break;
-      case 'last7days':
-        dateFilter = { createdOn: { $gte: new Date(new Date().setDate(new Date().getDate() - 7)) } };
-        break;
-      case 'last30days':
-        dateFilter = { createdOn: { $gte: new Date(new Date().setDate(new Date().getDate() - 30)) } };
-        break;
-      case 'yearly':
-        dateFilter = { createdOn: { $gte: new Date(new Date().setFullYear(new Date().getFullYear() - 1)) } };
-        break;
-      case 'custom':
-        if (startDate && endDate) {
-          dateFilter = { 
-            createdOn: { 
-              $gte: new Date(startDate), 
-              $lte: new Date(new Date(endDate).setHours(23, 59, 59, 999))
-            } 
-          };
-        }
-        break;
-      default:
-        dateFilter = {}; // Default to all data if range is invalid
-    }
+    const dateFilter = getDateFilter(range, startDate, endDate);
 
     const orders = await Order.find(dateFilter)
       .populate({
@@ -108,11 +88,6 @@ const getChartData = async (req, res) => {
         ]
       });
 
-    const chartLabels = [];
-    const revenueData = [];
-    const ordersData = [];
-
-    // Aggregate revenue and orders
     const aggregation = await Order.aggregate([
       { $match: dateFilter },
       {
@@ -125,24 +100,50 @@ const getChartData = async (req, res) => {
       { $sort: { "_id": 1 } }
     ]);
 
-    aggregation.forEach(item => {
-      chartLabels.push(item._id);
-      revenueData.push(item.totalRevenue);
-      ordersData.push(item.totalOrders);
-    });
+    const chartLabels = aggregation.map(item => item._id);
+    const revenueData = aggregation.map(item => item.totalRevenue);
+    const ordersData = aggregation.map(item => item.totalOrders);
 
-    const chartData = {
-      chartLabels,
-      revenueData,
-      ordersData,
-      // Include top products, categories, and brands if needed (unchanged for now)
-    };
-
-    res.json(chartData);
+    res.json({ chartLabels, revenueData, ordersData });
   } catch (error) {
     console.error('Error fetching chart data:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
+};
+
+const getDateFilter = (range, startDate, endDate) => {
+  let dateFilter = {};
+  switch (range) {
+    case 'daily':
+      dateFilter = { createdOn: { $gte: new Date(new Date().setDate(new Date().getDate() - 1)) } };
+      break;
+    case 'last3days':
+      dateFilter = { createdOn: { $gte: new Date(new Date().setDate(new Date().getDate() - 3)) } };
+      break;
+    case 'last7days':
+      dateFilter = { createdOn: { $gte: new Date(new Date().setDate(new Date().getDate() - 7)) } };
+      break;
+    case 'last30days':
+      dateFilter = { createdOn: { $gte: new Date(new Date().setDate(new Date().getDate() - 30)) } };
+      break;
+    case 'yearly':
+      dateFilter = { createdOn: { $gte: new Date(new Date().setFullYear(new Date().getFullYear() - 1)) } };
+      break;
+    case 'custom':
+      if (startDate && endDate) {
+        dateFilter = { 
+          createdOn: { 
+            $gte: new Date(startDate), 
+            $lte: new Date(new Date(endDate).setHours(23, 59, 59, 999))
+          } 
+        };
+      }
+      break;
+    default:
+      // Default to all data if range is invalid
+      dateFilter = {};
+  }
+  return dateFilter;
 };
 
 const getTopProductsData = async () => {
@@ -237,7 +238,7 @@ const getTopCategoriesData = async () => {
     {
       $group: {
         _id: "$product.category",
-        categoryName: { $first: "$category.name" }, // Changed from 'categoryName' to 'name'
+        categoryName: { $first: "$category.name" }, 
         totalQuantity: { $sum: "$OrderItems.quantity" }
       }
     },
@@ -256,7 +257,6 @@ const downloadReport = async (req, res) => {
     const { reportType, reportFormat, startDate, endDate } = req.query;
     const { startDate: start, endDate: end } = getDateRange(reportType, startDate, endDate);
 
-    // Fetch orders with populated data
     const orders = await Order.find({
       createdOn: { $gte: start, $lte: end }
     })
@@ -264,7 +264,6 @@ const downloadReport = async (req, res) => {
       .populate('OrderItems.product', 'productName')
       .sort({ createdOn: -1 });
 
-    // Prepare detailed report data for each order
     const reportData = orders.map(order => ({
       orderId: order.orderId,
       date: order.createdOn.toLocaleDateString(),
@@ -328,7 +327,6 @@ const generateExcelReport = async (data, reportType) => {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet('Sales Report');
 
-  // Headers for detailed report
   worksheet.addRow([
     'Order ID',
     'Date',
@@ -342,7 +340,6 @@ const generateExcelReport = async (data, reportType) => {
     'Payment Method'
   ]);
 
-  // Add data rows
   data.forEach(order => {
     order.products.forEach((product, index) => {
       worksheet.addRow([
@@ -360,14 +357,13 @@ const generateExcelReport = async (data, reportType) => {
     });
   });
 
-  // Style the header row
   worksheet.getRow(1).font = { bold: true };
   worksheet.columns.forEach((column, i) => {
     column.width = 
-      i === 0 ? 36 :    // Order ID
-      i === 3 ? 40 :    // Product Name (increased from default 20 to 40)
-      i === 7 ? 15 :    // Order Total
-      20;               // Default width for others
+      i === 0 ? 36 :  
+      i === 3 ? 40 :  
+      i === 7 ? 15 :  
+      20;             
   });
 
   return workbook;
@@ -375,9 +371,8 @@ const generateExcelReport = async (data, reportType) => {
 
 const generatePDFReport = (data, reportType) => {
   const doc = new PDFDocument({ margin: 30, size: 'A4' });
-  const pageWidth = doc.page.width - 60; // 552 points usable width with 30pt margins
+  const pageWidth = doc.page.width - 60;
 
-  // Header
   doc.fontSize(20).fillColor('#DB4437').text('Bagzo Detailed Sales Report', { align: 'center' });
   doc.fontSize(12).moveDown().fillColor('#FF4B2B');
   doc.text(`Report Type: ${reportType.charAt(0).toUpperCase() + reportType.slice(1)}`, { align: 'center' });
@@ -387,7 +382,6 @@ const generatePDFReport = (data, reportType) => {
   const periodEnd = data[data.length - 1]?.date || '';
   doc.text(`Period: ${periodStart} to ${periodEnd}`, { align: 'center' });
 
-  // Summary
   doc.moveDown().fillColor('#DB4437').text('Summary:', { align: 'center' });
   const totalOrders = data.length;
   const totalRevenue = data.reduce((sum, order) => sum + order.finalAmount, 0);
@@ -398,33 +392,27 @@ const generatePDFReport = (data, reportType) => {
   doc.moveDown();
   let yPosition = 250;
 
-  // Adjusted padding
-  const padding = 6; // Reduced from 8 to 6 to save some space
+  const padding = 6; 
 
-  // ADJUSTED COLUMN WIDTHS to ensure they fit properly
-  // Total available width is 552 points, and we need to fit all columns plus padding
   const columns = [
     { key: 'orderId', header: 'Order ID', width: 60, align: 'left' },
     { key: 'date', header: 'Date', width: 45, align: 'left' },
-    { key: 'customer', header: 'Customer', width: 55, align: 'left' }, // Reduced width
-    { key: 'product', header: 'Product', width: 75, align: 'left' }, // Reduced width
+    { key: 'customer', header: 'Customer', width: 55, align: 'left' }, 
+    { key: 'product', header: 'Product', width: 75, align: 'left' },
     { key: 'qty', header: 'Qty', width: 25, align: 'center' },
     { key: 'price', header: 'Price', width: 45, align: 'right' },
     { key: 'itemTotal', header: 'Item Total', width: 55, align: 'right' },
-    { key: 'orderTotal', header: 'Order Total', width: 55, align: 'right' }, // Reduced width
+    { key: 'orderTotal', header: 'Order Total', width: 55, align: 'right' }, 
     { key: 'status', header: 'Status', width: 40, align: 'left' },
     { key: 'payment', header: 'Payment', width: 45, align: 'left' }
   ];
 
-  // Calculate total width including padding
   const totalWidth = columns.reduce((sum, col) => sum + col.width, 0) + (padding * (columns.length - 1));
   console.log(`Adjusted total width: ${totalWidth}, Page width: ${pageWidth}`);
 
-  // Table Headers
   doc.fontSize(10).fillColor('#DB4437');
   let xPos = 30;
 
-  // Draw headers
   columns.forEach(col => {
     doc.text(col.header, xPos, yPosition, { width: col.width, align: col.align });
     xPos += col.width + padding;
@@ -436,7 +424,6 @@ const generatePDFReport = (data, reportType) => {
     .lineTo(pageWidth + 30, yPosition + 15)
     .stroke();
 
-  // Table Rows
   yPosition += 30;
   data.forEach(order => {
     order.products.forEach((product, index) => {
@@ -448,7 +435,6 @@ const generatePDFReport = (data, reportType) => {
       doc.fontSize(8).fillColor('#FF4B2B');
       xPos = 30;
 
-      // Map the data to the columns with proper truncation/formatting
       const rowData = [
         { col: columns[0], value: index === 0 ? order.orderId : '' },
         { col: columns[1], value: index === 0 ? order.date : '' },
@@ -462,9 +448,7 @@ const generatePDFReport = (data, reportType) => {
         { col: columns[9], value: index === 0 ? order.paymentMethod : '' }
       ];
 
-      // Draw each cell with proper alignment and ensure text fits within column
       rowData.forEach(item => {
-        // Add ellipsis for text that's too long
         let displayText = item.value;
         if (item.value && !item.value.startsWith('₹') && item.value.length > item.col.width / 4) {
           displayText = item.value.substring(0, Math.floor(item.col.width / 4) - 3) + '...';
