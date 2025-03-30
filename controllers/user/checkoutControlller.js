@@ -9,6 +9,8 @@ const Coupon = require("../../models/couponSchema");
 const razorpay = require("../../config/razorpay");
 const Wallet = require("../../models/walletSchema");
 const { addWalletTransaction } = require("../../controllers/user/walletController");
+const OrderSequence = require('../../models/orderSequenceSchema');
+
 
 const getCartPage = async (req, res) => {
   try {
@@ -113,6 +115,24 @@ async function getCartDataForUser(userId) {
   }
 }
 
+async function generateOrderId() {
+  const now = new Date();
+  const dateStr = now
+    .toISOString()
+    .slice(2, 10) // Get YY-MM-DD
+    .replace(/-/g, ''); // Remove hyphens: YYMMDD
+
+  // Find or create sequence for today
+  let sequenceDoc = await OrderSequence.findOneAndUpdate(
+    { date: dateStr },
+    { $inc: { sequence: 1 } },
+    { upsert: true, new: true }
+  );
+
+  const sequenceNum = String(sequenceDoc.sequence).padStart(3, '0'); 
+  return `ORD${dateStr}${sequenceNum}`; 
+}
+
 const placeOrder = async (req, res) => {
   try {
     const { addressId, paymentMethod, couponCode } = req.body;
@@ -204,7 +224,10 @@ const placeOrder = async (req, res) => {
       return res.status(400).json({ success: false, error: "Invalid address selected" });
     }
 
+    const customOrderId = await generateOrderId();
+
     const order = new Order({
+      orderId: customOrderId, // Use the custom ID here
       userId: userId,
       OrderItems: cartItems.map((item) => ({
         product: item.productDetails._id,
@@ -227,9 +250,9 @@ const placeOrder = async (req, res) => {
         const razorpayOrder = await razorpay.orders.create({
           amount: discountedAmount * 100,
           currency: "INR",
-          receipt: order.orderId,
+          receipt: order.orderId, 
         });
-        order.razorpayOrderId = razorpayOrder.id; 
+        order.razorpayOrderId = razorpayOrder.id;
         await order.save();
         return res.json({
           success: true,
@@ -242,7 +265,7 @@ const placeOrder = async (req, res) => {
         order.status = "Failed";
         order.paymentStatus = "failed";
         await order.save();
-        throw error; 
+        throw error;
       }
     }
 
@@ -274,7 +297,7 @@ const placeOrder = async (req, res) => {
       success: true,
       redirect: "/orderPlaced",
       order: {
-        orderId: order.orderId,
+        orderId: order.orderId, // Return custom orderId
         totalAmount: order.finalAmount,
         placedAt: order.createdOn,
       },
@@ -534,5 +557,5 @@ module.exports = {
   retryPayment,
   verifyRetryPayment,
   applyCoupon,
-  paymentFailed
+  paymentFailed,
 };

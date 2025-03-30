@@ -5,8 +5,8 @@ const { v4: uuidv4 } = require('uuid');
 const orderSchema = new Schema({
   orderId: {
     type: String,
-    default: () => uuidv4(),
-    unique: true
+    required: true, 
+    unique: true,
   },
   userId: {  
     type: Schema.Types.ObjectId,
