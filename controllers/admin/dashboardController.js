@@ -398,49 +398,37 @@ const generatePDFReport = (data, reportType) => {
   doc.moveDown();
   let yPosition = 250;
 
-  // Define column widths and padding
-  const colWidths = {
-    orderId: 90,
-    date: 60,
-    customer: 90,
-    product: 140,
-    qty: 40,
-    price: 50,
-    itemTotal: 50,
-    orderTotal: 60,
-    status: 50,
-    payment: 50
-  };
-  const padding = 5; // Add 5pt padding between each column
+  // Adjusted padding
+  const padding = 6; // Reduced from 8 to 6 to save some space
+
+  // ADJUSTED COLUMN WIDTHS to ensure they fit properly
+  // Total available width is 552 points, and we need to fit all columns plus padding
+  const columns = [
+    { key: 'orderId', header: 'Order ID', width: 60, align: 'left' },
+    { key: 'date', header: 'Date', width: 45, align: 'left' },
+    { key: 'customer', header: 'Customer', width: 55, align: 'left' }, // Reduced width
+    { key: 'product', header: 'Product', width: 75, align: 'left' }, // Reduced width
+    { key: 'qty', header: 'Qty', width: 25, align: 'center' },
+    { key: 'price', header: 'Price', width: 45, align: 'right' },
+    { key: 'itemTotal', header: 'Item Total', width: 55, align: 'right' },
+    { key: 'orderTotal', header: 'Order Total', width: 55, align: 'right' }, // Reduced width
+    { key: 'status', header: 'Status', width: 40, align: 'left' },
+    { key: 'payment', header: 'Payment', width: 45, align: 'left' }
+  ];
 
   // Calculate total width including padding
-  const totalWidth = Object.values(colWidths).reduce((sum, width) => sum + width, 0) + (padding * (Object.keys(colWidths).length - 1));
-  if (totalWidth > pageWidth) {
-    console.warn(`Total width (${totalWidth}) exceeds page width (${pageWidth}). Consider reducing widths or padding.`);
-  }
+  const totalWidth = columns.reduce((sum, col) => sum + col.width, 0) + (padding * (columns.length - 1));
+  console.log(`Adjusted total width: ${totalWidth}, Page width: ${pageWidth}`);
 
   // Table Headers
   doc.fontSize(10).fillColor('#DB4437');
   let xPos = 30;
-  doc.text('Order ID', xPos, yPosition, { width: colWidths.orderId });
-  xPos += colWidths.orderId + padding;
-  doc.text('Date', xPos, yPosition, { width: colWidths.date });
-  xPos += colWidths.date + padding;
-  doc.text('Customer', xPos, yPosition, { width: colWidths.customer });
-  xPos += colWidths.customer + padding;
-  doc.text('Product', xPos, yPosition, { width: colWidths.product });
-  xPos += colWidths.product + padding;
-  doc.text('Qty', xPos, yPosition, { width: colWidths.qty });
-  xPos += colWidths.qty + padding;
-  doc.text('Price', xPos, yPosition, { width: colWidths.price });
-  xPos += colWidths.price + padding;
-  doc.text('Item Total', xPos, yPosition, { width: colWidths.itemTotal });
-  xPos += colWidths.itemTotal + padding;
-  doc.text('Order Total', xPos, yPosition, { width: colWidths.orderTotal });
-  xPos += colWidths.orderTotal + padding;
-  doc.text('Status', xPos, yPosition, { width: colWidths.status });
-  xPos += colWidths.status + padding;
-  doc.text('Payment', xPos, yPosition, { width: colWidths.payment });
+
+  // Draw headers
+  columns.forEach(col => {
+    doc.text(col.header, xPos, yPosition, { width: col.width, align: col.align });
+    xPos += col.width + padding;
+  });
 
   doc.lineWidth(1)
     .strokeColor('#DB4437')
@@ -459,31 +447,45 @@ const generatePDFReport = (data, reportType) => {
 
       doc.fontSize(8).fillColor('#FF4B2B');
       xPos = 30;
-      doc.text(index === 0 ? order.orderId : '', xPos, yPosition, { width: colWidths.orderId });
-      xPos += colWidths.orderId + padding;
-      doc.text(index === 0 ? order.date : '', xPos, yPosition, { width: colWidths.date });
-      xPos += colWidths.date + padding;
-      doc.text(index === 0 ? order.customerName : '', xPos, yPosition, { width: colWidths.customer });
-      xPos += colWidths.customer + padding;
-      doc.text(product.name, xPos, yPosition, { width: colWidths.product });
-      xPos += colWidths.product + padding;
-      doc.text(product.quantity.toString(), xPos, yPosition, { width: colWidths.qty });
-      xPos += colWidths.qty + padding;
-      doc.text(`₹${product.price.toLocaleString('en-IN')}`, xPos, yPosition, { width: colWidths.price });
-      xPos += colWidths.price + padding;
-      doc.text(`₹${product.total.toLocaleString('en-IN')}`, xPos, yPosition, { width: colWidths.itemTotal });
-      xPos += colWidths.itemTotal + padding;
-      doc.text(index === 0 ? `₹${order.finalAmount.toLocaleString('en-IN')}` : '', xPos, yPosition, { width: colWidths.orderTotal });
-      xPos += colWidths.orderTotal + padding;
-      doc.text(index === 0 ? order.status : '', xPos, yPosition, { width: colWidths.status });
-      xPos += colWidths.status + padding;
-      doc.text(index === 0 ? order.paymentMethod : '', xPos, yPosition, { width: colWidths.payment });
 
-      yPosition += 20;
+      // Map the data to the columns with proper truncation/formatting
+      const rowData = [
+        { col: columns[0], value: index === 0 ? order.orderId : '' },
+        { col: columns[1], value: index === 0 ? order.date : '' },
+        { col: columns[2], value: index === 0 ? order.customerName : '' },
+        { col: columns[3], value: product.name },
+        { col: columns[4], value: product.quantity.toString() },
+        { col: columns[5], value: `₹${product.price.toLocaleString('en-IN')}` },
+        { col: columns[6], value: `₹${product.total.toLocaleString('en-IN')}` },
+        { col: columns[7], value: index === 0 ? `₹${order.finalAmount.toLocaleString('en-IN')}` : '' },
+        { col: columns[8], value: index === 0 ? order.status : '' },
+        { col: columns[9], value: index === 0 ? order.paymentMethod : '' }
+      ];
+
+      // Draw each cell with proper alignment and ensure text fits within column
+      rowData.forEach(item => {
+        // Add ellipsis for text that's too long
+        let displayText = item.value;
+        if (item.value && !item.value.startsWith('₹') && item.value.length > item.col.width / 4) {
+          displayText = item.value.substring(0, Math.floor(item.col.width / 4) - 3) + '...';
+        }
+        
+        const options = { 
+          width: item.col.width, 
+          align: item.col.align,
+          ellipsis: false
+        };
+        
+        doc.text(displayText, xPos, yPosition, options);
+        xPos += item.col.width + padding;
+      });
+
+      yPosition += 25;
+      
       doc.lineWidth(0.5)
         .strokeColor('#FF4B2B')
-        .moveTo(30, yPosition - 5)
-        .lineTo(pageWidth + 30, yPosition - 5)
+        .moveTo(30, yPosition - 7)
+        .lineTo(pageWidth + 30, yPosition - 7)
         .stroke();
     });
   });
