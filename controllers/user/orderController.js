@@ -162,6 +162,7 @@ const loadMyOrders = async (req, res, next) => {
     next(err);
   }
 };
+
 const returnOrder = async (req, res, next) => {
   try {
     const userId = validateAuth(req);
@@ -324,7 +325,7 @@ const getOrderDetails = async (req, res, next) => {
           state: order.address?.state,
           pincode: order.address?.pincode,
           phone: order.address?.phone,
-          altPhone: order.address?.altPhone // Added new field
+          altPhone: order.address?.altPhone 
         },
         orderedItems: order.OrderItems.map(item => ({
           product: { productName: item.product.productName },

@@ -156,6 +156,14 @@ const redirectIfAuthenticated = (req, res, next) => {
   next(); // Proceed if not logged in
 };
 
+const redirectIfUserAuthenticated = (req, res, next) => {
+  console.log(req.session.user,'in new auth');
+  if (req.session.user) {
+    return res.redirect("/"); // Redirect logged-in users
+  }
+  next(); // Proceed if not logged in
+};
+
 
 const checkBlockStatus = async (req, res, next) => {
   if (req.session && req.session.user) {

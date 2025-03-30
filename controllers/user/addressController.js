@@ -4,8 +4,10 @@ const User = require("../../models/userSchema");
 const getAddresses = async (req, res, next) => {
   try {
     const userId = req.session.user.id;
-    const user = await User.findById(userId);
-    const addresses = await Address.find({ userId });
+    const [user, addresses] = await Promise.all([
+      User.findById(userId),
+      Address.find({ userId })
+    ]);
     const error = req.session.error;
     req.session.error = null;
 
@@ -42,39 +44,16 @@ const addAddress = async (req, res, next) => {
     const { addressType, name, houseNo, city, landMark, state, pincode, phone, altPhone } = req.body;
 
     const requiredFields = { addressType, name, houseNo, city, landMark, state, pincode, phone, altPhone };
-    const emptyFields = Object.keys(requiredFields).filter(key => !requiredFields[key]?.toString().trim());
+    const emptyFields = validateRequiredFields(requiredFields);
 
     if (emptyFields.length > 0) {
       req.session.error = `Please fill out: ${emptyFields.join(", ")}`;
       return res.redirect("/address/new");
     }
 
-    const textOnlyRegex = /^[A-Za-z\s]+$/;
-    if (!textOnlyRegex.test(name)) {
-      req.session.error = "Name must contain only letters and spaces.";
-      return res.redirect("/address/new");
-    }
-    if (!textOnlyRegex.test(city)) {
-      req.session.error = "City must contain only letters and spaces.";
-      return res.redirect("/address/new");
-    }
-    if (!textOnlyRegex.test(state)) {
-      req.session.error = "State must contain only letters and spaces.";
-      return res.redirect("/address/new");
-    }
-
-    const phoneRegex = /^[1-9][0-9]{9}$/;
-    if (!phoneRegex.test(phone)) {
-      req.session.error = "Invalid phone number format.";
-      return res.redirect("/address/new");
-    }
-    if (!phoneRegex.test(altPhone) || phone === altPhone) {
-      req.session.error = "Invalid alternate phone or same as primary phone.";
-      return res.redirect("/address/new");
-    }
-
-    if (!/^[1-9][0-9]{5}$/.test(pincode)) {
-      req.session.error = "Pincode must be a valid 6-digit number.";
+    const validationErrors = validateFields({ name, city, state, phone, altPhone, pincode });
+    if (validationErrors.length > 0) {
+      req.session.error = validationErrors.join(" ");
       return res.redirect("/address/new");
     }
 
@@ -121,43 +100,11 @@ const updateAddress = async (req, res, next) => {
     const addressId = req.params.id;
     const { addressType, name, houseNo, city, landMark, state, pincode, phone, altPhone } = req.body;
 
-    const updateData = {};
-    if (addressType) updateData.addressType = addressType;
-    if (name) updateData.name = name;
-    if (houseNo) updateData.houseNo = houseNo;
-    if (city) updateData.city = city;
-    if (landMark) updateData.landMark = landMark;
-    if (state) updateData.state = state;
-    if (pincode) updateData.pincode = pincode;
-    if (phone) updateData.phone = phone;
-    if (altPhone) updateData.altPhone = altPhone;
+    const updateData = createUpdateData({ addressType, name, houseNo, city, landMark, state, pincode, phone, altPhone });
 
-    const textOnlyRegex = /^[A-Za-z\s]+$/;
-    if (name && !textOnlyRegex.test(name)) {
-      req.session.error = "Name must contain only letters and spaces.";
-      return res.redirect(`/address/edit/${addressId}`);
-    }
-    if (city && !textOnlyRegex.test(city)) {
-      req.session.error = "City must contain only letters and spaces.";
-      return res.redirect(`/address/edit/${addressId}`);
-    }
-    if (state && !textOnlyRegex.test(state)) {
-      req.session.error = "State must contain only letters and spaces.";
-      return res.redirect(`/address/edit/${addressId}`);
-    }
-
-    const phoneRegex = /^[1-9][0-9]{9}$/;
-    if (phone && !phoneRegex.test(phone)) {
-      req.session.error = "Invalid phone number format.";
-      return res.redirect(`/address/edit/${addressId}`);
-    }
-    if (altPhone && (!phoneRegex.test(altPhone) || phone === altPhone)) {
-      req.session.error = "Invalid alternate phone or same as primary phone.";
-      return res.redirect(`/address/edit/${addressId}`);
-    }
-
-    if (pincode && !/^[1-9][0-9]{5}$/.test(pincode)) {
-      req.session.error = "Pincode must be a valid 6-digit number.";
+    const validationErrors = validateFields({ name, city, state, phone, altPhone, pincode });
+    if (validationErrors.length > 0) {
+      req.session.error = validationErrors.join(" ");
       return res.redirect(`/address/edit/${addressId}`);
     }
 
@@ -194,6 +141,47 @@ const deleteAddress = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+// Utility functions
+const validateRequiredFields = (fields) => {
+  return Object.keys(fields).filter(key => !fields[key]?.toString().trim());
+};
+
+const validateFields = ({ name, city, state, phone, altPhone, pincode }) => {
+  const textOnlyRegex = /^[A-Za-z\s]+$/;
+  const phoneRegex = /^[1-9][0-9]{9}$/;
+  const pincodeRegex = /^[1-9][0-9]{5}$/;
+  const errors = [];
+
+  if (name && !textOnlyRegex.test(name)) {
+    errors.push("Name must contain only letters and spaces.");
+  }
+  if (city && !textOnlyRegex.test(city)) {
+    errors.push("City must contain only letters and spaces.");
+  }
+  if (state && !textOnlyRegex.test(state)) {
+    errors.push("State must contain only letters and spaces.");
+  }
+  if (phone && !phoneRegex.test(phone)) {
+    errors.push("Invalid phone number format.");
+  }
+  if (altPhone && (!phoneRegex.test(altPhone) || phone === altPhone)) {
+    errors.push("Invalid alternate phone or same as primary phone.");
+  }
+  if (pincode && !pincodeRegex.test(pincode)) {
+    errors.push("Pincode must be a valid 6-digit number.");
+  }
+
+  return errors;
+};
+
+const createUpdateData = (fields) => {
+  const updateData = {};
+  Object.keys(fields).forEach(key => {
+    if (fields[key]) updateData[key] = fields[key];
+  });
+  return updateData;
 };
 
 module.exports = {
