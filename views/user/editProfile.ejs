@@ -17,7 +17,7 @@
     <div id="success-message" class="alert alert-success" style="display: none;"></div>
     
     <% if (user) { %>
-      <form id="editProfileForm">
+      <form id="editProfileForm" enctype="multipart/form-data">
         <div class="form-group">
           <label><i class="fas fa-camera field-icon"></i>Profile Image:</label>
           <div style="text-align: center; margin-bottom: 20px;">
@@ -70,7 +70,7 @@
           <label for="profileImage"><i class="fas fa-image field-icon"></i>Update Profile Image:</label>
           <input type="file" class="form-control" id="profileImage" name="profileImage" accept="image/*">
           <small class="form-text text-muted">Accepted formats: JPG, PNG (Max size: 5MB, 100x100 to 2000x2000 px)</small>
-        </div>
+      </div>
         
         <div class="section-divider"></div>
         
