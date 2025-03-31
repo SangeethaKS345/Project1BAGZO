@@ -1,50 +1,17 @@
 const User = require("../../models/userSchema");
-const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
-require('dotenv').config(); 
-const session = require("express-session");
-const Order = require("../../models/orderSchema");
-const Address = require("../../models/addressSchema");
-const mongoose = require("mongoose");
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 
-// Configure multer storage
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'public/uploads/');
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
-});
-
-const upload = multer({
-    storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-    fileFilter: function (req, file, cb) {
-        const filetypes = /jpeg|jpg|png/;
-        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-        const mimetype = filetypes.test(file.mimetype);
-        
-        if (mimetype && extname) {
-            return cb(null, true);
-        }
-        cb(new Error('Only images (JPG, PNG) are allowed!'));
-    }
-}).single('profileImage');
-
 // Helper function to generate OTP
-const generateOtp = () => {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-};
+const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
 
-
+// Helper function to send verification email
 const sendVerificationEmail = async (email, otp) => {
     try {
-        console.log(`OTP for ${email}: ${otp}`); // Log OTP to console
-        return true; // Simulate successful "sending"
+        console.log(`OTP for ${email}: ${otp}`);
+        return true;
     } catch (error) {
         console.error('Error in sendVerificationEmail:', error);
         return false;
@@ -52,40 +19,45 @@ const sendVerificationEmail = async (email, otp) => {
 };
 
 // Helper function to hash password
-const securePassword = async (password) => {
-    return await bcrypt.hash(password, 10);
-};
+const securePassword = (password) => bcrypt.hash(password, 10);
 
-const getForgotPassword = async (req, res) => {
-    try {
-        res.render("forgot-password");
-    } catch (error) {
-        res.redirect("/pageNotFound");
+// Configure multer storage
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, 'public/uploads/'),
+    filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
+});
+
+const upload = multer({
+    storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    fileFilter: (req, file, cb) => {
+        const filetypes = /jpeg|jpg|png/;
+        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = filetypes.test(file.mimetype);
+        if (mimetype && extname) return cb(null, true);
+        cb(new Error('Only images (JPG, PNG) are allowed!'));
     }
-};
+}).single('profileImage');
+
+// Controller functions
+const getForgotPassword = (req, res) => res.render("forgot-password");
 
 const forgotEmailValid = async (req, res) => {
     try {
         const { email } = req.body;
-        const findUser = await User.findOne({ email: email });
+        const findUser = await User.findOne({ email });
         if (findUser) {
             const otp = generateOtp();
-            const emailSent = await sendVerificationEmail(email, otp);
-            if (emailSent) {
+            if (await sendVerificationEmail(email, otp)) {
                 req.session.userOtp = otp;
                 req.session.email = email;
                 res.render("forgotPassword-otp");
                 console.log("Forgot Password OTP:", otp);
             } else {
-                res.json({
-                    success: false,
-                    message: "Failed to generate OTP. Please try again",
-                });
+                res.json({ success: false, message: "Failed to generate OTP. Please try again" });
             }
         } else {
-            res.render("forgot-password", {
-                message: "User with this email does not exist",
-            });
+            res.render("forgot-password", { message: "User with this email does not exist" });
         }
     } catch (error) {
         console.error("Error in forgotEmailValid:", error);
@@ -93,37 +65,22 @@ const forgotEmailValid = async (req, res) => {
     }
 };
 
-const verifyForgotPassOtp = async (req, res) => {
-    try {
-        const otpInput = req.body.otpInput.trim();
-        if (otpInput !== req.session.userOtp) {
-            return res.json({ message: "OTP not matching" });
-        }
-        return res.json({ success: "OTP Verified Successfully" });
-    } catch (error) {
-        res.status(500).json({ 
-            success: false, 
-            message: "An error occurred, please try again" 
-        });
+const verifyForgotPassOtp = (req, res) => {
+    const otpInput = req.body.otpInput.trim();
+    if (otpInput !== req.session.userOtp) {
+        return res.json({ message: "OTP not matching" });
     }
+    return res.json({ success: "OTP Verified Successfully" });
 };
 
-const getResetPassword = async (req, res) => {
-    try {
-        res.render("reset-password");
-    } catch (error) {
-        res.redirect("/pageNotFound");
-    }
-};
+const getResetPassword = (req, res) => res.render("reset-password");
 
 const resendOtp = async (req, res) => {
     try {
         const otp = generateOtp();
         req.session.userOtp = otp;
         const email = req.session.email;
-        console.log("Resending OTP to email", email);
-        const emailSent = await sendVerificationEmail(email, otp);
-        if (emailSent) {
+        if (await sendVerificationEmail(email, otp)) {
             console.log("Resend OTP:", otp);
             res.status(200).json({ success: true, message: "Resend OTP successful" });
         }
@@ -139,10 +96,7 @@ const postNewPassword = async (req, res) => {
         const email = req.session.email;
         if (newPass1 === newPass2) {
             const passwordHash = await securePassword(newPass1);
-            await User.updateOne(
-                { email: email },
-                { $set: { password: passwordHash } }
-            );
+            await User.updateOne({ email }, { $set: { password: passwordHash } });
             res.redirect("/login");
         } else {
             res.render("reset-password", { message: "Passwords do not match" });
@@ -154,17 +108,9 @@ const postNewPassword = async (req, res) => {
 
 const userProfile = async (req, res) => {
     try {
-        console.log("UserProfile Controller Called");
         const userData = req.user;
-        if (!userData) {
-            console.log("No user data found");
-            return res.redirect("/login");
-        }
-        console.log("User Data:", userData);
-        res.render("profile", { 
-            userData: userData,
-            user: userData
-        });
+        if (!userData) return res.redirect("/login");
+        res.render("profile", { userData, user: userData });
     } catch (error) {
         console.error("Profile Controller Error:", error);
         res.redirect("/pageNotFound");
@@ -173,19 +119,10 @@ const userProfile = async (req, res) => {
 
 const getEditProfile = async (req, res) => {
     try {
-        console.log("session user:", req.session.user);
-        if (!req.session.user || !req.session.user.id) {
-            console.log("User not logged in, redirecting to login.");
-            return res.redirect("/login");
-        }
+        if (!req.session.user || !req.session.user.id) return res.redirect("/login");
         const userId = req.session.user.id;
-
         const userData = await User.findById(userId);
-        if (!userData) {
-            return res.status(404).send("User not found");
-        }
-        
-        console.log("Rendering user/editProfile with user:", userData);
+        if (!userData) return res.status(404).send("User not found");
         res.render("editProfile", { user: userData });
     } catch (error) {
         console.error(error);
@@ -197,19 +134,12 @@ const sendEmailOtp = async (req, res) => {
     try {
         const { email } = req.body;
         const userId = req.session.user.id;
-        
         const existingUser = await User.findOne({ email, _id: { $ne: userId } });
-        if (existingUser) {
-            return res.status(400).json({ error: "Email already in use by another account" });
-        }
-
+        if (existingUser) return res.status(400).json({ error: "Email already in use by another account" });
         const otp = generateOtp();
         req.session.emailOtp = otp;
         req.session.newEmail = email;
-        
-        const emailSent = await sendVerificationEmail(email, otp);
-        if (emailSent) {
-            console.log("Email verification OTP:", otp);
+        if (await sendVerificationEmail(email, otp)) {
             res.status(200).json({ success: true, message: "OTP logged to console" });
         } else {
             res.status(500).json({ error: "Failed to generate OTP" });
@@ -220,84 +150,32 @@ const sendEmailOtp = async (req, res) => {
     }
 };
 
-const verifyEmailOtp = async (req, res) => {
-    try {
-        const { otp } = req.body;
-        if (otp !== req.session.emailOtp) {
-            return res.status(400).json({ error: "Invalid OTP" });
-        }
-        
-        req.session.emailVerified = true;
-        res.status(200).json({ success: true, message: "Email verified successfully" });
-    } catch (error) {
-        console.error("Error in verifyEmailOtp:", error);
-        res.status(500).json({ error: "Server error" });
-    }
+const verifyEmailOtp = (req, res) => {
+    const { otp } = req.body;
+    if (otp !== req.session.emailOtp) return res.status(400).json({ error: "Invalid OTP" });
+    req.session.emailVerified = true;
+    res.status(200).json({ success: true, message: "Email verified successfully" });
 };
 
-const updateEditProfile = async (req, res, next) => {
-    try {
-        upload(req, res, async (err) => {
-            if (err) {
-                return res.status(400).json({ error: err.message });
-            }
-
+const updateEditProfile = async (req, res) => {
+    upload(req, res, async (err) => {
+        if (err) return res.status(400).json({ error: err.message });
+        try {
             const userId = req.session.user.id;
-            if (!userId) {
-                const error = new Error("Unauthorized, please log in.");
-                error.status = 401;
-                throw error;
-            }
-
+            if (!userId) throw new Error("Unauthorized, please log in.");
             const { name, phone, email, currentpassword, NewPassword, Cpassword } = req.body;
             const user = await User.findById(userId);
-            
-            if (!user) {
-                const error = new Error("User not found.");
-                error.status = 404;
-                throw error;
-            }
-
-            // Handle email update
+            if (!user) throw new Error("User not found.");
             if (email && email !== user.email) {
-                if (!req.session.emailVerified || req.session.newEmail !== email) {
-                    const error = new Error("Please verify the new email address first.");
-                    error.status = 400;
-                    throw error;
-                }
+                if (!req.session.emailVerified || req.session.newEmail !== email) throw new Error("Please verify the new email address first.");
             }
-
-            // Handle password update
             if (currentpassword || NewPassword || Cpassword) {
-                if (!currentpassword || !NewPassword || !Cpassword) {
-                    const error = new Error("All password fields are required.");
-                    error.status = 400;
-                    throw error;
-                }
-
-                if (user.googleId && !user.password) {
-                    const error = new Error("Password change not allowed for Google login users.");
-                    error.status = 400;
-                    throw error;
-                }
-
-                const passwordMatch = await bcrypt.compare(currentpassword, user.password);
-                if (!passwordMatch) {
-                    const error = new Error("Current password is incorrect.");
-                    error.status = 401;
-                    throw error;
-                }
-
-                if (NewPassword !== Cpassword) {
-                    const error = new Error("New passwords do not match.");
-                    error.status = 400;
-                    throw error;
-                }
-
+                if (!currentpassword || !NewPassword || !Cpassword) throw new Error("All password fields are required.");
+                if (user.googleId && !user.password) throw new Error("Password change not allowed for Google login users.");
+                if (!(await bcrypt.compare(currentpassword, user.password))) throw new Error("Current password is incorrect.");
+                if (NewPassword !== Cpassword) throw new Error("New passwords do not match.");
                 user.password = await bcrypt.hash(NewPassword, 10);
             }
-
-            // Update fields
             if (name) user.name = name;
             if (phone) user.phone = phone;
             if (email && email !== user.email && req.session.emailVerified) {
@@ -309,20 +187,16 @@ const updateEditProfile = async (req, res, next) => {
             if (req.file) {
                 if (user.profileImage && user.profileImage !== 'default-profile.jpg') {
                     const oldImagePath = path.join(__dirname, '../../public/uploads/', user.profileImage);
-                    if (fs.existsSync(oldImagePath)) {
-                        fs.unlinkSync(oldImagePath);
-                    }
+                    if (fs.existsSync(oldImagePath)) fs.unlinkSync(oldImagePath);
                 }
                 user.profileImage = req.file.filename;
             }
-
             await user.save();
-            return res.status(200).json({ success: true });
-        });
-    } catch (error) {
-        console.error("Error in updateEditProfile:", error);
-        res.status(error.status || 500).json({ error: error.message || "Server error" });
-    }
+            res.status(200).json({ success: true });
+        } catch (error) {
+            res.status(error.status || 500).json({ error: error.message || "Server error" });
+        }
+    });
 };
 
 module.exports = {

@@ -8,27 +8,32 @@ const Order = require('../../models/orderSchema');
 const razorpay = require('../../config/razorpay');
 const crypto = require('crypto');
 
+// Helper function to create or get a wallet
+const getOrCreateWallet = async (userId) => {
+    let wallet = await Wallet.findOne({ user: userId });
+    if (!wallet) {
+        wallet = new Wallet({ user: userId, balance: 0, transactions: [] });
+        await wallet.save();
+        console.log("Created new wallet for user:", userId);
+    }
+    return wallet;
+};
 
-
+// Load Wallet Page
 const loadWalletPage = async (req, res, next) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = 5; // Number of transactions per page
         const skip = (page - 1) * limit;
 
-        let wallet = await Wallet.findOne({ user: req.user._id });
-        if (!wallet) {
-            wallet = new Wallet({ user: req.user._id, balance: 0, transactions: [] });
-            await wallet.save();
-            console.log("Created new wallet for user:", req.user._id);
-        }
+        let wallet = await getOrCreateWallet(req.user._id);
 
         console.log("Wallet data retrieved:", wallet);
         console.log("Total transactions in wallet:", wallet.transactions.length);
 
         // Get total number of transactions
         const totalTransactions = wallet.transactions.length;
-        
+
         // Sort transactions and apply pagination
         const transactions = wallet.transactions
             .sort((a, b) => b.date - a.date) // Sort by date descending
@@ -54,6 +59,7 @@ const loadWalletPage = async (req, res, next) => {
     }
 };
 
+// Add Money to Wallet
 const addMoneyToWallet = async (req, res, next) => {
     try {
         const { amount } = req.body;
@@ -65,10 +71,7 @@ const addMoneyToWallet = async (req, res, next) => {
             });
         }
 
-        let wallet = await Wallet.findOne({ user: req.user._id });
-        if (!wallet) {
-            wallet = new Wallet({ user: req.user._id });
-        }
+        let wallet = await getOrCreateWallet(req.user._id);
 
         if (amount > 100000) {
             return res.status(400).json({
@@ -106,6 +109,7 @@ const addMoneyToWallet = async (req, res, next) => {
     }
 };
 
+// Verify Payment
 const verifyPayment = async (req, res, next) => {
     try {
         const {
@@ -144,10 +148,7 @@ const verifyPayment = async (req, res, next) => {
         const order = await razorpay.orders.fetch(razorpay_order_id);
         const amount = order.amount / 100; // Convert from paise to rupees
 
-        let wallet = await Wallet.findOne({ user: req.user._id });
-        if (!wallet) {
-            wallet = new Wallet({ user: req.user._id });
-        }
+        let wallet = await getOrCreateWallet(req.user._id);
 
         wallet.transactions.push({
             type: 'credit',
@@ -172,52 +173,49 @@ const verifyPayment = async (req, res, next) => {
     }
 };
 
+// Add Wallet Transaction
 const addWalletTransaction = async (userId, amount, type, description) => {
     try {
-      console.log(`[WALLET START] Transaction for user ${userId}: Type=${type}, Amount=${amount}, Description=${description}`);
-  
-      if (!mongoose.Types.ObjectId.isValid(userId)) {
-        console.log(`[WALLET ERROR] Invalid userId: ${userId}`);
-        throw new Error('Invalid user ID');
-      }
-  
-      if (!amount || amount <= 0) {
-        console.log(`[WALLET ERROR] Invalid amount: ${amount}`);
-        throw new Error('Transaction amount must be greater than 0');
-      }
-  
-      let wallet = await Wallet.findOne({ user: userId });
-      if (!wallet) {
-        console.log(`[WALLET INFO] No wallet found, creating new for user ${userId}`);
-        wallet = new Wallet({ user: userId, balance: 0, transactions: [] });
-      }
-  
-      console.log(`[WALLET BEFORE] Balance: ₹${wallet.balance}, Transaction count: ${wallet.transactions.length}`);
-  
-      if (type === 'debit' && wallet.balance < amount) {
-        console.log(`[WALLET ERROR] Insufficient balance: Current=₹${wallet.balance}, Required=₹${amount}`);
-        throw new Error('Insufficient wallet balance');
-      }
-  
-      const previousBalance = wallet.balance;
-      wallet.balance = type === 'credit' ? wallet.balance + amount : wallet.balance - amount;
-      wallet.transactions.push({
-        type,
-        amount,
-        description,
-        date: new Date()
-      });
-  
-      const savedWallet = await wallet.save();
-      console.log(`[WALLET SUCCESS] Transaction saved: Previous balance=₹${previousBalance}, New balance=₹${savedWallet.balance}`);
-      console.log(`[WALLET] Latest transaction: ${JSON.stringify(savedWallet.transactions[savedWallet.transactions.length - 1])}`);
-  
-      return savedWallet;
+        console.log(`[WALLET START] Transaction for user ${userId}: Type=${type}, Amount=${amount}, Description=${description}`);
+
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            console.log(`[WALLET ERROR] Invalid userId: ${userId}`);
+            throw new Error('Invalid user ID');
+        }
+
+        if (!amount || amount <= 0) {
+            console.log(`[WALLET ERROR] Invalid amount: ${amount}`);
+            throw new Error('Transaction amount must be greater than 0');
+        }
+
+        let wallet = await getOrCreateWallet(userId);
+
+        console.log(`[WALLET BEFORE] Balance: ₹${wallet.balance}, Transaction count: ${wallet.transactions.length}`);
+
+        if (type === 'debit' && wallet.balance < amount) {
+            console.log(`[WALLET ERROR] Insufficient balance: Current=₹${wallet.balance}, Required=₹${amount}`);
+            throw new Error('Insufficient wallet balance');
+        }
+
+        const previousBalance = wallet.balance;
+        wallet.balance = type === 'credit' ? wallet.balance + amount : wallet.balance - amount;
+        wallet.transactions.push({
+            type,
+            amount,
+            description,
+            date: new Date()
+        });
+
+        const savedWallet = await wallet.save();
+        console.log(`[WALLET SUCCESS] Transaction saved: Previous balance=₹${previousBalance}, New balance=₹${savedWallet.balance}`);
+        console.log(`[WALLET] Latest transaction: ${JSON.stringify(savedWallet.transactions[savedWallet.transactions.length - 1])}`);
+
+        return savedWallet;
     } catch (error) {
-      console.error(`[WALLET FATAL] Transaction failed: ${error.stack}`);
-      throw new Error(`Wallet transaction failed: ${error.message}`);
+        console.error(`[WALLET FATAL] Transaction failed: ${error.stack}`);
+        throw new Error(`Wallet transaction failed: ${error.message}`);
     }
-  };
+};
 
 module.exports = {
     loadWalletPage,

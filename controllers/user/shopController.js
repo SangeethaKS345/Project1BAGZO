@@ -3,19 +3,72 @@ const Product = require('../../models/productSchema');
 const Brand = require('../../models/brandSchema');
 const Category = require('../../models/categorySchema');
 const User = require('../../models/userSchema');
-const Cart = require('../../models/cartSchema')
 
+const getUserData = async (userId) => {
+    if (mongoose.Types.ObjectId.isValid(userId)) {
+        return await User.findOne({ _id: new mongoose.Types.ObjectId(userId) });
+    }
+    console.log("Invalid user ID in session:", userId);
+    return null;
+};
+
+const getFilters = (query) => {
+    const filter = {
+        isBlocked: false,
+        status: "Available"
+    };
+    if (query.search) filter.productName = { $regex: query.search, $options: 'i' };
+    if (query.category) filter.category = query.category;
+    if (query.brand) filter.brand = query.brand;
+    if (query.minPrice || query.maxPrice) {
+        filter.salesPrice = {};
+        if (query.minPrice) filter.salesPrice.$gte = parseInt(query.minPrice);
+        if (query.maxPrice) filter.salesPrice.$lte = parseInt(query.maxPrice);
+    }
+    return filter;
+};
+
+const getSortOptions = (sort) => {
+    switch (sort) {
+        case 'price-asc': return { salesPrice: 1 };
+        case 'price-desc': return { salesPrice: -1 };
+        case 'name-asc': return { productName: 1 };
+        case 'name-desc': return { productName: -1 };
+        default: return { createdAt: -1 };
+    }
+};
+
+const calculateEffectivePrice = (product, currentDate) => {
+    let effectivePrice = product.salesPrice;
+    let offerPercentage = 0;
+    let offerType = '';
+
+    // Check product-specific offer
+    if (product.productOffer > 0 && (!product.offerEndDate || product.offerEndDate > currentDate)) {
+        effectivePrice = product.regularPrice * (1 - product.productOffer / 100);
+        offerPercentage = product.productOffer;
+        offerType = 'product';
+    }
+
+    // Check category offer if no product offer or if category offer is higher
+    if (product.category?.categoryOffer > offerPercentage && (!product.category.offerEndDate || product.category.offerEndDate > currentDate)) {
+        effectivePrice = product.regularPrice * (1 - product.category.categoryOffer / 100);
+        offerPercentage = product.category.categoryOffer;
+        offerType = 'category';
+    }
+
+    return {
+        ...product._doc,
+        effectivePrice: Math.round(effectivePrice),
+        offerPercentage,
+        offerType
+    };
+};
 
 const loadShop = async (req, res, next) => {
     try {
-        let userData = null;
-        if (req.session.user) {
-            if (mongoose.Types.ObjectId.isValid(req.session.user)) {
-                userData = await User.findOne({ _id: new mongoose.Types.ObjectId(req.session.user) });
-            } else {
-                console.log("Invalid user ID in session:", req.session.user);
-            }
-        }
+        const userId = req.session.user;
+        const userPromise = userId ? getUserData(userId) : Promise.resolve(null);
 
         const query = {
             search: req.query.search || '',
@@ -26,74 +79,27 @@ const loadShop = async (req, res, next) => {
             minPrice: req.query.minPrice || ''
         };
 
-        const brands = await Brand.find({ isBlocked: false });
-        const categories = await Category.find({ isListed: true });
+        const brandsPromise = Brand.find({ isBlocked: false });
+        const categoriesPromise = Category.find({ isListed: true });
+
+        const [userData, brands, categories] = await Promise.all([userPromise, brandsPromise, categoriesPromise]);
 
         const brandIds = brands.map(brand => brand._id);
         const categoryIds = categories.map(category => category._id);
 
-        const filter = {
-            isBlocked: false,
-            status: "Available",
-            brand: { $in: brandIds },
-            category: { $in: categoryIds }
-        };
+        const filter = getFilters(query);
+        filter.brand = { $in: brandIds };
+        filter.category = { $in: categoryIds };
 
-        if (query.search) {
-            filter.productName = { $regex: query.search, $options: 'i' };
-        }
-        if (query.category) filter.category = query.category;
-        if (query.brand) filter.brand = query.brand;
-        if (query.minPrice || query.maxPrice) {
-            filter.salesPrice = {};
-            if (query.minPrice) filter.salesPrice.$gte = parseInt(query.minPrice);
-            if (query.maxPrice) filter.salesPrice.$lte = parseInt(query.maxPrice);
-        }
-
-        let sortOptions = {};
-        switch (query.sort) {
-            case 'price-asc': sortOptions = { salesPrice: 1 }; break;
-            case 'price-desc': sortOptions = { salesPrice: -1 }; break;
-            case 'name-asc': sortOptions = { productName: 1 }; break;
-            case 'name-desc': sortOptions = { productName: -1 }; break;
-            default: sortOptions = { createdAt: -1 };
-        }
+        const sortOptions = getSortOptions(query.sort);
 
         const productsData = await Product.find(filter)
             .populate('category')
             .populate('brand')
             .sort(sortOptions);
 
-        // Calculate effective price for each product
         const currentDate = new Date();
-        const products = productsData.map(product => {
-            let effectivePrice = product.salesPrice;
-            let offerPercentage = 0;
-            let offerType = '';
-
-            // Check product-specific offer
-            if (product.productOffer > 0 && 
-                (!product.offerEndDate || product.offerEndDate > currentDate)) {
-                effectivePrice = product.regularPrice * (1 - product.productOffer/100);
-                offerPercentage = product.productOffer;
-                offerType = 'product';
-            }
-            
-            // Check category offer if no product offer or if category offer is higher
-            if (product.category?.categoryOffer > offerPercentage && 
-                (!product.category.offerEndDate || product.category.offerEndDate > currentDate)) {
-                effectivePrice = product.regularPrice * (1 - product.category.categoryOffer/100);
-                offerPercentage = product.category.categoryOffer;
-                offerType = 'category';
-            }
-
-            return {
-                ...product._doc,
-                effectivePrice: Math.round(effectivePrice),
-                offerPercentage,
-                offerType
-            };
-        });
+        const products = productsData.map(product => calculateEffectivePrice(product, currentDate));
 
         res.render('shop', {
             products,
@@ -108,6 +114,5 @@ const loadShop = async (req, res, next) => {
         next(error);
     }
 };
-
 
 module.exports = { loadShop };
