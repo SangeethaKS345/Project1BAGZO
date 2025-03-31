@@ -10,46 +10,12 @@ const userRouter = require("./routes/userRouter");
 const adminRouter = require("./routes/adminRouter");
 const app = express();
 
-const {errorHandler, adminErrorHandler} = require("./middlewares/errorHandler.js");
+const { errorHandler, adminErrorHandler } = require("./middlewares/errorHandler.js");
 const nocache = require('nocache');
 app.use(nocache());
 
 // Connect to MongoDB
 db();
-
-// User Authentication Middleware
-const userAuth = (req, res, next) => {
-  if (req.path.startsWith("/public/") || req.path.startsWith("/assets/")) {
-    return next();
-  }
-
-  if (req.session && req.session.user) {
-    const User = require("./models/User");
-    User.findById(req.session.user)
-      .then((data) => {
-        if (data && !data.isBlocked) {
-          req.user = data;
-          res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-          res.setHeader("Pragma", "no-cache");
-          res.setHeader("Expires", "0");
-          next();
-        } else {
-          req.session.destroy((err) => {
-            if (err) console.error("Session destruction error:", err);
-            res.redirect("/");
-          });
-        }
-      })
-      .catch((error) => {
-        console.error("Error in user authentication:", error);
-        const err = new Error("Authentication error");
-        err.statusCode = 500;
-        next(err);
-      });
-  } else {
-    res.redirect("/");
-  }
-};
 
 // Middleware
 app.use(express.json());
@@ -58,12 +24,11 @@ app.use(express.urlencoded({ extended: true }));
 // Session Configuration
 app.use(
   session({
-    secret: process.env.SESSION_SECRET ,
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
     store: MongoStore.create({
-      mongoUrl:
-        process.env.MONGODB_URI ,
+      mongoUrl: process.env.MONGODB_URI,
       ttl: 24 * 60 * 60,
     }),
     cookie: {
@@ -79,15 +44,14 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Prevent Caching Globally
-// app.use((req, res, next) => {
-//   if (req.path.startsWith("/login")) {
-//     res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0");
-//     res.setHeader("Pragma", "no-cache");
-//     res.setHeader("Expires", "0");
-//   }
-//   next();
-// });
-
+app.use((req, res, next) => {
+  if (req.path.startsWith("/login")) {
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+  }
+  next();
+});
 
 // Middleware to pass user data to all views
 app.use((req, res, next) => {
@@ -120,7 +84,6 @@ app.use("/admin", adminRouter);
 
 // Error handler
 app.use(errorHandler, adminErrorHandler);
-
 
 // Start Server
 const PORT = process.env.PORT || 4488;

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const adminController = require("../controllers/admin/adminController");
-const { adminAuth,redirectIfAuthenticated  } = require("../middlewares/auth");
+const { adminAuth, redirectIfAuthenticated } = require("../middlewares/auth");
 const customerController = require("../controllers/admin/customerController");
 const categoryController = require("../controllers/admin/categoryController");
 const brandController = require("../controllers/admin/brandController");
@@ -16,13 +16,13 @@ const { adminErrorHandler } = require("../middlewares/errorHandler");
 router.use(adminErrorHandler);
 
 // Admin Login & Logout Routes
-router.get("/login", redirectIfAuthenticated ,adminController.loadLogin);
-router.post("/login",redirectIfAuthenticated , adminController.login);
+router.get("/login", redirectIfAuthenticated, adminController.loadLogin);
+router.post("/login", redirectIfAuthenticated, adminController.login);
 router.get("/logout", adminController.logout);
 
 // Dashboard Routes
-router.get("/dashboard", adminAuth, dashboardController.loadDashboard); 
-router.get("/", adminAuth, dashboardController.loadDashboard); 
+router.get("/dashboard", adminAuth, dashboardController.loadDashboard);
+router.get("/", adminAuth, dashboardController.loadDashboard);
 router.get('/dashboard/chartData', dashboardController.getChartData);
 router.get('/downloadReport', dashboardController.downloadReport);
 
@@ -34,7 +34,7 @@ router.get("/unblockCustomer", adminAuth, customerController.customerunBlocked);
 // Category Management
 router.get("/category", adminAuth, categoryController.categoryInfo);
 router.post("/addCategory", adminAuth, categoryController.addCategory);
-router.get("/editCategory", adminAuth, categoryController.getEditCategory); 
+router.get("/editCategory", adminAuth, categoryController.getEditCategory);
 router.put("/editCategory/:id", adminAuth, categoryController.editCategory);
 router.get("/listCategory", adminAuth, categoryController.getListCategory);
 router.get("/unlistCategory", adminAuth, categoryController.getUnlistCategory);
@@ -51,7 +51,7 @@ router.get("/deleteBrand", adminAuth, brandController.deleteBrand);
 
 // Product Management
 router.get("/addProducts", adminAuth, productController.getProductAddPage);
-router.post("/addProducts", adminAuth, uploads.array("images", 4), productController.addProducts); 
+router.post("/addProducts", adminAuth, uploads.array("images", 4), productController.addProducts);
 router.get("/products", adminAuth, productController.getAllProducts);
 router.get("/blockProduct", adminAuth, productController.blockProduct);
 router.get("/unblockProduct", adminAuth, productController.unblockProduct);
@@ -72,11 +72,8 @@ router.post("/orders/update-return-status/:orderId", adminAuth, ordersController
 router.get('/coupon', adminAuth, couponController.getCouponPage);
 router.post('/addCoupon', adminAuth, couponController.addCoupon);
 router.patch('/toggleCouponStatus/:couponId', adminAuth, couponController.toggleCouponStatus);
-// router.post('/applyCoupon', adminAuth, couponController.applyCoupon);
 router.patch('/editCoupon/:couponId', adminAuth, couponController.editCoupon);
 router.delete('/deleteCoupon/:couponId', adminAuth, couponController.deleteCoupon);
 router.get('/getCoupon/:couponId', adminAuth, couponController.getCoupon);
-
-
 
 module.exports = router;

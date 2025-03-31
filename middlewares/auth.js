@@ -1,4 +1,3 @@
-
 const mongoose = require("mongoose");
 const User = require("../models/userSchema");
 
@@ -13,9 +12,9 @@ const userAuth = (req, res, next) => {
     return next();
   }
 
-  // Check if session and user exist
-  if (!req.session || !req.session.user) {
-    console.log("No session or no user in session");
+  // Check if user session exists
+  if (!req.session.user) {
+    console.log("No user session");
     return res.status(401).json({
       success: false,
       error: "Authentication required. Please log in."
@@ -97,29 +96,6 @@ const userAuth = (req, res, next) => {
   }
 };
 
-
-// const adminAuth = async (req, res, next) => {
-//   try {
-//     console.log("admin session id :",req.session.admin)
-//     if (!req.session.admin || !mongoose.Types.ObjectId.isValid(req.session.admin)) {
-//       return res.redirect("/admin/login");
-//     }
-
-//     const admin = await User.findById(req.session.admin);
-//     console.log("admin session id :",admin)
-
-//     if (!admin || !admin.isAdmin) {
-      
-//       req.session.destroy(); // Destroy session if invalid admin
-//       return res.redirect("/admin/login");
-//     }
-
-//     next(); // Proceed to the next middleware/route
-//   } catch (error) {
-//     console.error("Admin authentication error:", error);
-//     res.status(500).send("Internal Server Error");
-//   }
-// };
 const adminAuth = async (req, res, next) => {
   try {
     console.log("Admin session ID:", req.session.admin);
@@ -149,7 +125,7 @@ const adminAuth = async (req, res, next) => {
 };
 
 const redirectIfAuthenticated = (req, res, next) => {
-  console.log(req.session.admin,'in new auth');
+  console.log(req.session.admin, 'in new auth');
   if (req.session.admin) {
     return res.redirect("/admin/dashboard"); // Redirect logged-in users
   }
@@ -157,13 +133,12 @@ const redirectIfAuthenticated = (req, res, next) => {
 };
 
 const redirectIfUserAuthenticated = (req, res, next) => {
-  console.log(req.session.user,'in new auth');
+  console.log(req.session.user, 'in new auth');
   if (req.session.user) {
     return res.redirect("/"); // Redirect logged-in users
   }
   next(); // Proceed if not logged in
 };
-
 
 const checkBlockStatus = async (req, res, next) => {
   if (req.session && req.session.user) {
@@ -192,5 +167,6 @@ module.exports = {
   userAuth,
   adminAuth,
   checkBlockStatus,
-  redirectIfAuthenticated
+  redirectIfAuthenticated,
+  redirectIfUserAuthenticated
 };
