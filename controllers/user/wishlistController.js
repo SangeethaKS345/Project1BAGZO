@@ -192,7 +192,6 @@ const toggleWishlist = async (req, res) => {
         const productId = req.params.productId;
         const userId = req.user._id;
 
-        // Fetch the product and wishlist in parallel using Promise.all
         const [productExists, wishlist] = await Promise.all([
             Product.findById(productId),
             Wishlist.findOne({ userId })

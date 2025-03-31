@@ -135,49 +135,44 @@ const getCartPage = async (req, res) => {
 // Add to cart function
 const addToCart = async (req, res) => {
     try {
-        const { productId, quantity = 1 } = req.body; // Default quantity to 1 if not provided
+        const { productId, quantity = 1 } = req.body;
         const userId = getUserIdFromSession(req.session.user);
 
         if (!userId) {
-            return res.status(401).json({ message: "Please log in to add items to your cart" });
+            return res.status(401).json({ success: false, message: "Please log in to add items to your cart" });
         }
 
         if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
-            return res.status(400).json({ message: "Invalid Product ID" });
+            return res.status(400).json({ success: false, message: "Invalid Product ID" });
         }
 
         const productObjectId = new mongoose.Types.ObjectId(productId);
         const userObjectId = new mongoose.Types.ObjectId(userId);
 
-        // Fetch product with populated category and brand
         const product = await Product.findById(productObjectId).populate("category").populate("brand");
         if (!product || product.isBlocked || product.status === "out of stock" || product.quantity <= 0) {
-            return res.status(404).json({ message: "Product not found or unavailable" });
+            return res.status(404).json({ success: false, message: "Product not found or unavailable" });
         }
 
         if (quantity > product.quantity) {
-            return res.status(400).json({ message: "Requested quantity exceeds available stock" });
+            return res.status(400).json({ success: false, message: "Requested quantity exceeds available stock" });
         }
 
-        // Check category and brand status
         if (!product.category?.isListed || product.brand?.isBlocked) {
-            return res.status(400).json({ message: "Product's category or brand is unavailable" });
+            return res.status(400).json({ success: false, message: "Product's category or brand is unavailable" });
         }
 
-        // Fetch or create cart
         let cart = await Cart.findOne({ userId: userObjectId }) || new Cart({ userId: userObjectId, products: [] });
 
-        // Check cart product limit
         if (cart.products.length >= 4 && !cart.products.some(item => item.productId.equals(productObjectId))) {
-            return res.status(400).json({ message: "Cart cannot contain more than 4 different products" });
+            return res.status(400).json({ success: false, message: "Cart cannot contain more than 4 different products" });
         }
 
-        // Update or add product to cart
         const existingProduct = cart.products.find(item => item.productId.equals(productObjectId));
         if (existingProduct) {
             const newQuantity = existingProduct.quantity + parseInt(quantity);
             if (newQuantity > product.quantity || newQuantity > 5) {
-                return res.status(400).json({ message: "Cannot add more of this product. Maximum limit reached." });
+                return res.status(400).json({ success: false, message: "Cannot add more of this product. Maximum limit reached." });
             }
             existingProduct.quantity = newQuantity;
             existingProduct.totalPrice = newQuantity * product.salesPrice;
@@ -190,14 +185,13 @@ const addToCart = async (req, res) => {
             });
         }
 
-        // Save cart and remove from wishlist
         await cart.save();
         await Wishlist.updateOne({ userId: userObjectId }, { $pull: { products: { productId: productObjectId } } });
 
-        return res.status(200).json({ message: "Product added to cart successfully!" });
+        return res.status(200).json({ success: true, message: "Product added to cart successfully!" });
     } catch (error) {
         console.error("Error adding to cart:", error.stack);
-        return res.status(500).json({ message: "Internal Server Error", error: error.message });
+        return res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });
     }
 };
 
