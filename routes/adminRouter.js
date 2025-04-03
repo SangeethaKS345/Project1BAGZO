@@ -77,8 +77,8 @@ router.patch('/editCoupon/:couponId', adminAuth, couponController.editCoupon);
 router.delete('/deleteCoupon/:couponId', adminAuth, couponController.deleteCoupon);
 router.get('/getCoupon/:couponId', adminAuth, couponController.getCoupon);
 
-
 // Wallet Management
 router.get("/wallet", adminAuth, walletController.loadWalletPage);
+router.get('/transaction/:id', walletController.getTransactionDetails);
 
 module.exports = router;
