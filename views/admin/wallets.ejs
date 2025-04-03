@@ -1,0 +1,188 @@
+<%- include("../../views/partials/admin/header") %>
+<section class="content-main">
+    <div class="content-header">
+        <div>
+            <h2 class="content-title">Wallet Management</h2>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <header class="card-header">
+            <h4>Transactions List</h4>
+        </header>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Transaction ID</th>
+                            <th>Transaction Date</th>
+                            <th>User</th>
+                            <th>Transaction Type</th>
+                            <th>Amount</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (transactions && transactions.length > 0) { %>
+                            <% transactions.forEach((transaction) => { %>
+                                <tr>
+                                    <td><%= transaction.transactionId %></td>
+                                    <td><%= new Date(transaction.transactionDate).toLocaleDateString() %></td>
+                                    <td>
+                                        <% if (transaction.user) { %>
+                                            <%= transaction.user.name %>
+                                        <% } else { %>
+                                            N/A
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <% if (transaction.transactionType === 'credit') { %>
+                                            <span class="badge rounded-pill bg-success">Credit</span>
+                                        <% } else if (transaction.transactionType === 'debit') { %>
+                                            <span class="badge rounded-pill bg-danger">Debit</span>
+                                        <% } else { %>
+                                            <%= transaction.transactionType %>
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <% if (transaction.transactionType === 'credit') { %>
+                                            <span class="text-success">+₹<%= transaction.amount %></span>
+                                        <% } else { %>
+                                            <span class="text-danger">-₹<%= transaction.amount %></span>
+                                        <% } %>
+                                    </td>
+                                    <td class="text-end">
+                                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#transactionModal<%= transaction._id %>">
+                                            View Details
+                                        </button>
+                                    </td>
+                                </tr>
+
+                                <!-- Transaction Details Modal -->
+                                <div class="modal fade" id="transactionModal<%= transaction._id %>" tabindex="-1" aria-labelledby="transactionModalLabel<%= transaction._id %>" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="transactionModalLabel<%= transaction._id %>">Transaction Details</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="row mb-3">
+                                                    <div class="col-md-6">
+                                                        <h6>Transaction ID:</h6>
+                                                        <p><%= transaction.transactionId %></p>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <h6>Transaction Date:</h6>
+                                                        <p><%= new Date(transaction.transactionDate).toLocaleString() %></p>
+                                                    </div>
+                                                </div>
+                                                <div class="row mb-3">
+                                                    <div class="col-md-6">
+                                                        <h6>Transaction Type:</h6>
+                                                        <p>
+                                                            <% if (transaction.transactionType === 'credit') { %>
+                                                                <span class="badge rounded-pill bg-success">Credit</span>
+                                                            <% } else if (transaction.transactionType === 'debit') { %>
+                                                                <span class="badge rounded-pill bg-danger">Debit</span>
+                                                            <% } else { %>
+                                                                <%= transaction.transactionType %>
+                                                            <% } %>
+                                                        </p>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <h6>Amount:</h6>
+                                                        <p>
+                                                            <% if (transaction.transactionType === 'credit') { %>
+                                                                <span class="text-success">+₹<%= transaction.amount %></span>
+                                                            <% } else { %>
+                                                                <span class="text-danger">-₹<%= transaction.amount %></span>
+                                                            <% } %>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="row mb-3">
+                                                    <div class="col-12">
+                                                        <h6>User Details:</h6>
+                                                        <% if (transaction.user) { %>
+                                                            <p>Name: <%= transaction.user.name %></p>
+                                                            <p>Email: <%= transaction.user.email %></p>
+                                                            <p>Phone: <%= transaction.user.phone || 'N/A' %></p>
+                                                        <% } else { %>
+                                                            <p>User information not available</p>
+                                                        <% } %>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-12">
+                                                        <h6>Source of Transaction:</h6>
+                                                        <p><%= transaction.source || 'Regular wallet transaction' %></p>
+                                                        <% if (transaction.orderId && transaction.source && (transaction.source.includes('returned') || transaction.source.includes('canceled'))) { %>
+                                                            <a href="/admin/orders/<%= transaction.orderId %>" class="btn btn-sm btn-outline-primary">
+                                                                View Order Details
+                                                            </a>
+                                                        <% } %>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="6" class="text-center">No transactions found</td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div> <!-- table-responsive end -->
+            
+            <% if (transactions && transactions.length > 0) { %>
+                <div class="pagination-area mt-15 mb-50">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            <% if (currentPage > 1) { %>
+                                <li class="page-item">
+                                    <a class="page-link" href="/admin/wallet?page=<%= currentPage - 1 %>"><i class="material-icons md-chevron_left"></i></a>
+                                </li>
+                            <% } %>
+                            
+                            <% for (let i = 1; i <= totalPages; i++) { %>
+                                <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                                    <a class="page-link" href="/admin/wallet?page=<%= i %>"><%= i %></a>
+                                </li>
+                            <% } %>
+                            
+                            <% if (currentPage < totalPages) { %>
+                                <li class="page-item">
+                                    <a class="page-link" href="/admin/wallet?page=<%= currentPage + 1 %>"><i class="material-icons md-chevron_right"></i></a>
+                                </li>
+                            <% } %>
+                        </ul>
+                    </nav>
+                </div>
+            <% } %>
+        </div> <!-- card-body end// -->
+    </div> <!-- card end// -->
+</section> <!-- content-main end// -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Highlight the active menu item
+        const menuItems = document.querySelectorAll('.menu-item');
+        menuItems.forEach(item => {
+            const link = item.querySelector('.menu-link');
+            if (link && link.getAttribute('href') === '/admin/wallet') {
+                item.classList.add('active');
+            }
+        });
+    });
+</script>
+
+<%- include("../../views/partials/admin/footer") %>

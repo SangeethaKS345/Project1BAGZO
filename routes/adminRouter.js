@@ -9,6 +9,7 @@ const productController = require("../controllers/admin/productController");
 const ordersController = require("../controllers/admin/ordersController");
 const couponController = require("../controllers/admin/couponController");
 const dashboardController = require("../controllers/admin/dashboardController");
+const walletController = require("../controllers/admin/walletController");
 const uploads = require("../helpers/multer");
 const { adminErrorHandler } = require("../middlewares/errorHandler");
 
@@ -75,5 +76,9 @@ router.patch('/toggleCouponStatus/:couponId', adminAuth, couponController.toggle
 router.patch('/editCoupon/:couponId', adminAuth, couponController.editCoupon);
 router.delete('/deleteCoupon/:couponId', adminAuth, couponController.deleteCoupon);
 router.get('/getCoupon/:couponId', adminAuth, couponController.getCoupon);
+
+
+// Wallet Management
+router.get("/wallet", adminAuth, walletController.loadWalletPage);
 
 module.exports = router;

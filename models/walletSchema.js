@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { v4: uuidv4 } = require('uuid'); // Add this line to import uuid
 
 const walletSchema = new mongoose.Schema({
   user: {
@@ -14,6 +15,10 @@ const walletSchema = new mongoose.Schema({
   },
   transactions: [
     {
+      transactionId: {
+        type: String,
+        default: uuidv4, // Generate a unique ID for each transaction
+      },
       type: {
         type: String,
         enum: ["credit", "debit"],
@@ -36,4 +41,3 @@ const walletSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model("Wallet", walletSchema);
-
