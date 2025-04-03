@@ -1,29 +1,41 @@
 const Wallet = require("../../models/walletSchema");
 const User = require("../../models/userSchema");
-const Product = require("../../models/productSchema");
-const Order = require("../../models/orderSchema");
 
 const loadWalletPage = async (req, res, next) => {
   try {
-    console.log('Attempting to render view from paths:', res.locals.viewsPaths);  
     const page = parseInt(req.query.page) || 1;
     const limit = 10;
     const skip = (page - 1) * limit;
 
     const wallets = await Wallet.find()
       .populate('user', 'name email phone')
-      .sort({ 'transactions.date': -1 }) // Sort transactions by date, newest first
-      .skip(skip)
-      .limit(limit)
       .lean();
 
-    const totalTransactions = await Wallet.countDocuments();
+    let allTransactions = [];
+    wallets.forEach(wallet => {
+      wallet.transactions.forEach(transaction => {
+        allTransactions.push({
+          ...transaction,
+          user: wallet.user,
+          _id: wallet._id,
+          description: transaction.description || 
+            (transaction.type === 'credit' ? 'Wallet Recharge' : 'Order Payment')
+        });
+      });
+    });
+
+    // Sort and paginate
+    allTransactions = allTransactions
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    const totalTransactions = allTransactions.length;
+    const paginatedTransactions = allTransactions.slice(skip, skip + limit);
     const totalPages = Math.ceil(totalTransactions / limit);
 
     res.render('wallets', {
-      transactions: wallets,
+      transactions: paginatedTransactions,
       currentPage: page,
-      totalPages,
+      totalPages: totalPages,
     });
   } catch (error) {
     console.error('Error loading wallet page:', error);
@@ -34,4 +46,3 @@ const loadWalletPage = async (req, res, next) => {
 module.exports = {
   loadWalletPage,
 };
-

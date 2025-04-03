@@ -20,6 +20,7 @@
                             <th>User</th>
                             <th>Transaction Type</th>
                             <th>Amount</th>
+                            <th>Description</th>
                             <th class="text-end">Action</th>
                         </tr>
                     </thead>
@@ -28,7 +29,7 @@
                             <% transactions.forEach((transaction) => { %>
                                 <tr>
                                     <td><%= transaction.transactionId %></td>
-                                    <td><%= new Date(transaction.transactionDate).toLocaleDateString() %></td>
+                                    <td><%= new Date(transaction.date).toLocaleDateString() %></td>
                                     <td>
                                         <% if (transaction.user) { %>
                                             <%= transaction.user.name %>
@@ -37,20 +38,23 @@
                                         <% } %>
                                     </td>
                                     <td>
-                                        <% if (transaction.transactionType === 'credit') { %>
+                                        <% if (transaction.type === 'credit') { %>
                                             <span class="badge rounded-pill bg-success">Credit</span>
-                                        <% } else if (transaction.transactionType === 'debit') { %>
+                                        <% } else if (transaction.type === 'debit') { %>
                                             <span class="badge rounded-pill bg-danger">Debit</span>
                                         <% } else { %>
-                                            <%= transaction.transactionType %>
+                                            <%= transaction.type %>
                                         <% } %>
                                     </td>
                                     <td>
-                                        <% if (transaction.transactionType === 'credit') { %>
+                                        <% if (transaction.type === 'credit') { %>
                                             <span class="text-success">+₹<%= transaction.amount %></span>
                                         <% } else { %>
                                             <span class="text-danger">-₹<%= transaction.amount %></span>
                                         <% } %>
+                                    </td>
+                                    <td>
+                                        <%= transaction.description %>
                                     </td>
                                     <td class="text-end">
                                         <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#transactionModal<%= transaction._id %>">
@@ -75,31 +79,37 @@
                                                     </div>
                                                     <div class="col-md-6">
                                                         <h6>Transaction Date:</h6>
-                                                        <p><%= new Date(transaction.transactionDate).toLocaleString() %></p>
+                                                        <p><%= new Date(transaction.date).toLocaleString() %></p>
                                                     </div>
                                                 </div>
                                                 <div class="row mb-3">
                                                     <div class="col-md-6">
                                                         <h6>Transaction Type:</h6>
                                                         <p>
-                                                            <% if (transaction.transactionType === 'credit') { %>
+                                                            <% if (transaction.type === 'credit') { %>
                                                                 <span class="badge rounded-pill bg-success">Credit</span>
-                                                            <% } else if (transaction.transactionType === 'debit') { %>
+                                                            <% } else if (transaction.type === 'debit') { %>
                                                                 <span class="badge rounded-pill bg-danger">Debit</span>
                                                             <% } else { %>
-                                                                <%= transaction.transactionType %>
+                                                                <%= transaction.type %>
                                                             <% } %>
                                                         </p>
                                                     </div>
                                                     <div class="col-md-6">
                                                         <h6>Amount:</h6>
                                                         <p>
-                                                            <% if (transaction.transactionType === 'credit') { %>
+                                                            <% if (transaction.type === 'credit') { %>
                                                                 <span class="text-success">+₹<%= transaction.amount %></span>
                                                             <% } else { %>
                                                                 <span class="text-danger">-₹<%= transaction.amount %></span>
                                                             <% } %>
                                                         </p>
+                                                    </div>
+                                                </div>
+                                                <div class="row mb-3">
+                                                    <div class="col-12">
+                                                        <h6>Description:</h6>
+                                                        <p><%= transaction.description %></p>
                                                     </div>
                                                 </div>
                                                 <div class="row mb-3">
@@ -122,6 +132,8 @@
                                                             <a href="/admin/orders/<%= transaction.orderId %>" class="btn btn-sm btn-outline-primary">
                                                                 View Order Details
                                                             </a>
+                                                        <% } else if (transaction.orderId && transaction.type !== 'wallet recharge') { %>
+                                                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#orderDetailsModal">View Order Details</button>
                                                         <% } %>
                                                     </div>
                                                 </div>
@@ -135,7 +147,7 @@
                             <% }); %>
                         <% } else { %>
                             <tr>
-                                <td colspan="6" class="text-center">No transactions found</td>
+                                <td colspan="7" class="text-center">No transactions found</td>
                             </tr>
                         <% } %>
                     </tbody>
@@ -170,6 +182,76 @@
         </div> <!-- card-body end// -->
     </div> <!-- card end// -->
 </section> <!-- content-main end// -->
+
+<!-- Modal for order details -->
+<div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content" style="background-color: #2b2b2b; color: #fff;">
+      <div class="modal-header" style="border-bottom: 1px solid #3d3d3d;">
+        <h5 class="modal-title" id="orderDetailsModalLabel">Order Details</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <!-- Order Information -->
+          <div class="col-md-6">
+            <h6 class="text-warning mb-3">Order Information</h6>
+            <p><strong>Order ID:</strong> <span id="modalOrderId"></span></p>
+            <p><strong>Order Date:</strong> <span id="modalOrderDate"></span></p>
+            <p><strong>Payment Method:</strong> <span id="modalPaymentMethod"></span></p>
+            <p><strong>Total Amount:</strong> ₹<span id="modalTotalAmount"></span></p>
+          </div>
+
+          <!-- Customer Information -->
+          <div class="col-md-6">
+            <h6 class="text-warning mb-3">Customer Information</h6>
+            <p><strong>Name:</strong> <span id="modalCustomerName"></span></p>
+            <p><strong>Email:</strong> <span id="modalCustomerEmail"></span></p>
+            <p><strong>Phone:</strong> <span id="modalCustomerPhone"></span></p>
+          </div>
+        </div>
+
+        <!-- Shipping Address -->
+        <div class="shipping-address mt-4">
+          <h6 class="text-warning mb-3">Shipping Address</h6>
+          <div class="address-box p-3" style="background-color: #8e8484; border-radius: 8px;">
+            <p><strong>Name:</strong> <span id="modalShippingName"></span></p>
+            <p><strong>Landmark:</strong> <span id="modalLandmark"></span></p>
+            <p><strong>City:</strong> <span id="modalCity"></span></p>
+            <p><strong>State:</strong> <span id="modalState"></span></p>
+            <p><strong>Pincode:</strong> <span id="modalPincode"></span></p>
+            <p><strong>Phone:</strong> <span id="modalMobile"></span></p>
+            <p><strong>Alternative Phone:</strong> <span id="modalAltPhone"></span></p>
+          </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="order-items mt-4">
+          <h6 class="text-warning mb-3">Order Items</h6>
+          <div class="table-responsive">
+            <table class="table table-dark">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Price</th>
+                  <th>Quantity</th>
+                  <th>Status</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody id="modalOrderItems">
+                <!-- Order items will be inserted here dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="border-top: 1px solid #3d3d3d;">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
