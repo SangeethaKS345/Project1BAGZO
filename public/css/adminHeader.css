@@ -14,13 +14,17 @@ box-shadow: 2px 0 15px rgba(0,0,0,0.05);
 border-right: 1px solid rgba(255, 75, 43, 0.1);
 }
 
-.menu-item a.menu-link {
-color: #333;
-transition: all 0.3s ease;
-padding: 12px 16px;
-border-radius: 6px;
-margin: 2px 0;
+.menu-link {
+    display: flex;
+    align-items: center;
+    gap: 8px; 
 }
+
+.material-icons {
+    font-size: 24px; 
+    vertical-align: middle;
+}
+
 
 .menu-item a.menu-link:hover,
 .menu-item a.menu-link.active {
