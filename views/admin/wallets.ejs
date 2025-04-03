@@ -10,10 +10,24 @@
     <div class="card mb-4">
         <header class="card-header">
             <h4>Transactions List</h4>
+            <div class="col-md-4">
+                <form id="searchForm">
+                    <div class="input-group input-group-sm rounded-pill">
+                        <input type="text" 
+                               class="form-control rounded-pill" 
+                               placeholder="Search transactions..." 
+                               id="searchInput" 
+                               autocomplete="off">
+                        <button class="btn btn-secondary" 
+                                type="button" 
+                                id="clearSearch">Clear</button>
+                    </div>
+                </form>
+            </div>
         </header>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-hover">
+                <table class="table table-hover" id="transactionTable">
                     <thead>
                         <tr>
                             <th>Transaction ID</th>
@@ -71,7 +85,7 @@
                         <% } %>
                     </tbody>
                 </table>
-            </div> <!-- table-responsive end -->
+            </div>
             
             <% if (transactions && transactions.length > 0) { %>
                 <div class="pagination-area mt-15 mb-50">
@@ -98,9 +112,45 @@
                     </nav>
                 </div>
             <% } %>
-        </div> <!-- card-body end// -->
-    </div> <!-- card end// -->
+        </div>
+    </div>
 </section>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const clearButton = document.getElementById('clearSearch');
+    const table = document.getElementById('transactionTable');
+    const rows = table.getElementsByTagName('tr');
+
+    // Search functionality
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+
+        for (let i = 1; i < rows.length; i++) {
+            const cells = rows[i].getElementsByTagName('td');
+            let found = false;
+
+            for (let j = 0; j < cells.length - 1; j++) {
+                const cellText = cells[j].textContent.toLowerCase();
+                if (cellText.includes(searchTerm)) {
+                    found = true;
+                    break;
+                }
+            }
+
+            rows[i].style.display = found ? '' : 'none';
+        }
+    });
+
+    // Clear button functionality
+    clearButton.addEventListener('click', function() {
+        searchInput.value = '';
+        for (let i = 1; i < rows.length; i++) {
+            rows[i].style.display = '';
+        }
+    });
+});
+</script>
 
 <%- include("../../views/partials/admin/footer") %>
