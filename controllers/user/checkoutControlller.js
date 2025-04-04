@@ -71,32 +71,48 @@ const getCheckoutPage = async (req, res) => {
 
 async function getCartDataForUser(userId) {
   try {
-    const cart = await Cart.findOne({ userId }).populate("products.productId").lean();
-    if (!cart || !cart.products.length) {
-      console.log("No cart or products found for user:", userId);
-      return [];
-    }
+      let cart = await Cart.findOne({ userId }).populate("products.productId");
+      if (!cart || !cart.products.length) {
+          console.log("No cart or products found for user:", userId);
+          return [];
+      }
 
-    const populatedProducts = await Promise.all(
-      cart.products.map(async product => {
-        if (!product.productId) {
-          console.warn(`Cart item has no productId: ${JSON.stringify(product)}`);
-          return null;
-        }
-        const [productDetails, categoryDetails, brandDetails] = await Promise.all([
-          Product.findById(product.productId).lean(),
-          Category.findById(product.productDetails?.category).lean(),
-          Brand.findById(product.productDetails?.brand).lean()
-        ]);
+      // Remove out-of-stock products
+      const outOfStockProducts = [];
+      cart.products = cart.products.filter(item => {
+          const product = item.productId;
+          if (!product || product.quantity <= 0 || product.status === "out of stock" || product.isBlocked) {
+              outOfStockProducts.push(product ? product.productName : "Unknown Product");
+              return false;
+          }
+          return true;
+      });
 
-        return productDetails ? { ...product, productDetails, categoryDetails, brandDetails } : null;
-      })
-    );
+      if (outOfStockProducts.length > 0) {
+          await cart.save();
+          console.log(`Removed out-of-stock products from cart: ${outOfStockProducts.join(", ")}`);
+      }
 
-    return populatedProducts.filter(item => item && item.productDetails);
+      const populatedProducts = await Promise.all(
+          cart.products.map(async product => {
+              if (!product.productId) {
+                  console.warn(`Cart item has no productId: ${JSON.stringify(product)}`);
+                  return null;
+              }
+              const [productDetails, categoryDetails, brandDetails] = await Promise.all([
+                  Product.findById(product.productId).lean(),
+                  Category.findById(product.productDetails?.category).lean(),
+                  Brand.findById(product.productDetails?.brand).lean()
+              ]);
+
+              return productDetails ? { ...product, productDetails, categoryDetails, brandDetails } : null;
+          })
+      );
+
+      return populatedProducts.filter(item => item && item.productDetails);
   } catch (error) {
-    console.error("Error fetching cart data for user:", error.stack);
-    return [];
+      console.error("Error fetching cart data for user:", error.stack);
+      return [];
   }
 }
 
@@ -134,6 +150,14 @@ const placeOrder = async (req, res) => {
       return res.status(400).json({ success: false, error: "Quantity limit exceeded. Maximum 5 items per product allowed." });
     }
 
+    // Check stock availability before proceeding
+    for (const item of cartItems) {
+      const product = await Product.findById(item.productDetails._id);
+      if (!product || product.quantity < item.quantity) {
+        throw new Error(`Insufficient stock for product: ${item.productDetails.productName}`);
+      }
+    }
+
     const finalAmount = cartItems.reduce((sum, item) => sum + (item.productDetails?.salesPrice || 0) * item.quantity, 0);
     let discount = 0;
     let appliedCoupon = null;
@@ -148,21 +172,21 @@ const placeOrder = async (req, res) => {
       });
 
       if (!coupon) {
-        return res.status(400).json({ success: false, error: "Invalid or expired coupon" });
+        throw new Error("Invalid or expired coupon");
       }
 
       if (finalAmount < coupon.minimumPrice) {
-        return res.status(400).json({ success: false, error: `Minimum purchase of ₹${coupon.minimumPrice} required` });
+        throw new Error(`Minimum purchase of ₹${coupon.minimumPrice} required`);
       }
 
       if (coupon.usesCount >= coupon.maxUses) {
-        return res.status(400).json({ success: false, error: "Coupon total usage limit reached" });
+        throw new Error("Coupon total usage limit reached");
       }
 
       const userUse = coupon.userUses.find(use => use.userId.toString() === userId.toString());
       const userUsageCount = userUse ? userUse.count : 0;
       if (userUsageCount >= coupon.maxUsesPerUser) {
-        return res.status(400).json({ success: false, error: "You have reached your usage limit for this coupon" });
+        throw new Error("You have reached your usage limit for this coupon");
       }
 
       discount = coupon.offerPrice;
@@ -180,7 +204,7 @@ const placeOrder = async (req, res) => {
     const selectedAddress = await Address.findById(addressId).lean();
 
     if (!selectedAddress || selectedAddress.userId.toString() !== userId.toString()) {
-      return res.status(400).json({ success: false, error: "Invalid address selected" });
+      throw new Error("Invalid address selected");
     }
 
     const customOrderId = await generateOrderId();
@@ -204,6 +228,19 @@ const placeOrder = async (req, res) => {
 
     await order.save();
 
+    // Decrease stock for each product
+    const stockUpdates = [];
+    for (const item of cartItems) {
+      const result = await Product.updateOne(
+        { _id: item.productDetails._id, quantity: { $gte: item.quantity } }, // Ensure stock is still sufficient
+        { $inc: { quantity: -item.quantity } }
+      );
+      if (result.nModified === 0) {
+        throw new Error(`Failed to update stock for product: ${item.productDetails.productName}`);
+      }
+      stockUpdates.push({ productId: item.productDetails._id, quantity: item.quantity });
+    }
+
     if (paymentMethod === "razorpay") {
       try {
         const razorpayOrder = await razorpay.orders.create({
@@ -221,6 +258,13 @@ const placeOrder = async (req, res) => {
           orderId: order._id,
         });
       } catch (error) {
+        // Rollback stock changes if Razorpay order creation fails
+        for (const update of stockUpdates) {
+          await Product.updateOne(
+            { _id: update.productId },
+            { $inc: { quantity: update.quantity } }
+          );
+        }
         order.status = "Failed";
         order.paymentStatus = "failed";
         await order.save();
@@ -232,7 +276,14 @@ const placeOrder = async (req, res) => {
       try {
         await addWalletTransaction(userId, discountedAmount, "debit", `Payment for order #${order.orderId}`);
       } catch (error) {
-        return res.status(400).json({ success: false, error: error.message });
+        // Rollback stock changes if wallet transaction fails
+        for (const update of stockUpdates) {
+          await Product.updateOne(
+            { _id: update.productId },
+            { $inc: { quantity: update.quantity } }
+          );
+        }
+        throw new Error(error.message);
       }
 
       await Cart.updateOne({ userId }, { $set: { products: [] } });

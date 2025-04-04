@@ -30,9 +30,43 @@ const getCartPage = async (req, res) => {
             return res.redirect("/pageNotFound");
         }
 
+        // Fetch the cart and populate product details
+        let cart = await Cart.findOne({ userId: objectId }).populate("products.productId");
+        if (!cart || !cart.products.length) {
+            console.log("No cart or products found for user:", userId);
+            return res.render("cart", {
+                data: [],
+                grandTotal: 0,
+                totalQuantity: 0,
+                user,
+                cartData: [],
+                userData: req.user,
+            });
+        }
+
+        // Check stock and remove out-of-stock products
+        const outOfStockProducts = [];
+        cart.products = cart.products.filter(item => {
+            const product = item.productId;
+            if (!product || product.quantity <= 0 || product.status === "out of stock" || product.isBlocked) {
+                outOfStockProducts.push(product ? product.productName : "Unknown Product");
+                return false; // Remove from cart
+            }
+            return true; // Keep in cart
+        });
+
+        // Update the cart in the database if any products were removed
+        if (outOfStockProducts.length > 0) {
+            await cart.save();
+            console.log(`Removed out-of-stock products from cart: ${outOfStockProducts.join(", ")}`);
+            // Optionally store a message in the session to notify the user
+            req.session.cartMessage = `The following items were removed from your cart because they are out of stock: ${outOfStockProducts.join(", ")}`;
+        }
+
+        // Aggregate cart data with additional details
         const cartData = await Cart.aggregate([
             { $match: { userId: objectId } },
-            { $unwind: { path: "$products", preserveNullAndEmptyArrays: true } }, // Handle empty carts
+            { $unwind: { path: "$products", preserveNullAndEmptyArrays: true } },
             {
                 $lookup: {
                     from: "products",
@@ -53,7 +87,7 @@ const getCartPage = async (req, res) => {
                     },
                 },
             },
-            { $match: { "productDetails.0": { $exists: true } } }, // Ensure product exists
+            { $match: { "productDetails.0": { $exists: true } } },
             {
                 $lookup: {
                     from: "categories",
@@ -75,7 +109,7 @@ const getCartPage = async (req, res) => {
                     },
                 },
             },
-            { $match: { "categoryDetails.0": { $exists: true } } }, // Ensure category exists
+            { $match: { "categoryDetails.0": { $exists: true } } },
             {
                 $lookup: {
                     from: "brands",
@@ -98,7 +132,6 @@ const getCartPage = async (req, res) => {
                     },
                 },
             },
-            // Remove items where brandDetails is empty (i.e., brand is blocked)
             { $match: { "brandDetails.0": { $exists: true } } },
         ]);
 
@@ -125,14 +158,18 @@ const getCartPage = async (req, res) => {
             user,
             cartData,
             userData: req.user,
+            cartMessage: req.session.cartMessage || null, // Pass the message to the view
         });
+
+        // Clear the session message after rendering
+        req.session.cartMessage = null;
     } catch (error) {
         console.error("Error in getCartPage:", error);
         res.redirect("/pageNotFound");
     }
 };
 
-// Add to cart function
+// Add to cart function (unchanged)
 const addToCart = async (req, res) => {
     try {
         const { productId, quantity = 1 } = req.body;
@@ -195,7 +232,7 @@ const addToCart = async (req, res) => {
     }
 };
 
-// Change product quantity in cart
+// Change product quantity in cart (unchanged)
 const changeQuantity = async (req, res) => {
     try {
         const { productId, quantity } = req.body;
@@ -209,8 +246,16 @@ const changeQuantity = async (req, res) => {
         const productObjectId = new mongoose.Types.ObjectId(productId);
 
         const product = await Product.findById(productObjectId);
-        if (!product || quantity > product.quantity) {
-            return res.status(404).json({ status: false, error: "Product not found or insufficient stock" });
+        if (!product || product.quantity <= 0 || product.status === "out of stock") {
+            // Remove from cart if out of stock
+            await Cart.updateOne(
+                { userId: userObjectId },
+                { $pull: { products: { productId: productObjectId } } }
+            );
+            return res.status(404).json({ status: false, error: "Product is out of stock and has been removed from your cart" });
+        }
+        if (quantity > product.quantity) {
+            return res.status(400).json({ status: false, error: "Insufficient stock" });
         }
 
         const cart = await Cart.findOne({ userId: userObjectId });
@@ -241,7 +286,7 @@ const changeQuantity = async (req, res) => {
     }
 };
 
-// Delete product from cart
+// Delete product from cart (unchanged)
 const deleteProduct = async (req, res) => {
     try {
         const productId = req.query.id;

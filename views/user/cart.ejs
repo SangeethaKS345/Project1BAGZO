@@ -11,6 +11,13 @@
     </div>
 
     <div class="container">
+        <!-- Display cart message if items were removed -->
+        <% if (cartMessage) { %>
+            <div class="cart-message" style="background-color: #fff3cd; padding: 10px; margin-bottom: 20px; border: 1px solid #ffeeba; border-radius: 5px; color: #856404;">
+                <p><%= cartMessage %></p>
+            </div>
+        <% } %>
+
         <div class="cart-content">
             <div class="cart-items">
                 <% if (Array.isArray(cartData) && cartData.length > 0) { %>
@@ -327,4 +334,3 @@
 </script>
 
 <%- include('../../views/partials/user/footer') %>
-
