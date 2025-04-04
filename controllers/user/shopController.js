@@ -17,11 +17,27 @@ const getFilters = (query) => {
         isBlocked: false,
         status: "Available"
     };
-    if (query.search) filter.productName = { $regex: query.search, $options: 'i' };
-    if (query.category) filter.category = query.category;
-    if (query.brand) filter.brand = query.brand;
+    if (query.search) {
+        const searchRegex = { $regex: query.search, $options: 'i' };
+        filter.$or = [
+            { productName: searchRegex },
+            { 'category.name': searchRegex }, // Assumes category is populated
+            { 'brand.brandName': searchRegex } // Assumes brand is populated
+        ];
+        // Search by price range if the search term is numeric
+        const searchNum = parseFloat(query.search);
+        if (!isNaN(searchNum)) {
+            filter.salesPrice = { $gte: searchNum * 0.9, $lte: searchNum * 1.1 }; // ±10% range
+        }
+    }
+    if (query.category && mongoose.Types.ObjectId.isValid(query.category)) {
+        filter.category = new mongoose.Types.ObjectId(query.category);
+    }
+    if (query.brand && mongoose.Types.ObjectId.isValid(query.brand)) {
+        filter.brand = new mongoose.Types.ObjectId(query.brand);
+    }
     if (query.minPrice || query.maxPrice) {
-        filter.salesPrice = {};
+        filter.salesPrice = filter.salesPrice || {};
         if (query.minPrice) filter.salesPrice.$gte = parseInt(query.minPrice);
         if (query.maxPrice) filter.salesPrice.$lte = parseInt(query.maxPrice);
     }
@@ -88,8 +104,8 @@ const loadShop = async (req, res, next) => {
         const categoryIds = categories.map(category => category._id);
 
         const filter = getFilters(query);
-        filter.brand = { $in: brandIds };
-        filter.category = { $in: categoryIds };
+        if (!query.brand) filter.brand = { $in: brandIds };
+        if (!query.category) filter.category = { $in: categoryIds };
 
         const sortOptions = getSortOptions(query.sort);
 
@@ -101,6 +117,11 @@ const loadShop = async (req, res, next) => {
         const currentDate = new Date();
         const products = productsData.map(product => calculateEffectivePrice(product, currentDate));
 
+        // Handle AJAX request for live search
+        if (req.xhr) {
+            return res.render('partials/product-grid', { products }); // No layout needed
+        }
+
         res.render('shop', {
             products,
             categories,
@@ -111,6 +132,10 @@ const loadShop = async (req, res, next) => {
         });
 
     } catch (error) {
+        console.error('Error in loadShop:', error);
+        if (req.xhr) {
+            return res.status(500).send('Error loading products');
+        }
         next(error);
     }
 };
