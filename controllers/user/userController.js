@@ -381,6 +381,22 @@ const forgotPasswordSendLink = async (req, res) => {
         user.otpExpires = Date.now() + 10 * 60 * 1000;
         await user.save();
 
+        // Use NodeMailer to send the OTP email
+        const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+                user: process.env.NODEMAILER_EMAIL,
+                pass: process.env.NODEMAILER_PASSWORD,
+            },
+        });
+
+        await transporter.sendMail({
+            from: process.env.NODEMAILER_EMAIL,
+            to: email,
+            subject: "Reset Your Password",
+            text: `Your OTP for password reset is ${otp}. It will expire in 10 minutes.`,
+        });
+
         req.session.user = email;
         res.json({ success: true, message: "OTP sent to email" });
     } catch (error) {
