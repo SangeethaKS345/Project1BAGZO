@@ -124,12 +124,26 @@ const addCoupon = async (req, res) => {
   }
 };
 
+// In couponController.js
 const toggleCouponStatus = async (req, res) => {
   try {
     const { couponId } = req.params;
     const coupon = await Coupons.findById(couponId);
+    
+    // Don't allow toggling to listed if coupon is expired
+    const today = new Date();
+    const expireDate = new Date(coupon.expireOn);
+    
+    if (!coupon.isListed && expireDate < today) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot list an expired coupon",
+      });
+    }
+
     const newStatus = !coupon.isListed;
     await Coupons.findByIdAndUpdate(couponId, { isListed: newStatus });
+    
     res.status(200).json({
       success: true,
       message: `Coupon ${newStatus ? "listed" : "unlisted"} successfully`,

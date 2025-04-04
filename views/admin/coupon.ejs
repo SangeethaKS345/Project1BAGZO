@@ -209,7 +209,25 @@
                 <td><%= coupon.maxUsesPerUser %></td>
                 <td><%= coupon.usesCount %></td>
                 <td><%= new Date(coupon.expireOn).toISOString().split('T')[0] %></td>
-                <td><%= coupon.isListed ? 'Active' : 'Inactive' %></td>
+                <td>
+                  <% 
+                    const today = new Date();
+                    const expireDate = new Date(coupon.expireOn);
+                    if (!coupon.isListed) { 
+                  %>
+                    Inactive
+                  <% 
+                    } else if (expireDate < today) { 
+                  %>
+                    Expired
+                  <% 
+                    } else { 
+                  %>
+                    Active
+                  <% 
+                    } 
+                  %>
+                </td>
                 <td>
                   <button
                     class="btn btn-sm gradientButton me-2"
@@ -324,40 +342,36 @@
       document.querySelectorAll(".errorMessage").forEach((el) => el.remove());
     }
   
-    async function toggleCouponStatus(couponId, currentStatus) {
-      try {
-        const result = await Swal.fire({
-          title: "Are you sure?",
-          text: `This coupon will be ${currentStatus === "true" ? "unlisted" : "listed"}!`,
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#DB4437",
-          cancelButtonColor: "#d33",
-          confirmButtonText: `Yes, ${currentStatus === "true" ? "unlist" : "list"} it!`,
-        });
-  
-        if (result.isConfirmed) {
-          const response = await fetch(`/admin/toggleCouponStatus/${couponId}`, {
-            method: "PATCH",
-          });
-          const data = await response.json();
-  
-          if (data.success) {
-            await Swal.fire(
-              "Success!",
-              `The coupon has been ${data.isListed ? "listed" : "unlisted"}.`,
-              "success"
-            );
-            location.reload();
-          } else {
-            Swal.fire("Error!", data.message || "Error updating coupon status", "error");
-          }
-        }
-      } catch (error) {
-        console.error("Error:", error);
-        Swal.fire("Error!", "An error occurred while updating the coupon status", "error");
-      }
+    // In couponController.js
+const toggleCouponStatus = async (req, res) => {
+  try {
+    const { couponId } = req.params;
+    const coupon = await Coupons.findById(couponId);
+    
+    // Don't allow toggling to listed if coupon is expired
+    const today = new Date();
+    const expireDate = new Date(coupon.expireOn);
+    
+    if (!coupon.isListed && expireDate < today) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot list an expired coupon",
+      });
     }
+
+    const newStatus = !coupon.isListed;
+    await Coupons.findByIdAndUpdate(couponId, { isListed: newStatus });
+    
+    res.status(200).json({
+      success: true,
+      message: `Coupon ${newStatus ? "listed" : "unlisted"} successfully`,
+      isListed: newStatus,
+    });
+  } catch (error) {
+    console.error("Error in toggleCouponStatus:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
   
     document.getElementById("addCouponModal")?.addEventListener("hidden.bs.modal", function () {
       clearForm();
