@@ -71,48 +71,58 @@ const getCheckoutPage = async (req, res) => {
 
 async function getCartDataForUser(userId) {
   try {
-      let cart = await Cart.findOne({ userId }).populate("products.productId");
-      if (!cart || !cart.products.length) {
-          console.log("No cart or products found for user:", userId);
-          return [];
-      }
-
-      // Remove out-of-stock products
-      const outOfStockProducts = [];
-      cart.products = cart.products.filter(item => {
-          const product = item.productId;
-          if (!product || product.quantity <= 0 || product.status === "out of stock" || product.isBlocked) {
-              outOfStockProducts.push(product ? product.productName : "Unknown Product");
-              return false;
-          }
-          return true;
-      });
-
-      if (outOfStockProducts.length > 0) {
-          await cart.save();
-          console.log(`Removed out-of-stock products from cart: ${outOfStockProducts.join(", ")}`);
-      }
-
-      const populatedProducts = await Promise.all(
-          cart.products.map(async product => {
-              if (!product.productId) {
-                  console.warn(`Cart item has no productId: ${JSON.stringify(product)}`);
-                  return null;
-              }
-              const [productDetails, categoryDetails, brandDetails] = await Promise.all([
-                  Product.findById(product.productId).lean(),
-                  Category.findById(product.productDetails?.category).lean(),
-                  Brand.findById(product.productDetails?.brand).lean()
-              ]);
-
-              return productDetails ? { ...product, productDetails, categoryDetails, brandDetails } : null;
-          })
-      );
-
-      return populatedProducts.filter(item => item && item.productDetails);
-  } catch (error) {
-      console.error("Error fetching cart data for user:", error.stack);
+    let cart = await Cart.findOne({ userId }).populate("products.productId");
+    if (!cart || !cart.products.length) {
+      console.log("No cart or products found for user:", userId);
       return [];
+    }
+
+    // Remove out-of-stock products
+    const outOfStockProducts = [];
+    cart.products = cart.products.filter(item => {
+      const product = item.productId;
+      if (!product || product.quantity <= 0 || product.status === "out of stock" || product.isBlocked) {
+        outOfStockProducts.push(product ? product.productName : "Unknown Product");
+        return false;
+      }
+      return true;
+    });
+
+    if (outOfStockProducts.length > 0) {
+      await cart.save();
+      console.log(`Removed out-of-stock products from cart: ${outOfStockProducts.join(", ")}`);
+    }
+
+    const populatedProducts = await Promise.all(
+      cart.products.map(async product => {
+        if (!product.productId) {
+          console.warn(`Cart item has no productId: ${JSON.stringify(product)}`);
+          return null;
+        }
+        const productDetails = await Product.findById(product.productId).lean();
+        if (!productDetails) {
+          console.warn(`Product not found for ID: ${product.productId}`);
+          return null;
+        }
+
+        const [categoryDetails, brandDetails] = await Promise.all([
+          Category.findById(productDetails.category).lean(),
+          Brand.findById(productDetails.brand).lean()
+        ]);
+
+        return {
+          ...product.toObject(), // Convert Mongoose document to plain object
+          productDetails,
+          categoryDetails,
+          brandDetails
+        };
+      })
+    );
+
+    return populatedProducts.filter(item => item && item.productDetails);
+  } catch (error) {
+    console.error("Error fetching cart data for user:", error.stack);
+    return [];
   }
 }
 
@@ -537,4 +547,4 @@ module.exports = {
   verifyRetryPayment,
   applyCoupon,
   paymentFailed,
-};
+}; 

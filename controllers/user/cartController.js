@@ -30,7 +30,6 @@ const getCartPage = async (req, res) => {
             return res.redirect("/pageNotFound");
         }
 
-        // Fetch the cart and populate product details
         let cart = await Cart.findOne({ userId: objectId }).populate("products.productId");
         if (!cart || !cart.products.length) {
             console.log("No cart or products found for user:", userId);
@@ -41,6 +40,7 @@ const getCartPage = async (req, res) => {
                 user,
                 cartData: [],
                 userData: req.user,
+                cartMessage: null,
             });
         }
 
@@ -50,20 +50,22 @@ const getCartPage = async (req, res) => {
             const product = item.productId;
             if (!product || product.quantity <= 0 || product.status === "out of stock" || product.isBlocked) {
                 outOfStockProducts.push(product ? product.productName : "Unknown Product");
-                return false; // Remove from cart
+                return false;
             }
-            return true; // Keep in cart
+            return true;
         });
 
-        // Update the cart in the database if any products were removed
+        // Set cartMessage only if items were removed and the message hasn’t been shown yet
+        let cartMessage = null;
         if (outOfStockProducts.length > 0) {
             await cart.save();
             console.log(`Removed out-of-stock products from cart: ${outOfStockProducts.join(", ")}`);
-            // Optionally store a message in the session to notify the user
-            req.session.cartMessage = `The following items were removed from your cart because they are out of stock: ${outOfStockProducts.join(", ")}`;
+            if (!req.session.cartMessageShown) {
+                cartMessage = `The following items were removed from your cart because they are out of stock: ${outOfStockProducts.join(", ")}`;
+                req.session.cartMessageShown = true; // Mark as shown
+            }
         }
 
-        // Aggregate cart data with additional details
         const cartData = await Cart.aggregate([
             { $match: { userId: objectId } },
             { $unwind: { path: "$products", preserveNullAndEmptyArrays: true } },
@@ -75,7 +77,6 @@ const getCartPage = async (req, res) => {
                     as: "productDetails",
                 },
             },
-            // Filter out blocked products
             {
                 $project: {
                     products: 1,
@@ -96,7 +97,6 @@ const getCartPage = async (req, res) => {
                     as: "categoryDetails",
                 },
             },
-            // Filter listed categories
             {
                 $project: {
                     products: 1,
@@ -118,7 +118,6 @@ const getCartPage = async (req, res) => {
                     as: "brandDetails",
                 },
             },
-            // Filter unblocked brands
             {
                 $project: {
                     products: 1,
@@ -158,11 +157,8 @@ const getCartPage = async (req, res) => {
             user,
             cartData,
             userData: req.user,
-            cartMessage: req.session.cartMessage || null, // Pass the message to the view
+            cartMessage, // Pass the message only if it’s the first time
         });
-
-        // Clear the session message after rendering
-        req.session.cartMessage = null;
     } catch (error) {
         console.error("Error in getCartPage:", error);
         res.redirect("/pageNotFound");
