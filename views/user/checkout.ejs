@@ -247,10 +247,13 @@
     </section>
   </main>
 
-  <script src="https://unpkg.com/izitoast/dist/js/iziToast.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-  <script src="https://unpkg.com/izitoast/dist/js/iziToast.min.js"></script>
+ 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="https://unpkg.com/izitoast/dist/js/iziToast.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="https://unpkg.com/izitoast/dist/js/iziToast.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
@@ -260,6 +263,7 @@
     fetchCartItems();
     setupOrderForm();
     initWalletValidation();
+    updateCODAvailability(); // NEW: Check COD availability on load
     
     // Add coupon input Enter key listener
     document.getElementById('couponCode').addEventListener('keypress', function(e) {
@@ -360,6 +364,37 @@
     return true;
   }
 
+  // NEW: Function to enable/disable COD based on total amount
+  function updateCODAvailability() {
+    const totalAmount = parseFloat(document.getElementById('total').textContent.replace('₹', '')) || 0;
+    const codRadio = document.getElementById('cod');
+    const codLabel = document.querySelector('label[for="cod"]');
+    
+    if (totalAmount > 5000) {
+      codRadio.disabled = true;
+      codLabel.style.opacity = '0.5'; // Visual cue for disabled state
+      codLabel.title = 'COD not available for orders above ₹5000'; // Tooltip
+      if (codRadio.checked) {
+        // If COD was selected, switch to another available option
+        const razorpayRadio = document.getElementById('razorpay');
+        if (!razorpayRadio.disabled) {
+          razorpayRadio.checked = true;
+          document.getElementById('selectedPaymentMethod').value = 'razorpay';
+        } else {
+          const walletRadio = document.getElementById('wallet');
+          if (!walletRadio.disabled) {
+            walletRadio.checked = true;
+            document.getElementById('selectedPaymentMethod').value = 'wallet';
+          }
+        }
+      }
+    } else {
+      codRadio.disabled = false;
+      codLabel.style.opacity = '1';
+      codLabel.title = ''; // Remove tooltip when enabled
+    }
+  }
+
   function setupOrderForm() {
     const orderForm = document.getElementById('orderForm');
     if (!orderForm) {
@@ -450,6 +485,7 @@
         document.getElementById('couponMessage').style.color = 'green';
         document.getElementById('appliedCoupon').value = couponCode;
         document.getElementById('couponCodeInput').value = couponCode;
+        updateCODAvailability(); // NEW: Recheck COD availability after coupon applied
       } else {
         couponMessage.textContent = data.message;
         couponMessage.style.color = 'red';
@@ -468,6 +504,7 @@
     document.getElementById('total').textContent = document.getElementById('subtotal').textContent;
     document.getElementById('appliedCoupon').value = '';
     document.getElementById('couponCodeInput').value = '';
+    updateCODAvailability(); // NEW: Recheck COD availability after reset
   }
 
   document.getElementById('applyCouponBtn').addEventListener('click', applyCoupon);
