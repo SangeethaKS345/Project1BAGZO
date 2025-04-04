@@ -199,6 +199,7 @@
               </tr>
             </thead>
             <tbody id="couponTableBody">
+              <!-- Coupons are displayed newest first based on createdOn -->
               <% coupons.forEach(coupon => { %>
               <tr>
                 <td><%= coupon.code %></td>
@@ -343,35 +344,55 @@
     }
   
     // In couponController.js
-const toggleCouponStatus = async (req, res) => {
+    async function toggleCouponStatus(couponId, currentStatus) {
   try {
-    const { couponId } = req.params;
-    const coupon = await Coupons.findById(couponId);
-    
-    // Don't allow toggling to listed if coupon is expired
-    const today = new Date();
-    const expireDate = new Date(coupon.expireOn);
-    
-    if (!coupon.isListed && expireDate < today) {
-      return res.status(400).json({
-        success: false,
-        message: "Cannot list an expired coupon",
+    // Confirm action with user
+    const action = currentStatus === 'true' ? 'unlist' : 'list';
+    const result = await Swal.fire({
+      title: `Are you sure?`,
+      text: `Do you want to ${action} this coupon?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#DB4437',
+      cancelButtonColor: '#d33',
+      confirmButtonText: `Yes, ${action} it!`,
+    });
+
+    if (!result.isConfirmed) return;
+
+    // Make AJAX request to toggle status
+    const response = await fetch(`/admin/coupon/toggle/${couponId}`, {
+      method: 'PUT', // Assuming PUT for toggling status; adjust if your route uses POST
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      await Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: data.message,
+        timer: 1500,
+      });
+      // Reload the page to reflect changes
+      location.reload();
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error!',
+        text: data.message || 'Failed to toggle coupon status',
       });
     }
-
-    const newStatus = !coupon.isListed;
-    await Coupons.findByIdAndUpdate(couponId, { isListed: newStatus });
-    
-    res.status(200).json({
-      success: true,
-      message: `Coupon ${newStatus ? "listed" : "unlisted"} successfully`,
-      isListed: newStatus,
-    });
   } catch (error) {
-    console.error("Error in toggleCouponStatus:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    console.error('Error toggling coupon status:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error!',
+      text: 'An error occurred while toggling the coupon status',
+    });
   }
-};
+}
   
     document.getElementById("addCouponModal")?.addEventListener("hidden.bs.modal", function () {
       clearForm();

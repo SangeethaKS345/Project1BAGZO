@@ -72,7 +72,7 @@ router.post("/orders/update-return-status/:orderId", adminAuth, ordersController
 // Coupon Routes
 router.get('/coupon', adminAuth, couponController.getCouponPage);
 router.post('/addCoupon', adminAuth, couponController.addCoupon);
-router.patch('/toggleCouponStatus/:couponId', adminAuth, couponController.toggleCouponStatus);
+router.put('/coupon/toggle/:couponId', couponController.toggleCouponStatus);
 router.patch('/editCoupon/:couponId', adminAuth, couponController.editCoupon);
 router.delete('/deleteCoupon/:couponId', adminAuth, couponController.deleteCoupon);
 router.get('/getCoupon/:couponId', adminAuth, couponController.getCoupon);

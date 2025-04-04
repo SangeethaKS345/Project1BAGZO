@@ -11,10 +11,7 @@ const getCouponPage = async (req, res, next) => {
     const searchRegex = new RegExp(search, "i");
     const searchNum = parseFloat(search);
 
-    // Text-based searches
     searchConditions.push({ code: { $regex: searchRegex } });
-
-    // Number-based searches
     if (!isNaN(searchNum)) {
       searchConditions.push(
         { offerPrice: searchNum },
@@ -24,35 +21,35 @@ const getCouponPage = async (req, res, next) => {
         { usesCount: searchNum }
       );
     }
-
-    // Date searches (partial match on ISO string)
     if (search.length >= 4) {
       searchConditions.push(
         { startOn: { $regex: searchRegex } },
         { expireOn: { $regex: searchRegex } }
       );
     }
-
-    // Status search
     if (search.toLowerCase().includes("active")) {
       searchConditions.push({ isListed: true });
     } else if (search.toLowerCase().includes("inactive")) {
       searchConditions.push({ isListed: false });
     }
 
+    const query = {
+      isDeleted: false,
+      $or: searchConditions,
+    };
+
     const [totalCoupons, coupons] = await Promise.all([
-      Coupons.countDocuments({
-        isDeleted: false,
-        $or: searchConditions,
-      }),
-      Coupons.find({
-        isDeleted: false,
-        $or: searchConditions,
-      })
+      Coupons.countDocuments(query),
+      Coupons.find(query)
+        .sort({ createdOn: -1 }) // Ensure newest first
         .skip(skip)
-        .limit(limit)
-        .sort({ createdAt: -1 }),
+        .limit(limit),
     ]);
+
+    console.log("Coupons sorted by createdOn:", coupons.map(c => ({
+      code: c.code,
+      createdOn: c.createdOn
+    })));
 
     const totalPages = Math.ceil(totalCoupons / limit);
 
