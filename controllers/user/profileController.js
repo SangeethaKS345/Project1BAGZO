@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+const nodemailer = require("nodemailer");
 
 // Helper function to generate OTP
 const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
@@ -10,6 +11,21 @@ const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString()
 // Helper function to send verification email
 const sendVerificationEmail = async (email, otp) => {
     try {
+        const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+                user: process.env.NODEMAILER_EMAIL,
+                pass: process.env.NODEMAILER_PASSWORD,
+            },
+        });
+
+        await transporter.sendMail({
+            from: process.env.NODEMAILER_EMAIL,
+            to: email,
+            subject: "Verify Your Email Address",
+            text: `Your OTP for verifying your email address is ${otp}. It will expire in 10 minutes.`,
+        });
+
         console.log(`OTP for ${email}: ${otp}`);
         return true;
     } catch (error) {
@@ -140,7 +156,7 @@ const sendEmailOtp = async (req, res) => {
         req.session.emailOtp = otp;
         req.session.newEmail = email;
         if (await sendVerificationEmail(email, otp)) {
-            res.status(200).json({ success: true, message: "OTP logged to console" });
+            res.status(200).json({ success: true, message: "OTP sent to email" });
         } else {
             res.status(500).json({ error: "Failed to generate OTP" });
         }
