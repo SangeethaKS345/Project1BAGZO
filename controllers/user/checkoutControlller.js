@@ -232,6 +232,19 @@ const placeOrder = async (req, res) => {
 
     await order.save();
 
+    if (paymentMethod === "cod") {
+      await Cart.updateOne({ userId }, { $set: { products: [] } });
+      return res.json({
+        success: true,
+        redirect: "/orderPlaced",
+        order: {
+          orderId: order.orderId,
+          totalAmount: order.finalAmount,
+          placedAt: order.createdOn,
+        },
+      });
+    }
+
     if (paymentMethod === "razorpay") {
       try {
         const razorpayOrder = await razorpay.orders.create({
