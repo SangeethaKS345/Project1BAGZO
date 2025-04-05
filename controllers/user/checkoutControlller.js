@@ -29,7 +29,7 @@ const getCheckoutPage = async (req, res) => {
       getCartDataForUser(userId)
     ]);
 
-    if (!cartItems.length) {
+    if (!cartItems || cartItems.length === 0) {
       req.session.error = "Your cart is empty. Add items before checking out.";
       return res.redirect("/cart");
     }
@@ -68,6 +68,7 @@ const getCheckoutPage = async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 };
+
 
 async function getCartDataForUser(userId) {
   try {
@@ -137,6 +138,7 @@ async function generateOrderId() {
   return `ORD${dateStr}${String(sequenceDoc.sequence).padStart(3, '0')}`;
 }
 
+
 const placeOrder = async (req, res) => {
   try {
     const { addressId, paymentMethod, couponCode } = req.body;
@@ -160,14 +162,6 @@ const placeOrder = async (req, res) => {
       return res.status(400).json({ success: false, error: "Quantity limit exceeded. Maximum 5 items per product allowed." });
     }
 
-    // Check stock availability before proceeding
-    for (const item of cartItems) {
-      const product = await Product.findById(item.productDetails._id);
-      if (!product || product.quantity < item.quantity) {
-        throw new Error(`Insufficient stock for product: ${item.productDetails.productName}`);
-      }
-    }
-
     const finalAmount = cartItems.reduce((sum, item) => sum + (item.productDetails?.salesPrice || 0) * item.quantity, 0);
     let discount = 0;
     let appliedCoupon = null;
@@ -182,21 +176,21 @@ const placeOrder = async (req, res) => {
       });
 
       if (!coupon) {
-        throw new Error("Invalid or expired coupon");
+        return res.status(400).json({ success: false, error: "Invalid or expired coupon" });
       }
 
       if (finalAmount < coupon.minimumPrice) {
-        throw new Error(`Minimum purchase of ₹${coupon.minimumPrice} required`);
+        return res.status(400).json({ success: false, error: `Minimum purchase of \u20b9${coupon.minimumPrice} required` });
       }
 
       if (coupon.usesCount >= coupon.maxUses) {
-        throw new Error("Coupon total usage limit reached");
+        return res.status(400).json({ success: false, error: "Coupon total usage limit reached" });
       }
 
       const userUse = coupon.userUses.find(use => use.userId.toString() === userId.toString());
       const userUsageCount = userUse ? userUse.count : 0;
       if (userUsageCount >= coupon.maxUsesPerUser) {
-        throw new Error("You have reached your usage limit for this coupon");
+        return res.status(400).json({ success: false, error: "You have reached your usage limit for this coupon" });
       }
 
       discount = coupon.offerPrice;
@@ -214,7 +208,7 @@ const placeOrder = async (req, res) => {
     const selectedAddress = await Address.findById(addressId).lean();
 
     if (!selectedAddress || selectedAddress.userId.toString() !== userId.toString()) {
-      throw new Error("Invalid address selected");
+      return res.status(400).json({ success: false, error: "Invalid address selected" });
     }
 
     const customOrderId = await generateOrderId();
@@ -238,19 +232,6 @@ const placeOrder = async (req, res) => {
 
     await order.save();
 
-    // Decrease stock for each product
-    const stockUpdates = [];
-    for (const item of cartItems) {
-      const result = await Product.updateOne(
-        { _id: item.productDetails._id, quantity: { $gte: item.quantity } }, // Ensure stock is still sufficient
-        { $inc: { quantity: -item.quantity } }
-      );
-      if (result.nModified === 0) {
-        throw new Error(`Failed to update stock for product: ${item.productDetails.productName}`);
-      }
-      stockUpdates.push({ productId: item.productDetails._id, quantity: item.quantity });
-    }
-
     if (paymentMethod === "razorpay") {
       try {
         const razorpayOrder = await razorpay.orders.create({
@@ -268,13 +249,6 @@ const placeOrder = async (req, res) => {
           orderId: order._id,
         });
       } catch (error) {
-        // Rollback stock changes if Razorpay order creation fails
-        for (const update of stockUpdates) {
-          await Product.updateOne(
-            { _id: update.productId },
-            { $inc: { quantity: update.quantity } }
-          );
-        }
         order.status = "Failed";
         order.paymentStatus = "failed";
         await order.save();
@@ -286,14 +260,7 @@ const placeOrder = async (req, res) => {
       try {
         await addWalletTransaction(userId, discountedAmount, "debit", `Payment for order #${order.orderId}`);
       } catch (error) {
-        // Rollback stock changes if wallet transaction fails
-        for (const update of stockUpdates) {
-          await Product.updateOne(
-            { _id: update.productId },
-            { $inc: { quantity: update.quantity } }
-          );
-        }
-        throw new Error(error.message);
+        return res.status(400).json({ success: false, error: error.message });
       }
 
       await Cart.updateOne({ userId }, { $set: { products: [] } });
@@ -311,16 +278,10 @@ const placeOrder = async (req, res) => {
     await Cart.updateOne({ userId }, { $set: { products: [] } });
     res.json({
       success: true,
-      redirect: "/orderPlaced",
-      order: {
-        orderId: order.orderId,
-        totalAmount: order.finalAmount,
-        placedAt: order.createdOn,
-      },
     });
   } catch (error) {
     console.error("Error placing order:", error.stack);
-    res.status(500).json({ success: false, error: error.message || "Failed to place order due to a server error" });
+    res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 };
 
