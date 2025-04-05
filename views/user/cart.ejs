@@ -18,7 +18,7 @@
                         <div class="cart-item">
                             <div class="item-image">
                                 <a href="/productDetails?id=<%= cartData[i].productDetails[0]._id %>">
-                                    <img src="/uploads/re-image/<%= cartData[i].productDetails[0].productImage[0] %>" alt="<%= cartData[i].productDetails[0].productName %>">
+                                    <img src="/uploads/re-image/<%= (cartData[i].productDetails[0].productImage && cartData[i].productDetails[0].productImage.length > 0) ? cartData[i].productDetails[0].productImage[0] : 'default.jpg' %>" alt="<%= cartData[i].productDetails[0].productName %>">
                                 </a>
                             </div>
                             <div class="item-details">
@@ -32,15 +32,29 @@
                                 </h3>
                                 <p class="item-meta"><%= cartData[i].categoryDetails[0].name %> | <%= cartData[i].brandDetails[0].brandName %></p>
                                 <div class="item-price">
-                                    <span class="price-label">Price:</span>
-                                    <span class="price-value">₹<span id="price<%= cartData[i].productDetails[0]._id %>"><%= cartData[i].productDetails[0].salesPrice %></span></span>
+                                    <span class="price-label">Regular Price:</span>
+                                    <span class="price-value regular-price">₹<%= cartData[i].productDetails[0].regularPrice %></span>
+                                </div>
+                                <div class="item-price">
+                                    <span class="price-label">Sales Price:</span>
+                                    <span class="price-value sales-price">₹<%= cartData[i].productDetails[0].salesPrice %></span>
+                                </div>
+                                <div class="item-discount">
+                                    <span class="discount-label">Discount:</span>
+                                    <span class="discount-value">
+                                        ₹<% 
+                                            const regularPrice = cartData[i].productDetails[0].regularPrice || 0;
+                                            const salesPrice = cartData[i].productDetails[0].salesPrice || 0;
+                                            const discount = regularPrice - salesPrice;
+                                        %><%= discount > 0 ? discount.toFixed(2) : '0.00' %>
+                                    </span>
                                 </div>
                             </div>
                             <div class="item-quantity">
                                 <div class="quantity-wrapper">
-                                    <button class="qty-btn minus" onclick="changeQuantity('<%= cartData[i].productDetails[0]._id %>', '<%= cartData[i].products.quantity %>', -1, '<%= cartData[i].productDetails[0].salesPrice %>', '<%= cartData[i].productDetails[0]._id %>', '<%= cartData[i].productDetails[0].quantity %>')">−</button>
+                                    <button class="qty-btn minus" onclick="changeQuantity('<%= cartData[i].productDetails[0]._id %>', '<%= cartData[i].products.quantity %>', -1, '<%= cartData[i].productDetails[0].salesPrice %>', '<%= cartData[i].productDetails[0]._id %>', <%= cartData[i].productDetails[0].maxQuantity %>)">-</button>
                                     <input type="text" id="cartProductQuantity<%= cartData[i].productDetails[0]._id %>" value="<%= cartData[i].products.quantity %>" readonly>
-                                    <button class="qty-btn plus" onclick="changeQuantity('<%= cartData[i].productDetails[0]._id %>', '<%= cartData[i].products.quantity %>', 1, '<%= cartData[i].productDetails[0].salesPrice %>', '<%= cartData[i].productDetails[0]._id %>', '<%= cartData[i].productDetails[0].quantity %>')">+</button>
+                                    <button class="qty-btn plus" onclick="changeQuantity('<%= cartData[i].productDetails[0]._id %>', '<%= cartData[i].products.quantity %>', 1, '<%= cartData[i].productDetails[0].salesPrice %>', '<%= cartData[i].productDetails[0]._id %>', <%= cartData[i].productDetails[0].maxQuantity %>)">+</button>
                                 </div>
                             </div>
                             <div class="item-subtotal">
@@ -126,6 +140,7 @@
     function changeQuantity(productId, currentQuantity, change, price, elementId, maxQuantity) {
         const newQuantity = parseInt(currentQuantity) + change;
 
+        // Quantity limit checks
         if (newQuantity > 5) {
             Swal.fire({
                 icon: 'warning',
@@ -145,6 +160,7 @@
             return;
         }
 
+        // Get button elements for disabling
         const minusBtn = document.querySelector(`.minus[onclick*="${productId}"]`);
         const plusBtn = document.querySelector(`.plus[onclick*="${productId}"]`);
         if (!minusBtn || !plusBtn) {
@@ -152,9 +168,11 @@
             return;
         }
 
+        // Disable buttons to prevent multiple clicks
         minusBtn.disabled = true;
         plusBtn.disabled = true;
 
+        // Log the request for debugging
         console.log('Sending AJAX request:', { productId, newQuantity });
 
         $.ajax({
@@ -167,6 +185,7 @@
             success: function(response) {
                 console.log('AJAX Success Response:', response);
                 if (response.status) {
+                    // Update quantity input
                     const quantityInput = document.getElementById(`cartProductQuantity${elementId}`);
                     const subTotalSpan = document.getElementById(`subTotal${elementId}`);
                     const totalSpan = document.getElementById('total');
@@ -177,16 +196,19 @@
                         return;
                     }
 
+                    // Update DOM elements with new values
                     quantityInput.value = response.quantityInput;
                     subTotalSpan.innerText = response.totalAmount;
                     totalSpan.innerText = response.grandTotal;
                     subtotalSpan.innerText = response.grandTotal;
 
+                    // Visual feedback
                     subTotalSpan.classList.add('price-updated');
                     setTimeout(() => {
                         subTotalSpan.classList.remove('price-updated');
                     }, 800);
 
+                    // Recalculate totals
                     updateTotal();
                 } else {
                     console.warn('Update failed:', response.error);
@@ -195,6 +217,7 @@
                         title: 'Error',
                         text: response.error || 'Failed to update quantity'
                     });
+                    // Revert UI on failure
                     document.getElementById(`cartProductQuantity${elementId}`).value = currentQuantity;
                     document.getElementById(`subTotal${elementId}`).innerText = currentQuantity * price;
                 }
@@ -206,10 +229,12 @@
                     title: 'Error',
                     text: 'Failed to connect to server'
                 });
+                // Revert UI on error
                 document.getElementById(`cartProductQuantity${elementId}`).value = currentQuantity;
                 document.getElementById(`subTotal${elementId}`).innerText = currentQuantity * price;
             },
             complete: function() {
+                // Re-enable buttons
                 minusBtn.disabled = false;
                 plusBtn.disabled = false;
                 console.log('AJAX request completed');
@@ -255,6 +280,7 @@
         });
     }
     
+    // Function to check all cart quantities
     function checkCartQuantities() {
         console.log('Checking cart quantities...');
         const quantityInputs = document.querySelectorAll('input[id^="cartProductQuantity"]');
@@ -278,24 +304,16 @@
                 title: 'Quantity Limit Exceeded',
                 text: `You cannot checkout with more than 5 items per product. Please adjust quantities for item(s): ${excessProducts.join(', ')}.`,
             });
-            return false;
+            return false; // Prevent checkout
         }
-        return true;
+        return true; // Allow checkout
     }
     
+    // Update total and add checkout validation when page loads
     document.addEventListener('DOMContentLoaded', () => {
         updateTotal();
-        
-        <% if (cartMessage) { %>
-            Swal.fire({
-                icon: 'info',
-                title: 'Cart Updated',
-                text: '<%= cartMessage %>',
-                timer: 3000,
-                showConfirmButton: false
-            });
-        <% } %>
-
+    
+        // Target checkout button
         const checkoutButton = document.querySelector('.checkout-btn:not(.disabled)');
         if (checkoutButton) {
             checkoutButton.addEventListener('click', (e) => {
@@ -310,6 +328,7 @@
         }
     });
     
+    // Function to update the total price
     function updateTotal() {
         let total = 0;
         const subtotals = document.querySelectorAll('.subtotal-value > span');

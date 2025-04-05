@@ -547,3 +547,23 @@
             font-size: 18px;
         }
     }
+
+    .item-price .regular-price {
+        text-decoration: line-through;
+        color: #888;
+        font-size: 0.9em;
+      }
+      .item-price .sales-price {
+        color: #e74c3c;
+        font-weight: bold;
+      }
+      .item-discount {
+        margin-top: 5px;
+      }
+      .discount-label {
+        font-weight: bold;
+      }
+      .discount-value {
+        color: #27ae60;
+        font-weight: bold;
+      }
