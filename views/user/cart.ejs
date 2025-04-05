@@ -41,7 +41,7 @@
                                 </div>
                                 <div class="item-discount">
                                     <span class="discount-label">Discount:</span>
-                                    <span class="discount-value">
+                                    <span>
                                         ₹<% 
                                             const regularPrice = cartData[i].productDetails[0].regularPrice || 0;
                                             const salesPrice = cartData[i].productDetails[0].salesPrice || 0;
@@ -110,7 +110,18 @@
                     </div>
                     <div class="summary-row discount">
                         <span>Discount</span>
-                        <span>₹0</span>
+                        <span>
+                            ₹<% 
+                                let totalDiscount = 0;
+                                if (Array.isArray(cartData) && cartData.length > 0) {
+                                    cartData.forEach(item => {
+                                        const regularPrice = item.productDetails[0].regularPrice || 0;
+                                        const salesPrice = item.productDetails[0].salesPrice || 0;
+                                        totalDiscount += (regularPrice - salesPrice) * item.products.quantity;
+                                    });
+                                }
+                            %><%= totalDiscount > 0 ? totalDiscount.toFixed(2) : '0.00' %>
+                        </span>
                     </div>
                 </div>
                 <div class="summary-total">
