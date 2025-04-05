@@ -170,7 +170,9 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
    function changeQuantity(productId, currentQuantity, change, price, elementId, maxQuantity) {
-    const newQuantity = parseInt(currentQuantity) + change;
+    const quantityInput = document.getElementById(`cartProductQuantity${elementId}`);
+    const currentVal = parseInt(quantityInput.value);
+    const newQuantity = currentVal + change;
 
     if (newQuantity > 5) {
         Swal.fire({
