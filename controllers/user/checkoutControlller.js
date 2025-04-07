@@ -11,17 +11,16 @@ const Wallet = require("../../models/walletSchema");
 const { addWalletTransaction } = require("../../controllers/user/walletController");
 const OrderSequence = require('../../models/orderSequenceSchema');
 
-const getCartPage = async (req, res) => {
+const getCartPage = async (req, res, next) => {
   try {
     const cartData = await getCartDataForUser(req.user._id);
     res.render("cart", { cartData, user: req.user });
   } catch (error) {
-    console.error("Error fetching cart data:", error.stack);
-    res.status(500).send("Internal Server Error");
+    next(error);
   }
 };
 
-const getCheckoutPage = async (req, res) => {
+const getCheckoutPage = async (req, res, next) => {
   try {
     const userId = req.user._id;
     const [addresses, cartItems] = await Promise.all([
@@ -34,7 +33,6 @@ const getCheckoutPage = async (req, res) => {
       return res.redirect("/cart");
     }
 
-    // Calculate totals using finalPrice and separate inherent discount
     const cartSubtotal = cartItems.reduce((sum, item) => sum + (item.productDetails.regularPrice * item.quantity), 0);
     const cartDiscount = cartItems.reduce((sum, item) => sum + (item.discount * item.quantity), 0);
     const finalAmountBeforeCoupon = cartSubtotal - cartDiscount;
@@ -60,8 +58,8 @@ const getCheckoutPage = async (req, res) => {
       addresses,
       cartItems,
       cartSubtotal: Math.round(cartSubtotal),
-      cartDiscount: Math.round(cartDiscount), // Separate cart discount
-      finalAmount: Math.round(finalAmountBeforeCoupon), // Before coupon
+      cartDiscount: Math.round(cartDiscount),
+      finalAmount: Math.round(finalAmountBeforeCoupon),
       walletBalance,
       coupons: availableCoupons,
       error: req.session.error || null,
@@ -69,11 +67,9 @@ const getCheckoutPage = async (req, res) => {
 
     req.session.error = null;
   } catch (error) {
-    console.error("Error fetching checkout data:", error.stack);
-    res.status(500).send("Internal Server Error");
+    next(error);
   }
 };
-
 
 async function getCartDataForUser(userId) {
   try {
@@ -83,7 +79,6 @@ async function getCartDataForUser(userId) {
       return [];
     }
 
-    // Remove out-of-stock products
     const outOfStockProducts = [];
     cart.products = cart.products.filter(item => {
       const product = item.productId;
@@ -128,10 +123,8 @@ async function getCartDataForUser(userId) {
         let finalPrice = regularPrice;
         let discount = 0;
 
-        // Same pricing logic as in cartController.js
         if (productOffer === 0 && categoryOffer === 0 && salesPrice === regularPrice) {
           finalPrice = regularPrice;
-          discount = 0;
         } else if (productOffer === 0 && categoryOffer === 0 && salesPrice !== regularPrice) {
           finalPrice = salesPrice;
           discount = regularPrice - salesPrice;
@@ -148,12 +141,12 @@ async function getCartDataForUser(userId) {
             ...productDetails,
             regularPrice,
             salesPrice,
-            finalPrice, // Add finalPrice to productDetails
+            finalPrice,
           },
           categoryDetails,
           brandDetails,
           quantity,
-          discount, // Add discount per item
+          discount,
         };
       })
     );
@@ -176,8 +169,7 @@ async function generateOrderId() {
   return `ORD${dateStr}${String(sequenceDoc.sequence).padStart(3, '0')}`;
 }
 
-
-const placeOrder = async (req, res) => {
+const placeOrder = async (req, res, next) => {
   try {
     const { addressId, paymentMethod, couponCode } = req.body;
     const userId = req.user._id;
@@ -234,7 +226,7 @@ const placeOrder = async (req, res) => {
       }
 
       couponDiscount = coupon.offerPrice;
-      finalAmount -= couponDiscount; // Reduce final amount by coupon discount
+      finalAmount -= couponDiscount;
       coupon.usesCount += 1;
       if (userUse) {
         userUse.count += 1;
@@ -245,7 +237,7 @@ const placeOrder = async (req, res) => {
       appliedCoupon = coupon;
     }
 
-    const totalDiscount = cartDiscount + couponDiscount; // Total discount for order
+    const totalDiscount = cartDiscount + couponDiscount;
     const selectedAddress = await Address.findById(addressId).lean();
 
     if (!selectedAddress || selectedAddress.userId.toString() !== userId.toString()) {
@@ -260,15 +252,15 @@ const placeOrder = async (req, res) => {
       OrderItems: cartItems.map(item => ({
         product: item.productDetails._id,
         quantity: item.quantity,
-        price: item.productDetails.finalPrice, // Use finalPrice for individual items
+        price: item.productDetails.finalPrice,
       })),
-      totalPrice: subtotal, // Original subtotal before any discounts
-      finalAmount, // After all discounts (cart + coupon)
+      totalPrice: subtotal,
+      finalAmount,
       address: addressId,
       status: paymentMethod === "razorpay" ? "Pending" : "Processing",
       paymentMethod,
       couponCode: couponCode || null,
-      discount: totalDiscount, // Total discount (cart + coupon)
+      discount: totalDiscount,
     });
 
     await order.save();
@@ -334,12 +326,11 @@ const placeOrder = async (req, res) => {
       success: true,
     });
   } catch (error) {
-    console.error("Error placing order:", error.stack);
-    res.status(500).json({ success: false, error: "Internal Server Error" });
+    next(error);
   }
 };
 
-const verifyPayment = async (req, res) => {
+const verifyPayment = async (req, res, next) => {
   try {
     const { razorpay_payment_id, razorpay_order_id, razorpay_signature, orderId } = req.body;
     const crypto = require("crypto");
@@ -377,21 +368,17 @@ const verifyPayment = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error verifying payment:", error.stack);
     const order = await Order.findById(req.body.orderId);
     if (order) {
       order.status = "Failed";
       order.paymentStatus = "failed";
       await order.save();
     }
-    res.status(500).json({
-      success: false,
-      redirect: `/orderFailure?message=${encodeURIComponent("Payment verification failed")}&orderId=${req.body.orderId || ""}&totalAmount=${order ? order.finalAmount : 0}`,
-    });
+    next(error);
   }
 };
 
-const getOrderFailurePage = async (req, res) => {
+const getOrderFailurePage = async (req, res, next) => {
   try {
     const { message, orderId, totalAmount } = req.query;
     let order = null;
@@ -407,12 +394,11 @@ const getOrderFailurePage = async (req, res) => {
       user: req.user,
     });
   } catch (error) {
-    console.error("Error rendering order failure page:", error.stack);
-    res.status(500).send("Internal Server Error");
+    next(error);
   }
 };
 
-const retryPayment = async (req, res) => {
+const retryPayment = async (req, res, next) => {
   try {
     const { orderId } = req.params;
     if (!req.user) {
@@ -452,12 +438,11 @@ const retryPayment = async (req, res) => {
       orderId: order._id,
     });
   } catch (error) {
-    console.error("Error in retryPayment:", error);
-    res.status(500).json({ success: false, error: "Server error: " + error.message });
+    next(error);
   }
 };
 
-const verifyRetryPayment = async (req, res) => {
+const verifyRetryPayment = async (req, res, next) => {
   try {
     const { razorpay_payment_id, razorpay_order_id, razorpay_signature, orderId } = req.body;
     const crypto = require("crypto");
@@ -489,14 +474,13 @@ const verifyRetryPayment = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error verifying retry payment:", error);
-    res.status(500).json({ success: false, error: "Payment verification failed" });
+    next(error);
   }
 };
 
-const applyCoupon = async (req, res) => {
+const applyCoupon = async (req, res, next) => {
   try {
-    const { couponCode, subtotal } = req.body; // Subtotal here is the finalAmount before coupon
+    const { couponCode, subtotal } = req.body;
     const userId = req.user._id;
 
     const coupon = await Coupon.findOne({
@@ -527,27 +511,28 @@ const applyCoupon = async (req, res) => {
 
     res.json({ success: true, discount: coupon.offerPrice });
   } catch (error) {
-    console.error("Error applying coupon:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    next(error);
   }
 };
 
-const paymentFailed = async (req, res) => {
+const paymentFailed = async (req, res, next) => {
   try {
     const { orderId } = req.body;
     const order = await Order.findById(orderId);
+
     if (!order) {
       return res.status(404).json({ success: false, error: "Order not found" });
     }
+
     if (order.paymentMethod === "razorpay" && order.paymentStatus !== "success") {
       order.status = "Failed";
       order.paymentStatus = "failed";
       await order.save();
     }
+
     res.json({ success: true });
   } catch (error) {
-    console.error("Error updating payment failure:", error.stack);
-    res.status(500).json({ success: false, error: "Server error" });
+    next(error);
   }
 };
 

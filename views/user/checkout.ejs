@@ -31,36 +31,36 @@
       margin-top: 10px;
     }
     .available-coupons {
-    margin-top: 20px;
-  }
-  .coupon-list {
-    list-style: none;
-    padding: 0;
-  }
-  .coupon-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    border: 1px solid #ddd;
-    margin-bottom: 10px;
-    border-radius: 5px;
-  }
-  .coupon-details p {
-    margin: 5px 0;
-    font-size: 0.9em;
-  }
-  .apply-coupon-btn {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    cursor: pointer;
-    border-radius: 3px;
-  }
-  .apply-coupon-btn:hover {
-    background-color: #45a049;
-  }
+      margin-top: 20px;
+    }
+    .coupon-list {
+      list-style: none;
+      padding: 0;
+    }
+    .coupon-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid #ddd;
+      margin-bottom: 10px;
+      border-radius: 5px;
+    }
+    .coupon-details p {
+      margin: 5px 0;
+      font-size: 0.9em;
+    }
+    .apply-coupon-btn {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+    .apply-coupon-btn:hover {
+      background-color: #45a049;
+    }
   </style>
   <%- include('../../views/partials/user/header') %>
   <link rel="stylesheet" href="/css/sweetalert2.min.css">
@@ -253,213 +253,191 @@
     </section>
   </main>
 
- 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-<script src="https://unpkg.com/izitoast/dist/js/iziToast.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-<script src="https://unpkg.com/izitoast/dist/js/iziToast.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-<script>
-  document.addEventListener("DOMContentLoaded", function() {
-    initAddressSelection();
-    initPaymentMethodSelection();
-    fetchCartItems();
-    setupOrderForm();
-    initWalletValidation();
-    updateCODAvailability(); // NEW: Check COD availability on load
-    
-    // Add coupon input Enter key listener
-    document.getElementById('couponCode').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        applyCoupon();
-      }
-    });
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="https://unpkg.com/izitoast/dist/js/iziToast.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      initAddressSelection();
+      initPaymentMethodSelection();
+      setupOrderForm();
+      initWalletValidation();
+      updateCODAvailability(); // NEW: Check COD availability on load
 
-    // Add listeners for available coupon buttons
-    document.querySelectorAll('.apply-coupon-btn').forEach(button => {
-      button.addEventListener('click', function() {
-        const couponCode = this.getAttribute('data-code');
-        document.getElementById('couponCode').value = couponCode;
-        applyCoupon();
+      // Add coupon input Enter key listener
+      document.getElementById('couponCode').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          applyCoupon();
+        }
       });
-    });
-  });
 
-  function initAddressSelection() {
-    const addressRadios = document.querySelectorAll('input[name="address"]');
-    const selectedAddressInput = document.getElementById("selectedAddressId");
-
-    if (addressRadios.length > 0) {
-      const checkedRadio = Array.from(addressRadios).find(radio => radio.checked) || addressRadios[0];
-      if (checkedRadio) {
-        selectedAddressInput.value = checkedRadio.value;
-        console.log("Initial addressId set to:", selectedAddressInput.value);
-      }
-    } else {
-      console.warn("No address radio buttons found!");
-    }
-
-    addressRadios.forEach((radio) => {
-      radio.addEventListener("change", function() {
-        selectedAddressInput.value = this.value;
-        console.log("Address changed, new addressId:", selectedAddressInput.value);
-        highlightSelectedAddress(this);
-      });
-    });
-  }
-
-  function highlightSelectedAddress(selectedRadio) {
-    document.querySelectorAll('.address__label').forEach(label => {
-      label.classList.remove('address__label--selected');
-    });
-
-    const selectedLabel = document.querySelector(`label[for="${selectedRadio.id}"]`);
-    if (selectedLabel) {
-      selectedLabel.classList.add('address__label--selected');
-    }
-  }
-
-  function initPaymentMethodSelection() {
-    const paymentRadios = document.querySelectorAll('input[name="paymentMethod"]');
-    const selectedPaymentMethodInput = document.getElementById("selectedPaymentMethod");
-
-    paymentRadios.forEach((radio) => {
-      if (!radio.disabled) {
-        radio.addEventListener("change", function() {
-          selectedPaymentMethodInput.value = this.value;
-          console.log("Payment method changed to:", selectedPaymentMethodInput.value);
+      // Add listeners for available coupon buttons
+      document.querySelectorAll('.apply-coupon-btn').forEach(button => {
+        button.addEventListener('click', function() {
+          const couponCode = this.getAttribute('data-code');
+          document.getElementById('couponCode').value = couponCode;
+          applyCoupon();
         });
-      }
+      });
     });
-  }
 
-  function fetchCartItems() {
-    console.log("Cart items already displayed from server-side rendering");
-  }
+    function initAddressSelection() {
+      const addressRadios = document.querySelectorAll('input[name="address"]');
+      const selectedAddressInput = document.getElementById("selectedAddressId");
 
-  function checkCartQuantities() {
-    const cartItems = document.querySelectorAll('#cartItems .cart-item');
-    let exceedsLimit = false;
-    let excessProducts = [];
-
-    cartItems.forEach(item => {
-      const quantitySpan = item.querySelector('.item-quantity span');
-      if (quantitySpan) {
-        const quantityText = quantitySpan.textContent.replace('Quantity: ', '').trim();
-        const quantity = parseInt(quantityText) || 0;
-        console.log(`Checking item: ${item.querySelector('.item-name').textContent}, Quantity: ${quantity}`);
-        if (quantity > 5) {
-          exceedsLimit = true;
-          const productTitle = item.querySelector('.item-name').textContent;
-          excessProducts.push(productTitle);
+      if (addressRadios.length > 0) {
+        const checkedRadio = Array.from(addressRadios).find(radio => radio.checked) || addressRadios[0];
+        if (checkedRadio) {
+          selectedAddressInput.value = checkedRadio.value;
         }
       }
-    });
 
-    if (exceedsLimit) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Quantity Limit Exceeded',
-        text: `You cannot checkout with more than 5 items per product. Please adjust quantities for: ${excessProducts.join(', ')}.`,
+      addressRadios.forEach((radio) => {
+        radio.addEventListener("change", function() {
+          selectedAddressInput.value = this.value;
+          highlightSelectedAddress(this);
+        });
       });
-      return false;
     }
-    return true;
-  }
 
-  // NEW: Function to enable/disable COD based on total amount
-  function updateCODAvailability() {
-    const totalAmount = parseFloat(document.getElementById('total').textContent.replace('₹', '')) || 0;
-    const codRadio = document.getElementById('cod');
-    const codLabel = document.querySelector('label[for="cod"]');
-    
-    if (totalAmount > 5000) {
-      codRadio.disabled = true;
-      codLabel.style.opacity = '0.5'; // Visual cue for disabled state
-      codLabel.title = 'COD not available for orders above ₹5000'; // Tooltip
-      if (codRadio.checked) {
-        // If COD was selected, switch to another available option
-        const razorpayRadio = document.getElementById('razorpay');
-        if (!razorpayRadio.disabled) {
-          razorpayRadio.checked = true;
-          document.getElementById('selectedPaymentMethod').value = 'razorpay';
-        } else {
-          const walletRadio = document.getElementById('wallet');
-          if (!walletRadio.disabled) {
-            walletRadio.checked = true;
-            document.getElementById('selectedPaymentMethod').value = 'wallet';
+    function highlightSelectedAddress(selectedRadio) {
+      document.querySelectorAll('.address__label').forEach(label => {
+        label.classList.remove('address__label--selected');
+      });
+
+      const selectedLabel = document.querySelector(`label[for="${selectedRadio.id}"]`);
+      if (selectedLabel) {
+        selectedLabel.classList.add('address__label--selected');
+      }
+    }
+
+    function initPaymentMethodSelection() {
+      const paymentRadios = document.querySelectorAll('input[name="paymentMethod"]');
+      const selectedPaymentMethodInput = document.getElementById("selectedPaymentMethod");
+
+      paymentRadios.forEach((radio) => {
+        if (!radio.disabled) {
+          radio.addEventListener("change", function() {
+            selectedPaymentMethodInput.value = this.value;
+          });
+        }
+      });
+    }
+
+    function checkCartQuantities() {
+      const cartItems = document.querySelectorAll('#cartItems .cart-item');
+      let exceedsLimit = false;
+      let excessProducts = [];
+
+      cartItems.forEach(item => {
+        const quantitySpan = item.querySelector('.item-quantity span');
+        if (quantitySpan) {
+          const quantityText = quantitySpan.textContent.replace('Quantity: ', '').trim();
+          const quantity = parseInt(quantityText) || 0;
+          if (quantity > 5) {
+            exceedsLimit = true;
+            const productTitle = item.querySelector('.item-name').textContent;
+            excessProducts.push(productTitle);
           }
         }
-      }
-    } else {
-      codRadio.disabled = false;
-      codLabel.style.opacity = '1';
-      codLabel.title = ''; // Remove tooltip when enabled
-    }
-  }
-
-  function setupOrderForm() {
-    const orderForm = document.getElementById('orderForm');
-    if (!orderForm) {
-      console.error("Order form not found!");
-      return;
-    }
-
-    orderForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-
-      if (!checkCartQuantities()) {
-        console.log("Quantity check failed");
-        return;
-      }
-
-      const selectedAddressInput = document.getElementById("selectedAddressId");
-      const selectedPaymentMethodInput = document.getElementById("selectedPaymentMethod");
-      const addressId = selectedAddressInput.value;
-      const paymentMethod = selectedPaymentMethodInput.value;
-
-      if (!addressId) {
-        console.log("No address selected");
-        showError('Please select a delivery address');
-        return;
-      }
-
-      console.log("Submitting with addressId:", addressId, "and payment method:", paymentMethod);
-
-      const submitButton = this.querySelector('button[type="submit"]');
-      const originalButtonText = submitButton.innerHTML;
-      submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-      submitButton.disabled = true;
-
-      submitOrder(addressId, paymentMethod, function() {
-        submitButton.innerHTML = originalButtonText;
-        submitButton.disabled = false;
-        console.log("Submission callback executed");
       });
-    });
-  }
 
-  function initWalletValidation() {
-    const walletRadio = document.getElementById('wallet');
-    const walletBalanceSpan = document.getElementById('walletBalance');
-    const totalAmount = parseFloat(document.getElementById('total').textContent.replace('₹', '')) || 0;
-
-    walletRadio.addEventListener('change', function() {
-      const walletBalance = parseFloat(walletBalanceSpan.textContent) || 0;
-      if (this.checked && walletBalance < totalAmount) {
+      if (exceedsLimit) {
         Swal.fire({
           icon: 'error',
-          title: 'Insufficient Wallet Balance',
-          text: 'Your wallet balance is not enough to cover the total amount.',
+          title: 'Quantity Limit Exceeded',
+          text: `You cannot checkout with more than 5 items per product. Please adjust quantities for: ${excessProducts.join(', ')}.`,
         });
-        document.getElementById('cod').checked = true; // Fallback to COD
-        document.getElementById('selectedPaymentMethod').value = 'cod';
+        return false;
       }
-    });
-  }
+      return true;
+    }
+
+    // NEW: Function to enable/disable COD based on total amount
+    function updateCODAvailability() {
+      const totalAmount = parseFloat(document.getElementById('total').textContent.replace('₹', '')) || 0;
+      const codRadio = document.getElementById('cod');
+      const codLabel = document.querySelector('label[for="cod"]');
+      
+      if (totalAmount > 5000) {
+        codRadio.disabled = true;
+        codLabel.style.opacity = '0.5'; // Visual cue for disabled state
+        codLabel.title = 'COD not available for orders above ₹5000'; // Tooltip
+        if (codRadio.checked) {
+          // If COD was selected, switch to another available option
+          const razorpayRadio = document.getElementById('razorpay');
+          if (!razorpayRadio.disabled) {
+            razorpayRadio.checked = true;
+            document.getElementById('selectedPaymentMethod').value = 'razorpay';
+          } else {
+            const walletRadio = document.getElementById('wallet');
+            if (!walletRadio.disabled) {
+              walletRadio.checked = true;
+              document.getElementById('selectedPaymentMethod').value = 'wallet';
+            }
+          }
+        }
+      } else {
+        codRadio.disabled = false;
+        codLabel.style.opacity = '1';
+        codLabel.title = ''; // Remove tooltip when enabled
+      }
+    }
+
+    function setupOrderForm() {
+      const orderForm = document.getElementById('orderForm');
+      if (!orderForm) {
+        console.error("Order form not found!");
+        return;
+      }
+
+      orderForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        if (!checkCartQuantities()) {
+          return;
+        }
+
+        const selectedAddressInput = document.getElementById("selectedAddressId");
+        const selectedPaymentMethodInput = document.getElementById("selectedPaymentMethod");
+        const addressId = selectedAddressInput.value;
+        const paymentMethod = selectedPaymentMethodInput.value;
+
+        if (!addressId) {
+          showError('Please select a delivery address');
+          return;
+        }
+
+        const submitButton = this.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        submitButton.disabled = true;
+
+        submitOrder(addressId, paymentMethod, function() {
+          submitButton.innerHTML = originalButtonText;
+          submitButton.disabled = false;
+        });
+      });
+    }
+
+    function initWalletValidation() {
+      const walletRadio = document.getElementById('wallet');
+      const walletBalanceSpan = document.getElementById('walletBalance');
+      const totalAmount = parseFloat(document.getElementById('total').textContent.replace('₹', '')) || 0;
+
+      walletRadio.addEventListener('change', function() {
+        const walletBalance = parseFloat(walletBalanceSpan.textContent) || 0;
+        if (this.checked && walletBalance < totalAmount) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Insufficient Wallet Balance',
+            text: 'Your wallet balance is not enough to cover the total amount.',
+          });
+          document.getElementById('cod').checked = true; // Fallback to COD
+          document.getElementById('selectedPaymentMethod').value = 'cod';
+        }
+      });
+    }
 
   function applyCoupon() {
   const couponCode = document.getElementById('couponCode').value.trim();
