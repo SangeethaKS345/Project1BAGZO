@@ -25,58 +25,29 @@
                                 <h3 class="cart-item__title">
                                     <a href="/productDetails?id=<%= cartData[i].productDetails[0]._id %>">
                                         <%= cartData[i].productDetails[0].productName %>
-                                        <% if (cartData[i].productDetails[0].isOnSale) { %>
-                                            <span class="product-badge">Sale</span>
-                                        <% } %>
                                     </a>
                                 </h3>
                                 <p class="cart-item__quantity"><%= cartData[i].categoryDetails[0].name %> | <%= cartData[i].brandDetails[0].brandName %></p>
-                                <% 
-                                    const regularPrice = cartData[i].productDetails[0].regularPrice || 0;
-                                    const productOffer = cartData[i].productDetails[0].productOffer || 0;
-                                    const categoryOffer = cartData[i].categoryDetails[0].categoryOffer || 0;
-                                    const salesPrice = cartData[i].productDetails[0].salesPrice || regularPrice;
-                                    
-                                    // Calculate discount based on requirements
-                                    let discount = 0;
-                                    let finalPrice = regularPrice;
-
-                                    // If there are any offers
-                                    if (productOffer > 0 || categoryOffer > 0) {
-                                        const productDiscount = regularPrice * (productOffer / 100);
-                                        const categoryDiscount = regularPrice * (categoryOffer / 100);
-                                        discount = Math.max(productDiscount, categoryDiscount);
-                                        finalPrice = regularPrice - discount;
-                                    } 
-                                    // If no offers, use sales price
-                                    else if (salesPrice !== regularPrice) {
-                                        discount = regularPrice - salesPrice;
-                                        finalPrice = salesPrice;
-                                    }
-                                    // If discount and sales price are same, discount = 0
-                                    if (discount === (regularPrice - salesPrice) && productOffer === 0 && categoryOffer === 0) {
-                                        discount = 0;
-                                    }
-                                %>
-                                <p class="cart-item__price">Regular: ₹<%= regularPrice.toFixed(2) %></p>
-                                <% if (discount > 0) { %>
-                                    <p class="cart-item__price" style="color: var(--accent-color);">Price: ₹<%= finalPrice.toFixed(2) %></p>
-                                    <p class="cart-item__quantity">Discount: ₹<%= discount.toFixed(2) %></p>
+                                <p class="cart-item__price">Regular Price: ₹<%= Math.round(cartData[i].productDetails[0].regularPrice) %></p>
+                                <p class="cart-item__price" style="color: var(--accent-color);">Sales Price: ₹<%= Math.round(cartData[i].finalPrice) %></p>
+                                <% if (cartData[i].discount > 0) { %>
+                                    <p class="cart-item__quantity discount-amount" data-discount="<%= cartData[i].discount %>" id="discount<%= cartData[i].productDetails[0]._id %>">Discount: ₹<%= Math.round(cartData[i].discount * cartData[i].products.quantity) %></p>
                                 <% } %>
                                 <div class="quantity-wrapper">
-                                    <button class="qty-btn minus" onclick="changeQuantity('<%= cartData[i].productDetails[0]._id %>', '<%= cartData[i].products.quantity %>', -1, '<%= finalPrice %>', '<%= cartData[i].productDetails[0]._id %>', <%= cartData[i].productDetails[0].maxQuantity %>)">-</button>
+                                    <button class="qty-btn minus" onclick="changeQuantity('<%= cartData[i].productDetails[0]._id %>', '<%= cartData[i].products.quantity %>', -1, '<%= cartData[i].finalPrice %>', '<%= cartData[i].discount %>', '<%= cartData[i].productDetails[0]._id %>', <%= cartData[i].productDetails[0].maxQuantity %>)">-</button>
                                     <input type="text" id="cartProductQuantity<%= cartData[i].productDetails[0]._id %>" value="<%= cartData[i].products.quantity %>" readonly>
-                                    <button class="qty-btn plus" onclick="changeQuantity('<%= cartData[i].productDetails[0]._id %>', '<%= cartData[i].products.quantity %>', 1, '<%= finalPrice %>', '<%= cartData[i].productDetails[0]._id %>', <%= cartData[i].productDetails[0].maxQuantity %>)">+</button>
+                                    <button class="qty-btn plus" onclick="changeQuantity('<%= cartData[i].productDetails[0]._id %>', '<%= cartData[i].products.quantity %>', 1, '<%= cartData[i].finalPrice %>', '<%= cartData[i].discount %>', '<%= cartData[i].productDetails[0]._id %>', <%= cartData[i].productDetails[0].maxQuantity %>)">+</button>
                                 </div>
                             </div>
                             <div class="cart-item__total">
-                                ₹<span id="subTotal<%= cartData[i].productDetails[0]._id %>"><%= (finalPrice * cartData[i].products.quantity).toFixed(2) %></span>
-                                <button class="remove-btn" onclick="confirmRemove('<%= cartData[i].productDetails[0]._id %>')">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-                                        <path fill="none" d="M0 0h24v24H0z"/>
-                                        <path d="M17 6h5v2h-2v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8H2V6h5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3zm1 2H6v12h12V8zm-9 3h2v6H9v-6zm4 0h2v6h-2v-6zM9 4v2h6V4H9z"/>
-                                    </svg>
-                                </button>
+                                ₹<span id="subTotal<%= cartData[i].productDetails[0]._id %>"><%= Math.round(cartData[i].finalPrice * cartData[i].products.quantity) %></span>
+                                <!-- Ensure the remove button is visible -->
+<button class="remove-btn" onclick="confirmRemove('<%= cartData[i].productDetails[0]._id %>')">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+        <path fill="none" d="M0 0h24v24H0z"/>
+        <path d="M17 6h5v2h-2v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8H2V6h5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3zm1 2H6v12h12V8zm-9 3h2v6H9v-6zm4 0h2v6h-2v-6zM9 4v2h6V4H9z"/>
+    </svg>
+</button>
                             </div>
                         </div>
                     <% } %>
@@ -95,7 +66,6 @@
                 <% } %>
             </div>
 
-            <!-- Order Summary Section -->
             <div class="order-summary summary-card">
                 <h2 class="section__title">Order Summary</h2>
                 <div class="summary-items">
@@ -107,33 +77,12 @@
                             let totalDiscount = 0;
                             if (Array.isArray(cartData) && cartData.length > 0) {
                                 cartData.forEach(item => {
-                                    const regularPrice = item.productDetails[0].regularPrice || 0;
-                                    const productOffer = item.productDetails[0].productOffer || 0;
-                                    const categoryOffer = item.categoryDetails[0].categoryOffer || 0;
-                                    const salesPrice = item.productDetails[0].salesPrice || regularPrice;
-                                    
-                                    let discount = 0;
-                                    let finalPrice = regularPrice;
-
-                                    if (productOffer > 0 || categoryOffer > 0) {
-                                        const productDiscount = regularPrice * (productOffer / 100);
-                                        const categoryDiscount = regularPrice * (categoryOffer / 100);
-                                        discount = Math.max(productDiscount, categoryDiscount);
-                                        finalPrice = regularPrice - discount;
-                                    } else if (salesPrice !== regularPrice) {
-                                        discount = regularPrice - salesPrice;
-                                        finalPrice = salesPrice;
-                                    }
-                                    if (discount === (regularPrice - salesPrice) && productOffer === 0 && categoryOffer === 0) {
-                                        discount = 0;
-                                    }
-                                    
-                                    subtotal += finalPrice * item.products.quantity;
-                                    totalDiscount += discount * item.products.quantity;
+                                    subtotal += item.productDetails[0].regularPrice * item.products.quantity;  // Changed from finalPrice to regularPrice
+                                    totalDiscount += item.discount * item.products.quantity;
                                 });
                             }
                             %>
-                            <%= subtotal.toFixed(2) %>
+                            <%= Math.round(subtotal) %>
                         </span></span>
                     </div>
                     <div class="summary-row">
@@ -142,12 +91,12 @@
                     </div>
                     <div class="summary-row">
                         <span>Discount</span>
-                        <span>₹<%= totalDiscount.toFixed(2) %></span>
+                        <span>₹<span id="totalDiscount"><%= Math.round(totalDiscount) %></span></span>
                     </div>
                 </div>
                 <div class="summary-row total">
                     <span>Total</span>
-                    <span>₹<span id="total"><%= subtotal.toFixed(2) %></span></span>
+                    <span>₹<span id="total"><%= Math.round(subtotal - totalDiscount) %></span></span>
                 </div>
                 <% if (Array.isArray(cartData) && cartData.length > 0) { %>
                     <a href="/checkout?userId=<%= user._id %>" class="btn checkout-btn">Proceed to Checkout</a>
@@ -169,77 +118,100 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-   function changeQuantity(productId, currentQuantity, change, price, elementId, maxQuantity) {
-    const quantityInput = document.getElementById(`cartProductQuantity${elementId}`);
-    const currentVal = parseInt(quantityInput.value);
-    const newQuantity = currentVal + change;
+    function changeQuantity(productId, currentQuantity, change, price, discount, elementId, maxQuantity) {
+        const quantityInput = document.getElementById(`cartProductQuantity${elementId}`);
+        const currentVal = parseInt(quantityInput.value);
+        const newQuantity = currentVal + change;
 
-    if (newQuantity > 5) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Quantity Limit',
-            text: 'You cannot add more than 5 items of this product to your cart.',
-        });
-        return;
-    }
+        if (newQuantity > 5) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Quantity Limit',
+                text: 'You cannot add more than 5 items of this product to your cart.',
+            });
+            return;
+        }
 
-    let maxLimitText = maxQuantity >= 5 ? '5' : maxQuantity;
-    if (newQuantity < 1 || newQuantity > maxQuantity) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Invalid Quantity',
-            text: `Quantity must be between 1 and ${maxLimitText}. Only ${maxQuantity} items available.`,
-        });
-        return;
-    }
+        let maxLimitText = maxQuantity >= 5 ? '5' : maxQuantity;
+        if (newQuantity < 1 || newQuantity > maxQuantity) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Quantity',
+                text: `Quantity must be between 1 and ${maxLimitText}. Only ${maxQuantity} items available.`,
+            });
+            return;
+        }
 
-    const minusBtn = document.querySelector(`.minus[onclick*="${productId}"]`);
-    const plusBtn = document.querySelector(`.plus[onclick*="${productId}"]`);
-    minusBtn.disabled = true;
-    plusBtn.disabled = true;
+        const minusBtn = document.querySelector(`.minus[onclick*="${productId}"]`);
+        const plusBtn = document.querySelector(`.plus[onclick*="${productId}"]`);
+        minusBtn.disabled = true;
+        plusBtn.disabled = true;
 
-    $.ajax({
-        url: '/cart/changeQuantity',
-        method: 'POST',
-        data: {
-            productId: productId,
-            quantity: newQuantity
-        },
-        success: function(response) {
-            if (response.status) {
-                const quantityInput = document.getElementById(`cartProductQuantity${elementId}`);
-                const subTotalSpan = document.getElementById(`subTotal${elementId}`);
-                const totalSpan = document.getElementById('total');
-                const subtotalSpan = document.getElementById('subtotal');
+        $.ajax({
+            url: '/cart/changeQuantity',
+            method: 'POST',
+            data: {
+                productId: productId,
+                quantity: newQuantity
+            },
+            success: function(response) {
+                if (response.status) {
+                    const quantityInput = document.getElementById(`cartProductQuantity${elementId}`);
+                    const subTotalSpan = document.getElementById(`subTotal${elementId}`);
+                    const totalSpan = document.getElementById('total');
+                    const subtotalSpan = document.getElementById('subtotal');
+                    const totalDiscountSpan = document.getElementById('totalDiscount');
+                    const discountElement = document.getElementById(`discount${elementId}`);
 
-                quantityInput.value = response.quantityInput;
-                subTotalSpan.innerText = (price * response.quantityInput).toFixed(2);
-                totalSpan.innerText = response.grandTotal;
-                subtotalSpan.innerText = response.grandTotal;
+                    // Update quantity
+                    quantityInput.value = newQuantity;
+                    
+                    // Update subtotal for this item (rounded)
+                    const newSubTotal = Math.round(price * newQuantity);
+                    subTotalSpan.innerText = newSubTotal;
 
-                subTotalSpan.classList.add('price-updated');
-                setTimeout(() => subTotalSpan.classList.remove('price-updated'), 800);
-            } else {
+                    // Update discount for this item if it exists (rounded)
+                    if (discountElement) {
+                        const newDiscount = Math.round(discount * newQuantity);
+                        discountElement.innerText = `Discount: ₹${newDiscount}`;
+                    }
+
+                    // Update overall totals (rounded)
+                    subtotalSpan.innerText = Math.round(response.grandTotal);
+                    totalSpan.innerText = Math.round(response.grandTotal - totalDiscountSpan.innerText);
+
+                    // Recalculate total discount (rounded)
+                    let totalDiscount = 0;
+                    document.querySelectorAll('.discount-amount').forEach(element => {
+                        const itemDiscount = parseFloat(element.getAttribute('data-discount'));
+                        const itemQuantity = parseInt(element.closest('.cart-item').querySelector('input[id^="cartProductQuantity"]').value);
+                        totalDiscount += itemDiscount * itemQuantity;
+                    });
+                    totalDiscountSpan.innerText = Math.round(totalDiscount);
+
+                    subTotalSpan.classList.add('price-updated');
+                    setTimeout(() => subTotalSpan.classList.remove('price-updated'), 800);
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: response.error || 'Failed to update quantity'
+                    });
+                }
+            },
+            error: function() {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: response.error || 'Failed to update quantity'
+                    text: 'Failed to connect to server'
                 });
+            },
+            complete: function() {
+                minusBtn.disabled = false;
+                plusBtn.disabled = false; // Fixed the typo here
             }
-        },
-        error: function() {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Failed to connect to server'
-            });
-        },
-        complete: function() {
-            minusBtn.disabled = false;
-            plusBtn.disabled = false;
-        }
-    });
-}
+        });
+    }
     
     function confirmRemove(productId) {
         Swal.fire({

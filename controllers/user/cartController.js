@@ -13,155 +13,89 @@ const getUserIdFromSession = (sessionUser) => {
 };
 
 // Get Cart Page with data
-const getCartPage = async (req, res) => {
+const getCartPage = async (req, res, next) => {
     try {
-        console.log("Session user:", req.session.user);
-        const userId = getUserIdFromSession(req.session.user);
-
-        if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
-            console.error("Invalid userId:", userId);
-            return res.redirect("/pageNotFound");
+        const userId = req.session.user?.id;
+        if (!userId) {
+            return res.redirect("/signin");
         }
 
-        const objectId = new mongoose.Types.ObjectId(userId);
-        const user = await User.findById(objectId);
-        if (!user) {
-            console.error("User not found for ID:", userId);
-            return res.redirect("/pageNotFound");
-        }
+        const cart = await Cart.findOne({ userId })
+            .populate({
+                path: 'products.productId',
+                model: 'Product',
+                populate: [
+                    { path: 'category', model: 'Category' },
+                    { path: 'brand', model: 'Brand' }
+                ]
+            });
 
-        let cart = await Cart.findOne({ userId: objectId }).populate("products.productId");
-        if (!cart || !cart.products.length) {
-            console.log("No cart or products found for user:", userId);
+        if (!cart) {
             return res.render("cart", {
-                data: [],
-                grandTotal: 0,
-                totalQuantity: 0,
-                user,
-                cartData: [],
-                userData: req.user,
-                cartMessage: null,
+                userData: await User.findById(userId),
+                cartData: []
             });
         }
 
-        // Check stock and remove out-of-stock products
-        const outOfStockProducts = [];
-        cart.products = cart.products.filter(item => {
+        // Process cart data with new pricing logic
+        const cartData = await Promise.all(cart.products.map(async (item) => {
             const product = item.productId;
-            if (!product || product.quantity <= 0 || product.status === "out of stock" || product.isBlocked) {
-                outOfStockProducts.push(product ? product.productName : "Unknown Product");
-                return false;
+            const quantity = item.quantity;
+            const regularPrice = product.regularPrice || 0;
+            const salesPrice = product.salesPrice || regularPrice;
+            const productOffer = product.productOffer || 0;
+            const categoryOffer = product.category?.categoryOffer || 0;
+
+            let finalPrice = regularPrice;
+            let discount = 0;
+
+            // Case 1: No offer and prices equal
+            if (productOffer === 0 && categoryOffer === 0 && salesPrice === regularPrice) {
+                finalPrice = regularPrice;
+                discount = 0;
             }
-            return true;
-        });
-
-        // Set cartMessage only if items were removed and the message hasn’t been shown yet
-        let cartMessage = null;
-        if (outOfStockProducts.length > 0) {
-            await cart.save();
-            console.log(`Removed out-of-stock products from cart: ${outOfStockProducts.join(", ")}`);
-            if (!req.session.cartMessageShown) {
-                cartMessage = `The following items were removed from your cart because they are out of stock: ${outOfStockProducts.join(", ")}`;
-                req.session.cartMessageShown = true; // Mark as shown
+            // Case 2: No offer and prices not equal
+            else if (productOffer === 0 && categoryOffer === 0 && salesPrice !== regularPrice) {
+                finalPrice = salesPrice;
+                discount = regularPrice - salesPrice;
             }
-        }
+            // Case 3 & 4: Has offer(s)
+            else if (productOffer > 0 || categoryOffer > 0) {
+                const offer = Math.max(productOffer, categoryOffer); // Take highest offer
+                const offerDiscount = salesPrice * (offer / 100);
+                finalPrice = salesPrice - offerDiscount;
+                discount = regularPrice - finalPrice;
+            }
 
-        const cartData = await Cart.aggregate([
-            { $match: { userId: objectId } },
-            { $unwind: { path: "$products", preserveNullAndEmptyArrays: true } },
-            {
-                $lookup: {
-                    from: "products",
-                    localField: "products.productId",
-                    foreignField: "_id",
-                    as: "productDetails",
-                },
-            },
-            {
-                $project: {
-                    products: 1,
-                    productDetails: {
-                        $filter: {
-                            input: "$productDetails",
-                            cond: { $ne: ["$$this.isBlocked", true] },
-                        },
-                    },
-                },
-            },
-            { $match: { "productDetails.0": { $exists: true } } },
-            {
-                $lookup: {
-                    from: "categories",
-                    localField: "productDetails.category",
-                    foreignField: "_id",
-                    as: "categoryDetails",
-                },
-            },
-            {
-                $project: {
-                    products: 1,
-                    productDetails: 1,
-                    categoryDetails: {
-                        $filter: {
-                            input: "$categoryDetails",
-                            cond: { $eq: ["$$this.isListed", true] },
-                        },
-                    },
-                },
-            },
-            { $match: { "categoryDetails.0": { $exists: true } } },
-            {
-                $lookup: {
-                    from: "brands",
-                    localField: "productDetails.brand",
-                    foreignField: "_id",
-                    as: "brandDetails",
-                },
-            },
-            {
-                $project: {
-                    products: 1,
-                    productDetails: 1,
-                    categoryDetails: 1,
-                    brandDetails: {
-                        $filter: {
-                            input: "$brandDetails",
-                            cond: { $ne: ["$$this.isBlocked", true] },
-                        },
-                    },
-                },
-            },
-            { $match: { "brandDetails.0": { $exists: true } } },
-        ]);
-
-        let grandTotal = 0;
-        let totalQuantity = 0;
-
-        if (cartData.length > 0) {
-            cartData.forEach((item) => {
-                if (item.productDetails && item.productDetails.length > 0) {
-                    const price = item.productDetails[0].salesPrice || 0;
-                    const quantity = item.products.quantity || 0;
-                    grandTotal += price * quantity;
-                    totalQuantity += quantity;
-                }
-            });
-        }
-
-        console.log("Cart Data:", JSON.stringify(cartData, null, 2));
+            return {
+                products: { quantity },
+                productDetails: [{
+                    _id: product._id,
+                    productName: product.productName,
+                    regularPrice,
+                    salesPrice,
+                    productOffer,
+                    productImage: product.productImage,
+                    maxQuantity: product.quantity,
+                    isOnSale: (productOffer > 0 || categoryOffer > 0 || salesPrice < regularPrice)
+                }],
+                categoryDetails: [{ 
+                    name: product.category?.name || 'Unknown',
+                    categoryOffer 
+                }],
+                brandDetails: [{ brandName: product.brand?.brandName || 'Unknown' }],
+                finalPrice,
+                discount
+            };
+        }));
 
         res.render("cart", {
-            data: cartData,
-            grandTotal,
-            totalQuantity,
-            user,
-            cartData,
-            userData: req.user,
-            cartMessage, // Pass the message only if it’s the first time
+            userData: await User.findById(userId),
+            cartData
         });
+
     } catch (error) {
-        console.error("Error in getCartPage:", error);
-        res.redirect("/pageNotFound");
+        next(error);
     }
 };
 
