@@ -157,7 +157,7 @@ const loadMyOrders = async (req, res, next) => {
     });
 
     console.log('User data passed to template:', user);
-    res.render("myOrder", { // Updated to match views/user/myOrder.ejs
+    res.render("myOrder", { 
       orders: formattedOrders,
       currentPage: page,
       totalPages: Math.ceil(totalOrders / ORDERS_PER_PAGE),
