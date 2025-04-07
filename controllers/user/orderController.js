@@ -139,13 +139,18 @@ const loadMyOrders = async (req, res, next) => {
       }
 
       const orderItems = Array.isArray(order.OrderItems) ? order.OrderItems : [];
-      const firstOrderItem = orderItems[0] || {};
-      const product = firstOrderItem.product || { productName: 'N/A', productImage: ['default.jpg'] };
+      const products = orderItems.map(item => ({
+        _id: item.product?._id || 'N/A',
+        productName: item.product?.productName || 'N/A',
+        productImage: item.product?.productImage || ['default.jpg'],
+        quantity: item.quantity || 0,
+        price: item.price || 0
+      }));
 
       return {
         orderId: order.orderId,
-        product,
-        quantity: orderItems.reduce((sum, item) => sum + (item.quantity || 0), 0),
+        products, // Array of all products in the order
+        totalQuantity: orderItems.reduce((sum, item) => sum + (item.quantity || 0), 0),
         totalAmount: order.finalAmount || 0,
         placedOn: order.createdOn ? order.createdOn.toLocaleString() : 'N/A',
         status: orderStatus,

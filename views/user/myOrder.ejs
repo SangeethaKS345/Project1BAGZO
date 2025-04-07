@@ -46,10 +46,9 @@
         <div class="order-card">
           <div class="order-header">
             <div>
-              <h3><%= order.product.productName || 'N/A' %></h3>
-              <p><i class="fas fa-hashtag"></i> Order #<%= order.orderId %></p>
+              <h3>Order #<%= order.orderId %></h3>
               <p><i class="fas fa-calendar-alt"></i> Placed on: <%= order.placedOn %></p>
-              <p><i class="fas fa-box"></i> Total Quantity: <%= order.quantity %></p>
+              <p><i class="fas fa-box"></i> Total Quantity: <%= order.totalQuantity %></p>
               <p class="total-amount"><i class="fas fa-rupee-sign"></i> ₹<%= order.totalAmount %></p>
             </div>
             
@@ -86,40 +85,62 @@
             </div>
           </div>
           <div class="order-details">
-            <img src="/uploads/re-image/<%= order.product.productImage && order.product.productImage[0] ? order.product.productImage[0] : 'default.jpg' %>" alt="<%= order.product.productName || 'N/A' %>" class="product-image">            <div class="product-info">
-              <div class="status-tracker">
-                <div class="status-line <%= order.status >= 2 ? 'active' : '' %>"></div>
-                <% if (order.paymentStatus === 'failed' || (order.paymentMethod === 'razorpay' && order.status === 1 && order.paymentStatus === 'pending')) { %>
-                  <div class="status-step active">
-                    <div class="status-dot active"></div>
-                    <span>Failed</span>
-                  </div>
-                <% } else { %>
-                  <div class="status-step <%= order.status >= 1 ? 'active' : '' %>">
-                    <div class="status-dot <%= order.status >= 1 ? 'active' : '' %>"></div>
-                    <span>Order Placed</span>
-                  </div>
-                  <div class="status-step <%= order.status >= 2 ? 'active' : '' %>">
-                    <div class="status-dot <%= order.status >= 2 ? 'active' : '' %>"></div>
-                    <span>Processing</span>
-                  </div>
-                  <div class="status-step <%= order.status >= 3 ? 'active' : '' %>">
-                    <div class="status-dot <%= order.status >= 3 ? 'active' : '' %>"></div>
-                    <span>Shipped</span>
-                  </div>
-                  <div class="status-step <%= order.status >= 4 ? 'active' : '' %>">
-                    <div class="status-dot <%= order.status >= 4 ? 'active' : '' %>"></div>
-                    <span>Delivered</span>
-                  </div>
-                <% } %>
+            <% order.products.forEach((product, index) => { %>
+              <div class="product-item" style="<%= index > 0 ? 'margin-top: 1rem;' : '' %>">
+                <img 
+                  src="/uploads/re-image/<%= product.productImage && product.productImage[0] ? product.productImage[0] : 'default.jpg' %>" 
+                  alt="<%= product.productName || 'N/A' %>" 
+                  class="product-image product-clickable" 
+                  data-product-id="<%= product._id %>"
+                >
+                <div class="product-info">
+                  <h4>
+                    <span 
+                      class="product-name product-clickable" 
+                      data-product-id="<%= product._id %>"
+                    >
+                      <%= product.productName || 'N/A' %>
+                    </span>
+                  </h4>
+                  <p>Quantity: <%= product.quantity %></p>
+                  <p>Price: ₹<%= product.price %></p>
+                </div>
               </div>
+            <% }) %>
+            <div class="status-tracker">
+              <div class="status-line <%= order.status >= 2 ? 'active' : '' %>"></div>
+              <% if (order.paymentStatus === 'failed' || (order.paymentMethod === 'razorpay' && order.status === 1 && order.paymentStatus === 'pending')) { %>
+                <div class="status-step active">
+                  <div class="status-dot active"></div>
+                  <span>Failed</span>
+                </div>
+              <% } else { %>
+                <div class="status-step <%= order.status >= 1 ? 'active' : '' %>">
+                  <div class="status-dot <%= order.status >= 1 ? 'active' : '' %>"></div>
+                  <span>Order Placed</span>
+                </div>
+                <div class="status-step <%= order.status >= 2 ? 'active' : '' %>">
+                  <div class="status-dot <%= order.status >= 2 ? 'active' : '' %>"></div>
+                  <span>Processing</span>
+                </div>
+                <div class="status-step <%= order.status >= 3 ? 'active' : '' %>">
+                  <div class="status-dot <%= order.status >= 3 ? 'active' : '' %>"></div>
+                  <span>Shipped</span>
+                </div>
+                <div class="status-step <%= order.status >= 4 ? 'active' : '' %>">
+                  <div class="status-dot <%= order.status >= 4 ? 'active' : '' %>"></div>
+                  <span>Delivered</span>
+                </div>
+              <% } %>
             </div>
           </div>
-
+      
           <div class="action-buttons">
-            <button class="btn btn-primary buy-again-btn" data-product-id="<%= order.product._id %>">
-              <i class="fas fa-shopping-cart"></i> Buy Again
-            </button>
+            <% order.products.forEach(product => { %>
+              <!-- <button class="btn btn-primary buy-again-btn" data-product-id="<%= product._id %>">
+                <i class="fas fa-shopping-cart"></i> Buy <%= product.productName %> Again
+              </button> -->
+            <% }) %>
             <button 
               class="btn btn-primary download-invoice-btn" 
               data-order-id="<%= order.orderId %>"
@@ -733,6 +754,23 @@ document.querySelectorAll('.pay-now-btn').forEach(button => {
     } catch (error) {
       console.error('Payment retry error:', error);
       Swal.fire('Error', 'Something went wrong: ' + error.message, 'error');
+    }
+  });
+});
+
+// Product Click Handler
+document.querySelectorAll('.product-clickable').forEach(element => {
+  element.addEventListener('click', (e) => {
+    const productId = e.target.getAttribute('data-product-id');
+    if (productId) {
+      window.location.href = `/productDetails?id=${productId}`;
+    } else {
+      Swal.fire({
+        title: 'Error',
+        text: 'Product ID not found',
+        icon: 'error',
+        confirmButtonColor: '#FF4B2B'
+      });
     }
   });
 });
