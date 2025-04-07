@@ -25,7 +25,9 @@ const orderSchema = new Schema({
     },
     price: {
       type: Number,
-      required: true
+      required: true,
+      get: v => Math.round(v), // Retrieve rounded value
+      set: v => Math.round(v), // Store rounded value
     }
   }],
   couponCode: {
@@ -34,15 +36,21 @@ const orderSchema = new Schema({
   },
   discount: {
     type: Number,
-    default: 0
+    default: 0,
+    get: v => Math.round(v), // Retrieve rounded value
+    set: v => Math.round(v), // Store rounded value
   },
   totalPrice: {
     type: Number,
-    default: 0
+    default: 0,
+    get: v => Math.round(v), // Retrieve rounded value
+    set: v => Math.round(v), // Store rounded value
   },
   finalAmount: {
     type: Number,
-    required: true
+    required: true,
+    get: v => Math.round(v), // Retrieve rounded value
+    set: v => Math.round(v), // Store rounded value
   },
   address: {
     type: Schema.Types.ObjectId,
@@ -84,6 +92,6 @@ const orderSchema = new Schema({
     type: String,
     default: null
   },
-});
+}, { toJSON: { getters: true } }); // Ensure getters are applied when converting to JSON
 
 module.exports = mongoose.models.Order || mongoose.model('Order', orderSchema);

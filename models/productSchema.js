@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const {Schema} = mongoose;
+const { Schema } = mongoose;
 
 const productSchema = new Schema({
     productName: {
@@ -23,16 +23,22 @@ const productSchema = new Schema({
     regularPrice: {
         type: Number,
         required: true,
+        get: v => Math.round(v),
+        set: v => Math.round(v),
     },
     salesPrice: {
         type: Number,
         required: true,
+        get: v => Math.round(v),
+        set: v => Math.round(v),
     },
     productOffer: {
         type: Number,
         default: 0,
+        get: v => Math.round(v),
+        set: v => Math.round(v),
     },
-    offerEndDate: {  // Added this field
+    offerEndDate: {  
         type: Date,
         default: null
     },
@@ -55,14 +61,14 @@ const productSchema = new Schema({
     },
     status: {
         type: String,
-        enum: ["Available", "out of stock", "Discontinued"],
+        enum: ["Available", "Out of Stock", "Discontinued"],
         default: "Available",
     }, 
     createdOn: {
         type: Date,
         default: Date.now,
     },
-}, {timestamps: true});
+}, { timestamps: true, toJSON: { getters: true } });
 
 const Product = mongoose.model("Product", productSchema);
 

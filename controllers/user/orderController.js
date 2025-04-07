@@ -137,22 +137,27 @@ const loadMyOrders = async (req, res, next) => {
       if (order.paymentStatus === 'failed') {
         orderStatus = STATUS_MAP['Failed'];
       }
+
+      const orderItems = Array.isArray(order.OrderItems) ? order.OrderItems : [];
+      const firstOrderItem = orderItems[0] || {};
+      const product = firstOrderItem.product || { productName: 'N/A', productImage: ['default.jpg'] };
+
       return {
         orderId: order.orderId,
-        product: order.OrderItems[0].product,
-        quantity: order.OrderItems.reduce((sum, item) => sum + item.quantity, 0),
-        totalAmount: order.finalAmount,
-        placedOn: order.createdOn.toLocaleString(),
+        product,
+        quantity: orderItems.reduce((sum, item) => sum + (item.quantity || 0), 0),
+        totalAmount: order.finalAmount || 0,
+        placedOn: order.createdOn ? order.createdOn.toLocaleString() : 'N/A',
         status: orderStatus,
-        paymentStatus: order.paymentStatus,
-        paymentMethod: order.paymentMethod,
+        paymentStatus: order.paymentStatus || 'N/A',
+        paymentMethod: order.paymentMethod || 'N/A',
         cancellation_reason: order.cancellation_reason,
         return_reason: order.return_reason
       };
     });
 
-    console.log('User data passed to template:', user); // Debug log
-    res.render("myOrder", {
+    console.log('User data passed to template:', user);
+    res.render("myOrder", { // Updated to match views/user/myOrder.ejs
       orders: formattedOrders,
       currentPage: page,
       totalPages: Math.ceil(totalOrders / ORDERS_PER_PAGE),

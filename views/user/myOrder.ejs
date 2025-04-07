@@ -46,7 +46,7 @@
         <div class="order-card">
           <div class="order-header">
             <div>
-              <h3><%= order.product.productName %></h3>
+              <h3><%= order.product.productName || 'N/A' %></h3>
               <p><i class="fas fa-hashtag"></i> Order #<%= order.orderId %></p>
               <p><i class="fas fa-calendar-alt"></i> Placed on: <%= order.placedOn %></p>
               <p><i class="fas fa-box"></i> Total Quantity: <%= order.quantity %></p>
@@ -86,8 +86,7 @@
             </div>
           </div>
           <div class="order-details">
-            <img src="/uploads/re-image/<%= order.product.productImage[0] || 'default.jpg' %>" alt="<%= order.product.productName %>" class="product-image">
-            <div class="product-info">
+            <img src="/uploads/re-image/<%= order.product.productImage && order.product.productImage[0] ? order.product.productImage[0] : 'default.jpg' %>" alt="<%= order.product.productName || 'N/A' %>" class="product-image">            <div class="product-info">
               <div class="status-tracker">
                 <div class="status-line <%= order.status >= 2 ? 'active' : '' %>"></div>
                 <% if (order.paymentStatus === 'failed' || (order.paymentMethod === 'razorpay' && order.status === 1 && order.paymentStatus === 'pending')) { %>

@@ -280,8 +280,9 @@ const placeOrder = async (req, res, next) => {
 
     if (paymentMethod === "razorpay") {
       try {
+        const roundedFinalAmount = Math.round(finalAmount); // Round to nearest integer
         const razorpayOrder = await razorpay.orders.create({
-          amount: finalAmount * 100,
+          amount: roundedFinalAmount * 100, // Use rounded amount
           currency: "INR",
           receipt: order.orderId,
         });
@@ -324,6 +325,12 @@ const placeOrder = async (req, res, next) => {
     await Cart.updateOne({ userId }, { $set: { products: [] } });
     res.json({
       success: true,
+      redirect: "/orderPlaced",
+      order: {
+        orderId: order.orderId,
+        totalAmount: order.finalAmount,
+        placedAt: order.createdOn,
+      },
     });
   } catch (error) {
     next(error);
@@ -378,6 +385,7 @@ const verifyPayment = async (req, res, next) => {
   }
 };
 
+
 const getOrderFailurePage = async (req, res, next) => {
   try {
     const { message, orderId, totalAmount } = req.query;
@@ -420,8 +428,9 @@ const retryPayment = async (req, res, next) => {
       await order.save();
     }
 
+    const roundedFinalAmount = Math.round(order.finalAmount); // Round to nearest integer
     const razorpayOrder = await razorpay.orders.create({
-      amount: order.finalAmount * 100,
+      amount: roundedFinalAmount * 100, // Use rounded amount
       currency: "INR",
       receipt: order.orderId,
     });
@@ -441,7 +450,6 @@ const retryPayment = async (req, res, next) => {
     next(error);
   }
 };
-
 const verifyRetryPayment = async (req, res, next) => {
   try {
     const { razorpay_payment_id, razorpay_order_id, razorpay_signature, orderId } = req.body;
@@ -535,6 +543,7 @@ const paymentFailed = async (req, res, next) => {
     next(error);
   }
 };
+
 
 module.exports = {
   getCartPage,
