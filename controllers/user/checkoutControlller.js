@@ -34,7 +34,11 @@ const getCheckoutPage = async (req, res) => {
       return res.redirect("/cart");
     }
 
-    const cartSubtotal = cartItems.reduce((sum, item) => sum + (item.productDetails?.salesPrice || 0) * item.quantity, 0);
+    // Calculate totals using finalPrice and separate inherent discount
+    const cartSubtotal = cartItems.reduce((sum, item) => sum + (item.productDetails.regularPrice * item.quantity), 0);
+    const cartDiscount = cartItems.reduce((sum, item) => sum + (item.discount * item.quantity), 0);
+    const finalAmountBeforeCoupon = cartSubtotal - cartDiscount;
+
     const wallet = await Wallet.findOne({ user: userId });
     const walletBalance = wallet ? wallet.balance : 0;
 
@@ -55,8 +59,9 @@ const getCheckoutPage = async (req, res) => {
       user: req.user,
       addresses,
       cartItems,
-      cartSubtotal,
-      finalAmount: cartSubtotal,
+      cartSubtotal: Math.round(cartSubtotal),
+      cartDiscount: Math.round(cartDiscount), // Separate cart discount
+      finalAmount: Math.round(finalAmountBeforeCoupon), // Before coupon
       walletBalance,
       coupons: availableCoupons,
       error: req.session.error || null,
@@ -100,7 +105,10 @@ async function getCartDataForUser(userId) {
           console.warn(`Cart item has no productId: ${JSON.stringify(product)}`);
           return null;
         }
-        const productDetails = await Product.findById(product.productId).lean();
+        const productDetails = await Product.findById(product.productId)
+          .populate("category")
+          .populate("brand")
+          .lean();
         if (!productDetails) {
           console.warn(`Product not found for ID: ${product.productId}`);
           return null;
@@ -111,11 +119,41 @@ async function getCartDataForUser(userId) {
           Brand.findById(productDetails.brand).lean()
         ]);
 
+        const regularPrice = productDetails.regularPrice || 0;
+        const salesPrice = productDetails.salesPrice || regularPrice;
+        const productOffer = productDetails.productOffer || 0;
+        const categoryOffer = categoryDetails?.categoryOffer || 0;
+        const quantity = product.quantity;
+
+        let finalPrice = regularPrice;
+        let discount = 0;
+
+        // Same pricing logic as in cartController.js
+        if (productOffer === 0 && categoryOffer === 0 && salesPrice === regularPrice) {
+          finalPrice = regularPrice;
+          discount = 0;
+        } else if (productOffer === 0 && categoryOffer === 0 && salesPrice !== regularPrice) {
+          finalPrice = salesPrice;
+          discount = regularPrice - salesPrice;
+        } else if (productOffer > 0 || categoryOffer > 0) {
+          const offer = Math.max(productOffer, categoryOffer);
+          const offerDiscount = salesPrice * (offer / 100);
+          finalPrice = salesPrice - offerDiscount;
+          discount = regularPrice - finalPrice;
+        }
+
         return {
-          ...product.toObject(), // Convert Mongoose document to plain object
-          productDetails,
+          ...product.toObject(),
+          productDetails: {
+            ...productDetails,
+            regularPrice,
+            salesPrice,
+            finalPrice, // Add finalPrice to productDetails
+          },
           categoryDetails,
-          brandDetails
+          brandDetails,
+          quantity,
+          discount, // Add discount per item
         };
       })
     );
@@ -162,8 +200,10 @@ const placeOrder = async (req, res) => {
       return res.status(400).json({ success: false, error: "Quantity limit exceeded. Maximum 5 items per product allowed." });
     }
 
-    const finalAmount = cartItems.reduce((sum, item) => sum + (item.productDetails?.salesPrice || 0) * item.quantity, 0);
-    let discount = 0;
+    const subtotal = cartItems.reduce((sum, item) => sum + (item.productDetails.regularPrice * item.quantity), 0);
+    const cartDiscount = cartItems.reduce((sum, item) => sum + (item.discount * item.quantity), 0);
+    let finalAmount = subtotal - cartDiscount;
+    let couponDiscount = 0;
     let appliedCoupon = null;
 
     if (couponCode) {
@@ -193,7 +233,8 @@ const placeOrder = async (req, res) => {
         return res.status(400).json({ success: false, error: "You have reached your usage limit for this coupon" });
       }
 
-      discount = coupon.offerPrice;
+      couponDiscount = coupon.offerPrice;
+      finalAmount -= couponDiscount; // Reduce final amount by coupon discount
       coupon.usesCount += 1;
       if (userUse) {
         userUse.count += 1;
@@ -204,7 +245,7 @@ const placeOrder = async (req, res) => {
       appliedCoupon = coupon;
     }
 
-    const discountedAmount = finalAmount - discount;
+    const totalDiscount = cartDiscount + couponDiscount; // Total discount for order
     const selectedAddress = await Address.findById(addressId).lean();
 
     if (!selectedAddress || selectedAddress.userId.toString() !== userId.toString()) {
@@ -219,15 +260,15 @@ const placeOrder = async (req, res) => {
       OrderItems: cartItems.map(item => ({
         product: item.productDetails._id,
         quantity: item.quantity,
-        price: item.productDetails.salesPrice,
+        price: item.productDetails.finalPrice, // Use finalPrice for individual items
       })),
-      totalPrice: finalAmount,
-      finalAmount: discountedAmount,
+      totalPrice: subtotal, // Original subtotal before any discounts
+      finalAmount, // After all discounts (cart + coupon)
       address: addressId,
       status: paymentMethod === "razorpay" ? "Pending" : "Processing",
       paymentMethod,
       couponCode: couponCode || null,
-      discount,
+      discount: totalDiscount, // Total discount (cart + coupon)
     });
 
     await order.save();
@@ -248,7 +289,7 @@ const placeOrder = async (req, res) => {
     if (paymentMethod === "razorpay") {
       try {
         const razorpayOrder = await razorpay.orders.create({
-          amount: discountedAmount * 100,
+          amount: finalAmount * 100,
           currency: "INR",
           receipt: order.orderId,
         });
@@ -271,7 +312,7 @@ const placeOrder = async (req, res) => {
 
     if (paymentMethod === "wallet") {
       try {
-        await addWalletTransaction(userId, discountedAmount, "debit", `Payment for order #${order.orderId}`);
+        await addWalletTransaction(userId, finalAmount, "debit", `Payment for order #${order.orderId}`);
       } catch (error) {
         return res.status(400).json({ success: false, error: error.message });
       }
@@ -455,7 +496,7 @@ const verifyRetryPayment = async (req, res) => {
 
 const applyCoupon = async (req, res) => {
   try {
-    const { couponCode, subtotal } = req.body;
+    const { couponCode, subtotal } = req.body; // Subtotal here is the finalAmount before coupon
     const userId = req.user._id;
 
     const coupon = await Coupon.findOne({

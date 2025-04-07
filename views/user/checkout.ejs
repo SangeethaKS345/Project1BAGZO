@@ -152,39 +152,41 @@
             <h3 class="section__title">Cart Summary</h3>
             <div class="cart-items" id="cartItems">
               <% if (cartItems && cartItems.length > 0) { %>
-              <% cartItems.forEach((item, i) => { %>
-              <div class="cart-item">
-                <div class="item-image">
-                  <img src="/uploads/re-image/<%= item.productDetails.productImage[0] || 'default.jpg' %>" alt="<%= item.productDetails.productName || 'Product' %>">
-                </div>
-                <div class="item-details">
-                  <h3 class="item-name"><%= item.productDetails.productName || 'Unknown Product' %></h3>
-                  <p class="item-meta">
-                    <%= item.categoryDetails ? item.categoryDetails.name : 'Unknown Category' %> |
-                    <%= item.brandDetails ? item.brandDetails.brandName : 'Unknown Brand' %>
-                  </p>
-                  <div class="item-price">
-                    <span class="price-label">Price:</span>
-                    <span class="price-value">₹<%= item.productDetails.salesPrice || 0 %></span>
+                <% cartItems.forEach((item, i) => { %>
+                  <div class="cart-item">
+                    <div class="item-image">
+                      <img src="/uploads/re-image/<%= item.productDetails.productImage[0] || 'default.jpg' %>" alt="<%= item.productDetails.productName || 'Product' %>">
+                    </div>
+                    <div class="item-details">
+                      <h3 class="item-name"><%= item.productDetails.productName || 'Unknown Product' %></h3>
+                      <p class="item-meta">
+                        <%= item.categoryDetails ? item.categoryDetails.name : 'Unknown Category' %> |
+                        <%= item.brandDetails ? item.brandDetails.brandName : 'Unknown Brand' %>
+                      </p>
+                      <div class="item-price">
+                        <span class="price-label">Regular Price:</span>
+                        <span class="price-value">₹<%= Math.round(item.productDetails.regularPrice) %></span>
+                      </div>
+                      <div class="item-price">
+                        <span class="price-label">Final Price:</span>
+                        <span class="price-value">₹<%= Math.round(item.productDetails.finalPrice) %></span>
+                      </div>
+                      <div class="item-quantity">
+                        <span>Quantity: <%= item.quantity || 0 %></span>
+                      </div>
+                    </div>
                   </div>
-                  <div class="item-quantity">
-                    <span>Quantity: <%= item.quantity || 0 %></span>
-                  </div>
-                </div>
-                <div class="item-subtotal">
-                  <span class="subtotal-label">Subtotal:</span>
-                  <span class="subtotal-value">₹<%= (item.productDetails.salesPrice * item.quantity).toFixed(2) %></span>
-                </div>
-              </div>
-              <% }); %>
+                <% }); %>
               <% } else { %>
-              <div class="empty-cart">
-                <h2>Your Cart is Empty</h2>
-                <p>Please add items to your cart before checking out.</p>
-                <a href="/shop" class="shop-now-btn">Shop Now</a>
-              </div>
+                <div class="empty-cart">
+                  <h2>Your Cart is Empty</h2>
+                  <p>Please add items to your cart before checking out.</p>
+                  <a href="/shop" class="shop-now-btn">Shop Now</a>
+                </div>
               <% } %>
             </div>
+            
+            
 
             <div class="coupon-section">
               <h3 class="section__title">Apply Coupon</h3>
@@ -219,11 +221,15 @@
             <div class="order-summary">
               <div class="summary-row">
                 <span>Subtotal</span>
-                <span id="subtotal">₹<%= cartSubtotal.toFixed(2) %></span>
+                <span id="subtotal">₹<%= cartSubtotal %></span>
+              </div>
+              <div class="summary-row" id="cartDiscountRow" style="display: <%= cartDiscount > 0 ? 'flex' : 'none' %>;">
+                <span>Cart Discount</span>
+                <span id="cartDiscount">-₹<%= cartDiscount %></span>
               </div>
               <div class="summary-row" id="couponDiscountRow" style="display: none;">
                 <span>Coupon Discount</span>
-                <span id="couponDiscount">₹0.00</span>
+                <span id="couponDiscount">₹0</span>
               </div>
               <div class="summary-row">
                 <span>Shipping</span>
@@ -231,7 +237,7 @@
               </div>
               <div class="summary-row total">
                 <span>Total</span>
-                <span id="total">₹<%= finalAmount.toFixed(2) %></span>
+                <span id="total">₹<%= finalAmount %></span>
               </div>
             </div>
 
@@ -456,56 +462,57 @@
   }
 
   function applyCoupon() {
-    const couponCode = document.getElementById('couponCode').value.trim();
-    const subtotal = parseFloat(document.getElementById('subtotal').textContent.replace('₹', ''));
-    
-    if (!couponCode) {
-      document.getElementById('couponMessage').textContent = 'Please enter a coupon code';
-      return;
-    }
+  const couponCode = document.getElementById('couponCode').value.trim();
+  const subtotal = parseFloat(document.getElementById('total').textContent.replace('₹', '')); // Use current total (after cart discount)
 
-    fetch('/apply-coupon', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ couponCode, subtotal })
-    })
-    .then(response => response.json())
-    .then(data => {
-      const couponMessage = document.getElementById('couponMessage');
-      if (data.success) {
-        const discount = data.discount;
-        const finalAmount = subtotal - discount;
-        
-        document.getElementById('couponDiscount').textContent = `-₹${discount.toFixed(2)}`;
-        document.getElementById('couponDiscountRow').style.display = 'flex';
-        document.getElementById('total').textContent = `₹${finalAmount.toFixed(2)}`;
-        document.getElementById('couponMessage').textContent = 'Coupon applied successfully!';
-        document.getElementById('couponMessage').style.color = 'green';
-        document.getElementById('appliedCoupon').value = couponCode;
-        document.getElementById('couponCodeInput').value = couponCode;
-        updateCODAvailability(); // NEW: Recheck COD availability after coupon applied
-      } else {
-        couponMessage.textContent = data.message;
-        couponMessage.style.color = 'red';
-        resetCouponDisplay();
-      }
-    })
-    .catch(error => {
-      document.getElementById('couponMessage').textContent = 'Error applying coupon';
+  if (!couponCode) {
+    document.getElementById('couponMessage').textContent = 'Please enter a coupon code';
+    return;
+  }
+
+  fetch('/apply-coupon', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ couponCode, subtotal })
+  })
+  .then(response => response.json())
+  .then(data => {
+    const couponMessage = document.getElementById('couponMessage');
+    if (data.success) {
+      const discount = data.discount;
+      const currentTotal = parseFloat(document.getElementById('total').textContent.replace('₹', ''));
+      const finalAmount = currentTotal - discount;
+
+      document.getElementById('couponDiscount').textContent = `-₹${Math.round(discount)}`;
+      document.getElementById('couponDiscountRow').style.display = 'flex';
+      document.getElementById('total').textContent = `₹${Math.round(finalAmount)}`;
+      document.getElementById('couponMessage').textContent = 'Coupon applied successfully!';
+      document.getElementById('couponMessage').style.color = 'green';
+      document.getElementById('appliedCoupon').value = couponCode;
+      document.getElementById('couponCodeInput').value = couponCode;
+      updateCODAvailability(); // Recheck COD availability after coupon applied
+    } else {
+      couponMessage.textContent = data.message;
+      couponMessage.style.color = 'red';
       resetCouponDisplay();
-    });
-  }
+    }
+  })
+  .catch(error => {
+    document.getElementById('couponMessage').textContent = 'Error applying coupon';
+    resetCouponDisplay();
+  });
+}
 
-  function resetCouponDisplay() {
-    document.getElementById('couponDiscountRow').style.display = 'none';
-    document.getElementById('couponDiscount').textContent = '₹0.00';
-    document.getElementById('total').textContent = document.getElementById('subtotal').textContent;
-    document.getElementById('appliedCoupon').value = '';
-    document.getElementById('couponCodeInput').value = '';
-    updateCODAvailability(); // NEW: Recheck COD availability after reset
-  }
+function resetCouponDisplay() {
+  document.getElementById('couponDiscountRow').style.display = 'none';
+  document.getElementById('couponDiscount').textContent = '₹0';
+  document.getElementById('total').textContent = `₹<%= finalAmount %>`; // Reset to finalAmount before coupon
+  document.getElementById('appliedCoupon').value = '';
+  document.getElementById('couponCodeInput').value = '';
+  updateCODAvailability(); // Recheck COD availability after reset
+}
 
   document.getElementById('applyCouponBtn').addEventListener('click', applyCoupon);
 
