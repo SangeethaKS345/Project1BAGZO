@@ -1,150 +1,157 @@
 <head>
-  <%- include('../../views/partials/user/header') %>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <link rel="stylesheet" href="/css/shop.css" type="text/css">
-  <style>
-    .product-price .offer-percentage {
-        color: #e91e63;
-        font-size: 12px;
-        margin-left: 5px;
-    }
-    .product-badge {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        background-color: #e91e63;
-        color: white;
-        padding: 2px 8px;
-        border-radius: 3px;
-        font-size: 12px;
-    }
-</style>
-</head>
-
-<body>
-  <div class="main-container">
-    <section class="shop-page">
-      <div class="shop-topbar">
-        <form action="" method="GET" class="search-form" id="searchForm">
-          <input type="text" name="search" value="<%= query.search %>" placeholder="Search products..." class="search-input">
-          <button type="submit" class="search-button">Search</button>
-        </form>
-
-        <form action="" method="GET" id="sortForm">
-          <% if(query.category) { %>
-          <input type="hidden" name="category" value="<%= query.category %>">
-          <% } %>
-          <% if(query.brand) { %>
-          <input type="hidden" name="brand" value="<%= query.brand %>">
-          <% } %>
-          <% if(query.search) { %>
-          <input type="hidden" name="search" value="<%= query.search %>">
-          <% } %>
-
-          <select name="sort" class="sort-dropdown" onchange="document.getElementById('sortForm').submit()">
-            <option value="" <%= !query.sort ? 'selected' : '' %>>Sort By</option>
-            <option value="price-asc" <%= query.sort === 'price-asc' ? 'selected' : '' %>>Price: Low to High</option>
-            <option value="price-desc" <%= query.sort === 'price-desc' ? 'selected' : '' %>>Price: High to Low</option>
-            <option value="name-asc" <%= query.sort === 'name-asc' ? 'selected' : '' %>>Name: A to Z</option>
-            <option value="name-desc" <%= query.sort === 'name-desc' ? 'selected' : '' %>>Name: Z to A</option>
-          </select>
-        </form>
-      </div>
-
-      <div class="product-list-container">
-        <aside class="sidebar">
-          <a href="/shop" class="clear-filter-btn">
-            Clear All Filters
-          </a>
-          <!-- Categories -->
-          <div class="filter-section">
-            <h3 class="filter-title">Categories</h3>
-            <div class="filter-items">
-              <% categories.forEach(category => { %>
-              <div class="filter-item">
-                <a href="?category=<%= category._id %>&sort=<%= query.sort %>&search=<%= query.search %>">
-                  <%= category.name %>
-                </a>
-              </div>
-              <% }) %>
-            </div>
-          </div>
-
-          <!-- Brands -->
-          <div class="filter-section">
-            <h3 class="filter-title">Brands</h3>
-            <div class="filter-items">
-              <% brands.forEach(brand => { %>
-              <div class="filter-item">
-                <a href="?brand=<%= brand._id %>&sort=<%= query.sort %>&search=<%= query.search %>">
-                  <%= brand.brandName %>
-                </a>
-              </div>
-              <% }) %>
-            </div>
-          </div>
-
-          <!-- Price Range -->
-          <div class="filter-section">
-            <h3 class="filter-title">Price Range</h3>
-            <div class="price-filters">
-              <button type="button" class="price-button" onclick="filterPrice(0, 10000)">Under ₹10000</button>
-              <button type="button" class="price-button" onclick="filterPrice(10000, 50000)">₹10000 - ₹50000</button>
-              <button type="button" class="price-button" onclick="filterPrice(50000, 150000)">₹50000 - ₹150000</button>
-              <button type="button" class="price-button" onclick="filterPrice(150000, null)">Above ₹150000</button>
-            </div>
-          </div>
-        </aside>
-
-        <main class="product-grid">
-          <% if (products.length === 0) { %>
-          <div class="no-products">
-              <h3>No products found</h3>
-          </div>
-          <% } else { %>
-          <% products.forEach(product => { %>
-              <div class="product-card">
-                  <a href="/productDetails?id=<%= product._id %>">
-                      <img src="/uploads/re-image/<%= product.productImage[0] %>" alt="<%= product.productName %>">
-                      <div class="product-info">
-                          <h4 class="product-name"><%= product.productName %></h4>
-                          <p class="product-price">
-                              <% if(product.offerPercentage > 0) { %>
-                                  <span class="original-price">₹<%= product.regularPrice %></span>
-                                  <span class="sale-price">₹<%= product.effectivePrice %></span>
-                                  <span class="offer-percentage">(<%= product.offerPercentage %>% OFF)</span>
-                              <% } else if(product.regularPrice > product.salesPrice) { %>
-                                  <span class="original-price">₹<%= product.regularPrice %></span>
-                                  <span class="sale-price">₹<%= product.salesPrice %></span>
-                              <% } else { %>
-                                  <span class="sale-price">₹<%= product.regularPrice %></span>
-                              <% } %>
-                          </p>
-                      </div>
+    <%- include('../../views/partials/user/header') %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/css/shop.css" type="text/css">
+    <style>
+      .product-price .offer-percentage {
+          color: #e91e63;
+          font-size: 12px;
+          margin-left: 5px;
+      }
+      .product-badge {
+          position: absolute;
+          top: 10px;
+          left: 10px;
+          background-color: #e91e63;
+          color: white;
+          padding: 2px 8px;
+          border-radius: 3px;
+          font-size: 12px;
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div class="main-container">
+      <section class="shop-page">
+        <div class="shop-topbar">
+          <form action="" method="GET" class="search-form" id="searchForm">
+            <input type="text" name="search" value="<%= query.search %>" placeholder="Search products..." class="search-input">
+            <button type="submit" class="search-button">Search</button>
+          </form>
+  
+          <form action="" method="GET" id="sortForm">
+            <% if(query.category) { %>
+            <input type="hidden" name="category" value="<%= query.category %>">
+            <% } %>
+            <% if(query.brand) { %>
+            <input type="hidden" name="brand" value="<%= query.brand %>">
+            <% } %>
+            <% if(query.search) { %>
+            <input type="hidden" name="search" value="<%= query.search %>">
+            <% } %>
+            <select name="sort" class="sort-dropdown" onchange="document.getElementById('sortForm').submit()">
+              <option value="" <%= !query.sort ? 'selected' : '' %>>Sort By</option>
+              <option value="price-asc" <%= query.sort === 'price-asc' ? 'selected' : '' %>>Price: Low to High</option>
+              <option value="price-desc" <%= query.sort === 'price-desc' ? 'selected' : '' %>>Price: High to Low</option>
+              <option value="name-asc" <%= query.sort === 'name-asc' ? 'selected' : '' %>>Name: A to Z</option>
+              <option value="name-desc" <%= query.sort === 'name-desc' ? 'selected' : '' %>>Name: Z to A</option>
+            </select>
+          </form>
+        </div>
+  
+        <div class="product-list-container">
+          <aside class="sidebar">
+            <a href="/shop" class="clear-filter-btn">Clear All Filters</a>
+            <!-- Categories -->
+            <div class="filter-section">
+              <h3 class="filter-title">Categories</h3>
+              <div class="filter-items">
+                <% categories.forEach(category => { %>
+                <div class="filter-item">
+                  <a href="?category=<%= category._id %>&sort=<%= query.sort %>&search=<%= query.search %>">
+                    <%= category.name %>
                   </a>
-                  <% if(product.offerPercentage > 0) { %>
-                      <div class="product-badge">Offer</div>
-                  <% } else if(product.regularPrice > product.salesPrice) { %>
-                      <div class="product-badge">Sale</div>
-                  <% } %>
-                  <button class="add-to-cart-btn <%= product.quantity <= 0 ? 'out-of-stock' : '' %>" 
-                          onclick="addToCart('<%= product._id %>', <%= product.quantity %>, <%= product.isBlocked %>, <%= product.category.isListed %>, <%= product.brand.isBlocked %>)">
-                      <%= product.quantity <= 0 ? 'Out of Stock' : 'Add to Cart' %>
-                  </button>
-                  <button class="wishlist-btn" onclick="toggleWishlist('<%= product._id %>', this)" data-product-id="<%= product._id %>">
-                      <i class="fas fa-heart"></i>
-                  </button>
+                </div>
+                <% }) %>
               </div>
-          <% }) %>
-          <% } %>
-      </main>
-      </div>
-    </section>
-  </div>
-
-  <!-- ... Previous HTML content remains unchanged until the script section ... -->
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+            </div>
+  
+            <!-- Brands -->
+            <div class="filter-section">
+              <h3 class="filter-title">Brands</h3>
+              <div class="filter-items">
+                <% brands.forEach(brand => { %>
+                <div class="filter-item">
+                  <a href="?brand=<%= brand._id %>&sort=<%= query.sort %>&search=<%= query.search %>">
+                    <%= brand.brandName %>
+                  </a>
+                </div>
+                <% }) %>
+              </div>
+            </div>
+  
+            <!-- Price Range -->
+            <div class="filter-section">
+              <h3 class="filter-title">Price Range</h3>
+              <div class="price-filters">
+                <button type="button" class="price-button" onclick="filterPrice(0, 10000)">Under ₹10000</button>
+                <button type="button" class="price-button" onclick="filterPrice(10000, 50000)">₹10000 - ₹50000</button>
+                <button type="button" class="price-button" onclick="filterPrice(50000, 150000)">₹50000 - ₹150000</button>
+                <button type="button" class="price-button" onclick="filterPrice(150000, null)">Above ₹150000</button>
+              </div>
+            </div>
+          </aside>
+  
+          <main class="product-grid">
+            <% if (products.length === 0) { %>
+            <div class="no-products">
+                <h3>No products found</h3>
+            </div>
+            <% } else { %>
+            <% products.forEach(product => { %>
+                <div class="product-card">
+                    <div class="product-img-wrapper">
+                        <a href="/productDetails?id=<%= product._id %>">
+                            <div class="product-img">
+                                <img src="/uploads/re-image/<%= product.productImage[0] %>" 
+                                     alt="<%= product.productName %>"
+                                     class="primary-img">
+                                <% if(product.productImage[1]) { %>
+                                    <img src="/uploads/re-image/<%= product.productImage[1] %>" 
+                                         alt="<%= product.productName %>"
+                                         class="hover-img">
+                                <% } %>
+                            </div>
+                        </a>
+                        <% if(product.offerPercentage > 0) { %>
+                            <div class="product-badge">Offer</div>
+                        <% } else if(product.regularPrice > product.salesPrice) { %>
+                            <div class="product-badge">Sale</div>
+                        <% } %>
+                        <button class="wishlist-btn" onclick="toggleWishlist('<%= product._id %>', this)" 
+                                data-product-id="<%= product._id %>">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h4 class="product-name"><%= product.productName %></h4>
+                        <p class="product-price">
+                            <% if(product.offerPercentage > 0) { %>
+                                <span class="original-price">₹<%= product.regularPrice %></span>
+                                <span class="sale-price">₹<%= product.effectivePrice %></span>
+                                <span class="offer-percentage">(<%= product.offerPercentage %>% OFF)</span>
+                            <% } else if(product.regularPrice > product.salesPrice) { %>
+                                <span class="original-price">₹<%= product.regularPrice %></span>
+                                <span class="sale-price">₹<%= product.salesPrice %></span>
+                            <% } else { %>
+                                <span class="sale-price">₹<%= product.regularPrice %></span>
+                            <% } %>
+                        </p>
+                        <button class="add-to-cart-btn <%= product.quantity <= 0 ? 'out-of-stock' : '' %>" 
+                                onclick="addToCart('<%= product._id %>', <%= product.quantity %>, <%= product.isBlocked %>, <%= product.category.isListed %>, <%= product.brand.isBlocked %>)">
+                            <%= product.quantity <= 0 ? 'Out of Stock' : 'Add to Cart' %>
+                        </button>
+                    </div>
+                </div>
+            <% }) %>
+            <% } %>
+          </main>
+        </div>
+      </section>
+    </div>
+  
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     function filterPrice(min, max) {
         const currentUrl = new URL(window.location.href);
