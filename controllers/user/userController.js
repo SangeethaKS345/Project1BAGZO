@@ -88,7 +88,6 @@ const calculateEffectivePrice = (product, currentDate) => {
     };
 };
 
-// Controller functions
 const loadHomepage = async (req, res, next) => {
     console.log(req.session.user, "user session in loadHomepage");
     try {
@@ -104,7 +103,8 @@ const loadHomepage = async (req, res, next) => {
             brand: { $in: brand.map(brand => brand._id) }
         })
         .populate('category')
-        .sort({ createdAt: -1 });
+        .sort({ createdAt: -1 })
+        .limit(8); // Limit to 8 products
 
         const currentDate = new Date();
         const productsWithOffers = productData.map(product => calculateEffectivePrice(product, currentDate));
