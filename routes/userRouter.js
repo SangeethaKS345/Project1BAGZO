@@ -12,6 +12,7 @@ const checkoutController = require('../controllers/user/checkoutControlller');
 const walletController = require("../controllers/user/walletController");
 const orderController = require("../controllers/user/orderController");
 const wishlistController = require("../controllers/user/wishlistController");
+const contactController = require("../controllers/user/contactController");
 const { errorHandler } = require("../middlewares/errorHandler");
 
 // Error handling middleware
@@ -117,5 +118,8 @@ router.post('/wishlist/add/:productId([0-9a-fA-F]{24})', userAuth, wishlistContr
 router.delete('/wishlist/remove/:productId', userAuth, wishlistController.removeFromWishlist);
 router.get('/wishlist/check-status', userAuth, wishlistController.checkWishlistStatus);
 router.post('/wishlist/toggle/:productId([0-9a-fA-F]{24})', userAuth, wishlistController.toggleWishlist);
+
+// Contact Routes 
+router.get("/contact", contactController.loadContact);
 
 module.exports = router;
