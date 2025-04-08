@@ -24,7 +24,6 @@ const getFilters = (query) => {
             { 'category.name': searchRegex }, // Assumes category is populated
             { 'brand.brandName': searchRegex } // Assumes brand is populated
         ];
-        // Search by price range if the search term is numeric
         const searchNum = parseFloat(query.search);
         if (!isNaN(searchNum)) {
             filter.salesPrice = { $gte: searchNum * 0.9, $lte: searchNum * 1.1 }; // ±10% range
@@ -59,14 +58,12 @@ const calculateEffectivePrice = (product, currentDate) => {
     let offerPercentage = 0;
     let offerType = '';
 
-    // Check product-specific offer
     if (product.productOffer > 0 && (!product.offerEndDate || product.offerEndDate > currentDate)) {
         effectivePrice = product.regularPrice * (1 - product.productOffer / 100);
         offerPercentage = product.productOffer;
         offerType = 'product';
     }
 
-    // Check category offer if no product offer or if category offer is higher
     if (product.category?.categoryOffer > offerPercentage && (!product.category.offerEndDate || product.category.offerEndDate > currentDate)) {
         effectivePrice = product.regularPrice * (1 - product.category.categoryOffer / 100);
         offerPercentage = product.category.categoryOffer;
@@ -86,13 +83,18 @@ const loadShop = async (req, res, next) => {
         const userId = req.session.user;
         const userPromise = userId ? getUserData(userId) : Promise.resolve(null);
 
+        const page = parseInt(req.query.page) || 1;
+        const limit = 6; // 6 products per page (2 rows × 3 columns)
+        const skip = (page - 1) * limit;
+
         const query = {
             search: req.query.search || '',
             sort: req.query.sort || '',
             category: req.query.category || '',
             brand: req.query.brand || '',
             maxPrice: req.query.maxPrice || '',
-            minPrice: req.query.minPrice || ''
+            minPrice: req.query.minPrice || '',
+            page: page // Include page in query for EJS
         };
 
         const brandsPromise = Brand.find({ isBlocked: false });
@@ -109,17 +111,26 @@ const loadShop = async (req, res, next) => {
 
         const sortOptions = getSortOptions(query.sort);
 
+        // Get total count of products matching the filter
+        const totalProducts = await Product.countDocuments(filter);
+
         const productsData = await Product.find(filter)
             .populate('category')
             .populate('brand')
-            .sort(sortOptions);
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(limit);
 
         const currentDate = new Date();
         const products = productsData.map(product => calculateEffectivePrice(product, currentDate));
 
         // Handle AJAX request for live search
         if (req.xhr) {
-            return res.render('partials/product-grid', { products }); // No layout needed
+            return res.render('partials/product-grid', { 
+                products,
+                totalProducts,
+                query 
+            }); // Pass necessary data for pagination in partial
         }
 
         res.render('shop', {
@@ -128,7 +139,8 @@ const loadShop = async (req, res, next) => {
             brands,
             query,
             userData,
-            isLoggedIn: !!req.session.user
+            isLoggedIn: !!req.session.user,
+            totalProducts // Pass totalProducts to the view
         });
 
     } catch (error) {

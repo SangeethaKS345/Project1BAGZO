@@ -19,14 +19,14 @@
           font-size: 12px;
       }
     </style>
-  </head>
-  
-  <body>
+</head>
+
+<body>
     <div class="main-container">
       <section class="shop-page">
         <div class="shop-topbar">
           <form action="" method="GET" class="search-form" id="searchForm">
-            <input type="text" name="search" value="<%= query.search %>" placeholder="Search products..." class="search-input">
+            <input type="text" name="search" value="<%= query.search || '' %>" placeholder="Search products..." class="search-input">
             <button type="submit" class="search-button">Search</button>
           </form>
   
@@ -59,7 +59,7 @@
               <div class="filter-items">
                 <% categories.forEach(category => { %>
                 <div class="filter-item">
-                  <a href="?category=<%= category._id %>&sort=<%= query.sort %>&search=<%= query.search %>">
+                  <a href="?category=<%= category._id %>&sort=<%= query.sort || '' %>&search=<%= query.search || '' %>">
                     <%= category.name %>
                   </a>
                 </div>
@@ -73,7 +73,7 @@
               <div class="filter-items">
                 <% brands.forEach(brand => { %>
                 <div class="filter-item">
-                  <a href="?brand=<%= brand._id %>&sort=<%= query.sort %>&search=<%= query.search %>">
+                  <a href="?brand=<%= brand._id %>&sort=<%= query.sort || '' %>&search=<%= query.search || '' %>">
                     <%= brand.brandName %>
                   </a>
                 </div>
@@ -146,32 +146,51 @@
                 </div>
             <% }) %>
             <% } %>
+  
+            <!-- Pagination -->
+            <% if (products.length > 0 && totalProducts !== undefined) { %>
+            <div class="pagination">
+              <% const totalPages = Math.ceil(totalProducts / 6); %>
+              <% const currentPage = parseInt(query.page) || 1; %>
+              
+              <!-- Previous Button -->
+              <a href="<%= currentPage > 1 ? `/shop?page=${currentPage - 1}&sort=${query.sort || ''}&search=${query.search || ''}&category=${query.category || ''}&brand=${query.brand || ''}&minPrice=${query.minPrice || ''}&maxPrice=${query.maxPrice || ''}` : '#' %>" 
+                 class="page-link <%= currentPage === 1 ? 'disabled' : '' %>">
+                Previous
+              </a>
+  
+              <!-- Page Numbers -->
+              <% for(let i = 1; i <= totalPages; i++) { %>
+                <a href="/shop?page=<%= i %>&sort=<%= query.sort || '' %>&search=<%= query.search || '' %>&category=<%= query.category || '' %>&brand=<%= query.brand || '' %>&minPrice=<%= query.minPrice || '' %>&maxPrice=<%= query.maxPrice || '' %>" 
+                   class="page-link <%= currentPage === i ? 'active' : '' %>">
+                  <%= i %>
+                </a>
+              <% } %>
+  
+              <!-- Next Button -->
+              <a href="<%= currentPage < totalPages ? `/shop?page=${currentPage + 1}&sort=${query.sort || ''}&search=${query.search || ''}&category=${query.category || ''}&brand=${query.brand || ''}&minPrice=${query.minPrice || ''}&maxPrice=${query.maxPrice || ''}` : '#' %>" 
+                 class="page-link <%= currentPage === totalPages ? 'disabled' : '' %>">
+                Next
+              </a>
+            </div>
+            <% } %>
           </main>
         </div>
       </section>
     </div>
   
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-    function filterPrice(min, max) {
-        const currentUrl = new URL(window.location.href);
-        currentUrl.searchParams.set('minPrice', min);
-        if (max) {
-            currentUrl.searchParams.set('maxPrice', max);
-        } else {
-            currentUrl.searchParams.delete('maxPrice');
+    <script>
+        function filterPrice(min, max) {
+            const currentUrl = new URL(window.location.href);
+            currentUrl.searchParams.set('minPrice', min);
+            if (max) {
+                currentUrl.searchParams.set('maxPrice', max);
+            } else {
+                currentUrl.searchParams.delete('maxPrice');
+            }
+            window.location.href = currentUrl.toString();
         }
-
-        if (currentUrl.searchParams.get('sort')) {
-            currentUrl.searchParams.set('sort', currentUrl.searchParams.get('sort'));
-        }
-        if (currentUrl.searchParams.get('search')) {
-            currentUrl.searchParams.set('search', currentUrl.searchParams.get('search'));
-        }
-
-        window.location.href = currentUrl.toString();
-    }
-
     // Live Search Functionality
     let debounceTimer;
     async function liveSearch(searchTerm) {
