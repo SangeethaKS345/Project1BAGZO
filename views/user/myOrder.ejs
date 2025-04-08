@@ -4,7 +4,7 @@
 
   <!--=============== FLATICON ===============-->
   <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/2.0.0/uicons-regular-straight/css/uicons-regular-straight.css" />
-  
+
   <!--=============== FONT AWESOME ===============-->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
@@ -16,7 +16,7 @@
   <title>My Orders | BAGZO</title>
 
   <%- include('../../views/partials/user/header') %>
- 
+
 </head>
 
 <body>
@@ -30,149 +30,137 @@
       <li><a href="/my-orders" class="breadcrumb__link">My Orders</a></li>
     </ul>
   </section>
-  
+
   <div class="orders-container">
     <h2 class="section__title">My Orders</h2>
-    
+
     <% if (orders.length === 0) { %>
-      <div class="empty-orders">
-        <img src="/assets/img/empty-orders.svg" alt="No orders" class="empty-orders-img">
-        <h3>No Orders Found</h3>
-        <p>You haven't placed any orders yet</p>
-        <a href="/shop" class="btn btn-primary">Start Shopping</a>
-      </div>
+    <div class="empty-orders">
+      <img src="/assets/img/empty-orders.svg" alt="No orders" class="empty-orders-img">
+      <h3>No Orders Found</h3>
+      <p>You haven't placed any orders yet</p>
+      <a href="/shop" class="btn btn-primary">Start Shopping</a>
+    </div>
     <% } else { %>
-      <% orders.forEach(order => { %>
-        <div class="order-card">
-          <div class="order-header">
-            <div>
-              <h3>Order #<%= order.orderId %></h3>
-              <p><i class="fas fa-calendar-alt"></i> Placed on: <%= order.placedOn %></p>
-              <p><i class="fas fa-box"></i> Total Quantity: <%= order.totalQuantity %></p>
-              <p class="total-amount"><i class="fas fa-rupee-sign"></i> ₹<%= order.totalAmount %></p>
-            </div>
-            
-            <div>
-              <% if (order.status === 0) { %>
-                <button class="btn btn-secondary cancel-order-btn" data-order-id="<%= order.orderId %>" disabled>
-                  <i class="fas fa-ban"></i> Cancelled
-                </button>
-              <% } else if (order.cancellation_reason) { %>
-                <button class="btn btn-secondary cancel-order-btn" data-order-id="<%= order.orderId %>" disabled>
-                  <i class="fas fa-ban"></i> Cancelled
-                </button>
-              <% } else if (order.paymentStatus === 'failed' || (order.paymentMethod === 'razorpay' && order.status === 1 && order.paymentStatus === 'pending')) { %>
-                <button class="btn btn-warning pay-now-btn" data-order-id="<%= order.orderId %>">
-                  <i class="fas fa-redo"></i> Pay
-                </button>
-              <% } else if (order.status === 4 && !order.return_reason) { %>
-                <button class="btn btn-warning return-order-btn" data-order-id="<%= order.orderId %>">
-                  <i class="fas fa-undo"></i> Return Order
-                </button>
-              <% } else if (order.status === 5) { %>
-                <button class="btn btn-secondary return-order-btn" data-order-id="<%= order.orderId %>" disabled>
-                  <i class="fas fa-clock"></i> Return request in process
-                </button>
-              <% } else if (order.status === 6) { %>
-                <button class="btn btn-success return-order-btn" data-order-id="<%= order.orderId %>" disabled>
-                  <i class="fas fa-check-circle"></i> Returned
-                </button>
-              <% } else if (order.status < 4) { %>
-                <button class="btn btn-danger cancel-order-btn" data-order-id="<%= order.orderId %>">
-                  <i class="fas fa-times-circle"></i> Cancel Order
-                </button>
-              <% } %>
-            </div>
-          </div>
-          <div class="order-details">
-            <% order.products.forEach((product, index) => { %>
-              <div class="product-item" style="<%= index > 0 ? 'margin-top: 1rem;' : '' %>">
-                <img 
-                  src="/uploads/re-image/<%= product.productImage && product.productImage[0] ? product.productImage[0] : 'default.jpg' %>" 
-                  alt="<%= product.productName || 'N/A' %>" 
-                  class="product-image product-clickable" 
-                  data-product-id="<%= product._id %>"
-                >
-                <div class="product-info">
-                  <h4>
-                    <span 
-                      class="product-name product-clickable" 
-                      data-product-id="<%= product._id %>"
-                    >
-                      <%= product.productName || 'N/A' %>
-                    </span>
-                  </h4>
-                  <p>Quantity: <%= product.quantity %></p>
-                  <p>Price: ₹<%= product.price %></p>
-                </div>
-              </div>
-            <% }) %>
-            <div class="status-tracker">
-              <div class="status-line <%= order.status >= 2 ? 'active' : '' %>"></div>
-              <% if (order.paymentStatus === 'failed' || (order.paymentMethod === 'razorpay' && order.status === 1 && order.paymentStatus === 'pending')) { %>
-                <div class="status-step active">
-                  <div class="status-dot active"></div>
-                  <span>Failed</span>
-                </div>
-              <% } else { %>
-                <div class="status-step <%= order.status >= 1 ? 'active' : '' %>">
-                  <div class="status-dot <%= order.status >= 1 ? 'active' : '' %>"></div>
-                  <span>Order Placed</span>
-                </div>
-                <div class="status-step <%= order.status >= 2 ? 'active' : '' %>">
-                  <div class="status-dot <%= order.status >= 2 ? 'active' : '' %>"></div>
-                  <span>Processing</span>
-                </div>
-                <div class="status-step <%= order.status >= 3 ? 'active' : '' %>">
-                  <div class="status-dot <%= order.status >= 3 ? 'active' : '' %>"></div>
-                  <span>Shipped</span>
-                </div>
-                <div class="status-step <%= order.status >= 4 ? 'active' : '' %>">
-                  <div class="status-dot <%= order.status >= 4 ? 'active' : '' %>"></div>
-                  <span>Delivered</span>
-                </div>
-              <% } %>
-            </div>
-          </div>
-      
-          <div class="action-buttons">
-            <% order.products.forEach(product => { %>
-              <!-- <button class="btn btn-primary buy-again-btn" data-product-id="<%= product._id %>">
-                <i class="fas fa-shopping-cart"></i> Buy <%= product.productName %> Again
-              </button> -->
-            <% }) %>
-            <button 
-              class="btn btn-primary download-invoice-btn" 
-              data-order-id="<%= order.orderId %>"
-              <% if (order.paymentStatus === 'failed' || order.status === 0 || order.status === 6) { %>disabled<% } %>
-            >
-              <i class="fas fa-file-download"></i> Download Invoice
-            </button>
-            <button class="btn btn-info view-details-btn" data-order-id="<%= order.orderId %>">
-              <i class="fas fa-eye"></i> View Details
-            </button>
+    <% orders.forEach(order => { %>
+    <div class="order-card">
+      <div class="order-header">
+        <div>
+          <h3>Order #<%= order.orderId %></h3>
+          <p><i class="fas fa-calendar-alt"></i> Placed on: <%= order.placedOn %></p>
+          <p><i class="fas fa-box"></i> Total Quantity: <%= order.totalQuantity %></p>
+          <p class="total-amount"><i class="fas fa-rupee-sign"></i> ₹<%= order.totalAmount %></p>
+        </div>
+
+        <div>
+          <% if (order.status === 0) { %>
+          <button class="btn btn-secondary cancel-order-btn" data-order-id="<%= order.orderId %>" disabled>
+            <i class="fas fa-ban"></i> Cancelled
+          </button>
+          <% } else if (order.cancellation_reason) { %>
+          <button class="btn btn-secondary cancel-order-btn" data-order-id="<%= order.orderId %>" disabled>
+            <i class="fas fa-ban"></i> Cancelled
+          </button>
+          <% } else if (order.paymentStatus === 'failed' || (order.paymentMethod === 'razorpay' && order.status === 1 && order.paymentStatus === 'pending')) { %>
+          <button class="btn btn-warning pay-now-btn" data-order-id="<%= order.orderId %>">
+            <i class="fas fa-redo"></i> Pay
+          </button>
+          <% } else if (order.status === 4 && !order.return_reason) { %>
+          <button class="btn btn-warning return-order-btn" data-order-id="<%= order.orderId %>">
+            <i class="fas fa-undo"></i> Return Order
+          </button>
+          <% } else if (order.status === 5) { %>
+          <button class="btn btn-secondary return-order-btn" data-order-id="<%= order.orderId %>" disabled>
+            <i class="fas fa-clock"></i> Return request in process
+          </button>
+          <% } else if (order.status === 6) { %>
+          <button class="btn btn-success return-order-btn" data-order-id="<%= order.orderId %>" disabled>
+            <i class="fas fa-check-circle"></i> Returned
+          </button>
+          <% } else if (order.status < 4) { %>
+          <button class="btn btn-danger cancel-order-btn" data-order-id="<%= order.orderId %>">
+            <i class="fas fa-times-circle"></i> Cancel Order
+          </button>
+          <% } %>
+        </div>
+      </div>
+      <div class="order-details">
+        <% order.products.forEach((product, index) => { %>
+        <div class="product-item" style="<%= index > 0 ? 'margin-top: 1rem;' : '' %>">
+          <img src="/uploads/re-image/<%= product.productImage && product.productImage[0] ? product.productImage[0] : 'default.jpg' %>" alt="<%= product.productName || 'N/A' %>" class="product-image product-clickable" data-product-id="<%= product._id %>">
+          <div class="product-info">
+            <h4>
+              <span class="product-name product-clickable" data-product-id="<%= product._id %>">
+                <%= product.productName || 'N/A' %>
+              </span>
+            </h4>
+            <p>Quantity: <%= product.quantity %></p>
+            <p>Price: ₹<%= product.price %></p>
           </div>
         </div>
-      <% }) %>
-
-      <!-- Pagination -->
-      <div class="pagination">
-        <% if (currentPage > 1) { %>
-          <a href="/my-orders?page=<%= currentPage - 1 %>" class="pagination-btn">
-            <i class="fas fa-chevron-left"></i> Previous
-          </a>
-        <% } %>
-        
-        <% for(let i = 1; i <= totalPages; i++) { %>
-          <a href="/my-orders?page=<%= i %>" class="pagination-btn <%= currentPage === i ? 'active' : '' %>"><%= i %></a>
-        <% } %>
-        
-        <% if (currentPage < totalPages) { %>
-          <a href="/my-orders?page=<%= currentPage + 1 %>" class="pagination-btn">
-            Next <i class="fas fa-chevron-right"></i>
-          </a>
-        <% } %>
+        <% }) %>
+        <div class="status-tracker">
+          <div class="status-line <%= order.status >= 2 ? 'active' : '' %>"></div>
+          <% if (order.paymentStatus === 'failed' || (order.paymentMethod === 'razorpay' && order.status === 1 && order.paymentStatus === 'pending')) { %>
+          <div class="status-step active">
+            <div class="status-dot active"></div>
+            <span>Failed</span>
+          </div>
+          <% } else { %>
+          <div class="status-step <%= order.status >= 1 ? 'active' : '' %>">
+            <div class="status-dot <%= order.status >= 1 ? 'active' : '' %>"></div>
+            <span>Order Placed</span>
+          </div>
+          <div class="status-step <%= order.status >= 2 ? 'active' : '' %>">
+            <div class="status-dot <%= order.status >= 2 ? 'active' : '' %>"></div>
+            <span>Processing</span>
+          </div>
+          <div class="status-step <%= order.status >= 3 ? 'active' : '' %>">
+            <div class="status-dot <%= order.status >= 3 ? 'active' : '' %>"></div>
+            <span>Shipped</span>
+          </div>
+          <div class="status-step <%= order.status >= 4 ? 'active' : '' %>">
+            <div class="status-dot <%= order.status >= 4 ? 'active' : '' %>"></div>
+            <span>Delivered</span>
+          </div>
+          <% } %>
+        </div>
       </div>
+
+      <div class="action-buttons">
+        <% order.products.forEach(product => { %>
+        <!-- <button class="btn btn-primary buy-again-btn" data-product-id="<%= product._id %>">
+                <i class="fas fa-shopping-cart"></i> Buy <%= product.productName %> Again
+              </button> -->
+        <% }) %>
+        <button class="btn btn-primary download-invoice-btn" data-order-id="<%= order.orderId %>" <% if (order.paymentStatus === 'failed' || (order.paymentMethod === 'razorpay' && order.paymentStatus === 'pending') || order.status === 0 || order.status === 6) { %>disabled<% } %>>
+          <i class="fas fa-file-download"></i> Download Invoice
+        </button>
+        <button class="btn btn-info view-details-btn" data-order-id="<%= order.orderId %>">
+          <i class="fas fa-eye"></i> View Details
+        </button>
+      </div>
+    </div>
+    <% }) %>
+
+    <!-- Pagination -->
+    <div class="pagination">
+      <% if (currentPage > 1) { %>
+      <a href="/my-orders?page=<%= currentPage - 1 %>" class="pagination-btn">
+        <i class="fas fa-chevron-left"></i> Previous
+      </a>
+      <% } %>
+
+      <% for(let i = 1; i <= totalPages; i++) { %>
+      <a href="/my-orders?page=<%= i %>" class="pagination-btn <%= currentPage === i ? 'active' : '' %>"><%= i %></a>
+      <% } %>
+
+      <% if (currentPage < totalPages) { %>
+      <a href="/my-orders?page=<%= currentPage + 1 %>" class="pagination-btn">
+        Next <i class="fas fa-chevron-right"></i>
+      </a>
+      <% } %>
+    </div>
     <% } %>
   </div>
 
@@ -276,502 +264,550 @@
 <!-- Main script with all handlers -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-// Modal overlay
-const modalOverlay = document.getElementById('modalOverlay');
+  // Modal overlay
+  const modalOverlay = document.getElementById('modalOverlay');
 
-// Cancel Order Handler
-document.querySelectorAll('.cancel-order-btn').forEach(button => {
-  button.addEventListener('click', async (e) => {
-    const orderId = e.target.closest('.cancel-order-btn').getAttribute('data-order-id');
-    
-    const modal = document.getElementById('cancelOrderModal');
-    modal.style.display = 'block';
-    modalOverlay.style.display = 'block';
+  // Cancel Order Handler
+  document.querySelectorAll('.cancel-order-btn').forEach(button => {
+    button.addEventListener('click', async (e) => {
+      const orderId = e.target.closest('.cancel-order-btn').getAttribute('data-order-id');
 
-    const closeModal = () => {
-      modal.style.display = 'none';
-      modalOverlay.style.display = 'none';
-    };
+      const modal = document.getElementById('cancelOrderModal');
+      modal.style.display = 'block';
+      modalOverlay.style.display = 'block';
 
-    document.getElementById('closeModal').onclick = closeModal;
-    modalOverlay.onclick = closeModal;
+      const closeModal = () => {
+        modal.style.display = 'none';
+        modalOverlay.style.display = 'none';
+      };
 
-    document.getElementById('confirmCancel').onclick = async () => {
-      const cancellationReason = document.getElementById('cancellationReason').value.trim();
-      
-      if (!cancellationReason) {
-        Swal.fire('Error', 'Please provide a reason for cancellation.', 'error');
-        return;
-      }
+      document.getElementById('closeModal').onclick = closeModal;
+      modalOverlay.onclick = closeModal;
 
-      try {
-        const response = await fetch(`/cancel-order/${orderId}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cancellationReason })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-          Swal.fire({
-            title: 'Order Cancelled',
-            text: 'Your order has been successfully cancelled.',
-            icon: 'success',
-            confirmButtonColor: '#FF4B2B'
+      document.getElementById('confirmCancel').onclick = async () => {
+        const cancellationReason = document.getElementById('cancellationReason').value.trim();
+
+        if (!cancellationReason) {
+          Swal.fire('Error', 'Please provide a reason for cancellation.', 'error');
+          return;
+        }
+
+        try {
+          const response = await fetch(`/cancel-order/${orderId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              cancellationReason
+            })
           });
-          
-          const buttonToUpdate = document.querySelector(`.cancel-order-btn[data-order-id="${orderId}"]`);
-          if (buttonToUpdate) {
-            buttonToUpdate.innerHTML = '<i class="fas fa-ban"></i> Cancelled';
-            buttonToUpdate.disabled = true;
-            buttonToUpdate.classList.remove('btn-danger');
-            buttonToUpdate.classList.add('btn-secondary');
+
+          const data = await response.json();
+
+          if (data.success) {
+            Swal.fire({
+              title: 'Order Cancelled',
+              text: 'Your order has been successfully cancelled.',
+              icon: 'success',
+              confirmButtonColor: '#FF4B2B'
+            });
+
+            const buttonToUpdate = document.querySelector(`.cancel-order-btn[data-order-id="${orderId}"]`);
+            if (buttonToUpdate) {
+              buttonToUpdate.innerHTML = '<i class="fas fa-ban"></i> Cancelled';
+              buttonToUpdate.disabled = true;
+              buttonToUpdate.classList.remove('btn-danger');
+              buttonToUpdate.classList.add('btn-secondary');
+            }
+
+            closeModal();
+          } else {
+            Swal.fire('Error', data.message || 'Failed to cancel order', 'error');
           }
-          
-          closeModal();
-        } else {
-          Swal.fire('Error', data.message || 'Failed to cancel order', 'error');
+        } catch (error) {
+          console.error('Error:', error);
+          Swal.fire('Error', 'Something went wrong', 'error');
         }
-      } catch (error) {
-        console.error('Error:', error);
-        Swal.fire('Error', 'Something went wrong', 'error');
-      }
-    };
+      };
+    });
   });
-});
 
-// Return Order Handling
-document.querySelectorAll('.return-order-btn').forEach(button => {
-  button.addEventListener('click', async (e) => {
-    const orderId = e.target.closest('.return-order-btn').getAttribute('data-order-id');
-    
-    const modal = document.getElementById('returnOrderModal');
-    modal.style.display = 'block';
-    modalOverlay.style.display = 'block';
+  // Return Order Handling
+  document.querySelectorAll('.return-order-btn').forEach(button => {
+    button.addEventListener('click', async (e) => {
+      const orderId = e.target.closest('.return-order-btn').getAttribute('data-order-id');
 
-    const closeModal = () => {
-      modal.style.display = 'none';
-      modalOverlay.style.display = 'none';
-    };
+      const modal = document.getElementById('returnOrderModal');
+      modal.style.display = 'block';
+      modalOverlay.style.display = 'block';
 
-    document.getElementById('closeReturnModal').onclick = closeModal;
-    modalOverlay.onclick = closeModal;
+      const closeModal = () => {
+        modal.style.display = 'none';
+        modalOverlay.style.display = 'none';
+      };
 
-    document.getElementById('confirmReturn').onclick = async () => {
-      const returnReason = document.getElementById('returnReason').value.trim();
-      
-      if (!returnReason) {
-        Swal.fire('Error', 'Please provide a reason for return.', 'error');
-        return;
+      document.getElementById('closeReturnModal').onclick = closeModal;
+      modalOverlay.onclick = closeModal;
+
+      document.getElementById('confirmReturn').onclick = async () => {
+        const returnReason = document.getElementById('returnReason').value.trim();
+
+        if (!returnReason) {
+          Swal.fire('Error', 'Please provide a reason for return.', 'error');
+          return;
+        }
+
+        try {
+          const response = await fetch(`/return-order/${orderId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              returnReason
+            })
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            Swal.fire({
+              title: 'Return Requested',
+              text: 'Your return request has been successfully submitted.',
+              icon: 'success',
+              confirmButtonColor: '#FF4B2B'
+            });
+
+            button.innerHTML = '<i class="fas fa-clock"></i> Return Request In Process';
+            button.disabled = true;
+            button.classList.replace('btn-warning', 'btn-secondary');
+
+            closeModal();
+          } else {
+            Swal.fire('Error', data.message || 'Failed to process return request', 'error');
+          }
+        } catch (error) {
+          console.error('Return Order Error:', error);
+          Swal.fire('Error', 'Something went wrong', 'error');
+        }
+      };
+    });
+  });
+
+  // Buy Again Handler
+  document.querySelectorAll('.buy-again-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+      const productId = e.target.closest('.buy-again-btn').getAttribute('data-product-id');
+      if (productId) {
+        window.location.href = `/productDetails?id=${productId}`;
+      } else {
+        Swal.fire({
+          title: 'Error',
+          text: 'Product ID not found',
+          icon: 'error',
+          confirmButtonColor: '#FF4B2B'
+        });
       }
+    });
+  });
+
+
+  // Download Invoice Handler
+  document.querySelectorAll('.download-invoice-btn').forEach(button => {
+    button.addEventListener('click', async (e) => {
+      const orderId = e.target.closest('.download-invoice-btn').getAttribute('data-order-id');
 
       try {
-        const response = await fetch(`/return-order/${orderId}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ returnReason })
+        const response = await fetch(`/download-invoice/${orderId}`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/pdf'
+          }
         });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-          Swal.fire({
-            title: 'Return Requested',
-            text: 'Your return request has been successfully submitted.',
-            icon: 'success',
-            confirmButtonColor: '#FF4B2B'
-          });
-          
-          button.innerHTML = '<i class="fas fa-clock"></i> Return Request In Process';
-          button.disabled = true;
-          button.classList.replace('btn-warning', 'btn-secondary');
-          
-          closeModal();
-        } else {
-          Swal.fire('Error', data.message || 'Failed to process return request', 'error');
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to download invoice');
         }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `invoice_${orderId}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
       } catch (error) {
-        console.error('Return Order Error:', error);
-        Swal.fire('Error', 'Something went wrong', 'error');
+        console.error('Error downloading invoice:', error);
+        Swal.fire({
+          title: 'Error',
+          text: error.message || 'Failed to download invoice. Please try again.',
+          icon: 'error',
+          confirmButtonColor: '#FF4B2B'
+        });
       }
-    };
+    });
   });
-});
 
-// Buy Again Handler
-document.querySelectorAll('.buy-again-btn').forEach(button => {
-  button.addEventListener('click', (e) => {
-    const productId = e.target.closest('.buy-again-btn').getAttribute('data-product-id');
-    if (productId) {
-      window.location.href = `/productDetails?id=${productId}`;
-    } else {
-      Swal.fire({
-        title: 'Error',
-        text: 'Product ID not found',
-        icon: 'error',
-        confirmButtonColor: '#FF4B2B'
-      });
-    }
-  });
-});
+  // View Details Handler (modal)
+  document.querySelectorAll('.view-details-btn').forEach(button => {
+    button.addEventListener('click', async (e) => {
+      const orderId = e.target.closest('.view-details-btn').getAttribute('data-order-id');
+      const modal = document.getElementById('orderDetailsModal');
+      const overlay = document.getElementById('modalOverlay');
+      const repayButton = document.getElementById('repayButton');
 
-// Download Invoice Handler
-// Download Invoice Handler
-document.querySelectorAll('.download-invoice-btn').forEach(button => {
-  button.addEventListener('click', async (e) => {
-    const orderId = e.target.closest('.download-invoice-btn').getAttribute('data-order-id');
-    
-    try {
-      const response = await fetch(`/download-invoice/${orderId}`, {
-        method: 'GET',
-        headers: { 'Accept': 'application/pdf' }
-      });
+      modal.style.display = 'block';
+      overlay.style.display = 'block';
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to download invoice');
-      }
+      try {
+        const response = await fetch(`/order-details/${orderId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        const data = await response.json();
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `invoice_${orderId}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Error downloading invoice:', error);
-      Swal.fire({
-        title: 'Error',
-        text: error.message || 'Failed to download invoice. Please try again.',
-        icon: 'error',
-        confirmButtonColor: '#FF4B2B'
-      });
-    }
-  });
-});
+        if (data.success) {
+          const order = data.order;
 
-// View Details Handler (modal)
-document.querySelectorAll('.view-details-btn').forEach(button => {
-  button.addEventListener('click', async (e) => {
-    const orderId = e.target.closest('.view-details-btn').getAttribute('data-order-id');
-    const modal = document.getElementById('orderDetailsModal');
-    const overlay = document.getElementById('modalOverlay');
-    const repayButton = document.getElementById('repayButton');
+          // Populate modal fields (unchanged)
+          document.getElementById('modal-order-id').textContent = order.orderId || 'N/A';
+          document.getElementById('modal-order-date').textContent = order.orderDate ? new Date(order.orderDate).toLocaleString() : 'N/A';
+          document.getElementById('modal-payment-method').textContent = order.paymentMethod || 'N/A';
+          document.getElementById('modal-total-amount').textContent = order.finalAmount ? `₹${order.finalAmount}` : 'N/A';
+          document.getElementById('modal-customer-name').textContent = order.userName || 'N/A';
+          document.getElementById('modal-customer-email').textContent = order.userEmail || 'N/A';
+          document.getElementById('modal-shipping-name').textContent = order.shippingAddress?.name || 'N/A';
+          document.getElementById('modal-shipping-house-no').textContent = order.shippingAddress?.houseNo || 'N/A';
+          document.getElementById('modal-shipping-landmark').textContent = order.shippingAddress?.landMark || 'N/A';
+          document.getElementById('modal-shipping-city').textContent = order.shippingAddress?.city || 'N/A';
+          document.getElementById('modal-shipping-state').textContent = order.shippingAddress?.state || 'N/A';
+          document.getElementById('modal-shipping-pincode').textContent = order.shippingAddress?.pincode || 'N/A';
+          document.getElementById('modal-shipping-phone').textContent = order.shippingAddress?.phone || 'N/A';
+          document.getElementById('modal-shipping-alt-phone').textContent = order.shippingAddress?.altPhone || 'N/A';
 
-    modal.style.display = 'block';
-    overlay.style.display = 'block';
-
-    try {
-      const response = await fetch(`/order-details/${orderId}`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      const data = await response.json();
-
-      if (data.success) {
-        const order = data.order;
-
-        // Populate modal fields (unchanged)
-        document.getElementById('modal-order-id').textContent = order.orderId || 'N/A';
-        document.getElementById('modal-order-date').textContent = order.orderDate ? new Date(order.orderDate).toLocaleString() : 'N/A';
-        document.getElementById('modal-payment-method').textContent = order.paymentMethod || 'N/A';
-        document.getElementById('modal-total-amount').textContent = order.finalAmount ? `₹${order.finalAmount}` : 'N/A';
-        document.getElementById('modal-customer-name').textContent = order.userName || 'N/A';
-        document.getElementById('modal-customer-email').textContent = order.userEmail || 'N/A';
-        document.getElementById('modal-shipping-name').textContent = order.shippingAddress?.name || 'N/A';
-        document.getElementById('modal-shipping-house-no').textContent = order.shippingAddress?.houseNo || 'N/A';
-        document.getElementById('modal-shipping-landmark').textContent = order.shippingAddress?.landMark || 'N/A';
-        document.getElementById('modal-shipping-city').textContent = order.shippingAddress?.city || 'N/A';
-        document.getElementById('modal-shipping-state').textContent = order.shippingAddress?.state || 'N/A';
-        document.getElementById('modal-shipping-pincode').textContent = order.shippingAddress?.pincode || 'N/A';
-        document.getElementById('modal-shipping-phone').textContent = order.shippingAddress?.phone || 'N/A';
-        document.getElementById('modal-shipping-alt-phone').textContent = order.shippingAddress?.altPhone || 'N/A';
-
-        const itemsTable = document.getElementById('modal-order-items').getElementsByTagName('tbody')[0];
-        itemsTable.innerHTML = '';
-        let items = order.orderedItems || [];
-        if (items.length > 0) {
-          items.forEach((item) => {
-            const productName = item.product?.productName || 'N/A';
-            const price = item.price || 0;
-            const quantity = item.quantity || 0;
-            const total = item.total || (price * quantity) || 0;
-            const row = document.createElement('tr');
-            row.innerHTML = `
+          const itemsTable = document.getElementById('modal-order-items').getElementsByTagName('tbody')[0];
+          itemsTable.innerHTML = '';
+          let items = order.orderedItems || [];
+          if (items.length > 0) {
+            items.forEach((item) => {
+              const productName = item.product?.productName || 'N/A';
+              const price = item.price || 0;
+              const quantity = item.quantity || 0;
+              const total = item.total || (price * quantity) || 0;
+              const row = document.createElement('tr');
+              row.innerHTML = `
               <td>${productName}</td>
               <td>₹${price}</td>
               <td>${quantity}</td>
               <td>₹${total}</td>
             `;
+              itemsTable.appendChild(row);
+            });
+          } else {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td colspan="4">No item details available</td>`;
             itemsTable.appendChild(row);
-          });
-        } else {
-          const row = document.createElement('tr');
-          row.innerHTML = `<td colspan="4">No item details available</td>`;
-          itemsTable.appendChild(row);
-        }
+          }
 
-        // Handle repayment button
-        if (order.paymentStatus === 'failed' && order.paymentMethod === 'razorpay') {
-          repayButton.style.display = 'inline-block';
-          repayButton.onclick = async () => {
-            try {
-              const response = await fetch(`/retry-payment/${order.orderId}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-              });
-
-              if (!response.ok) {
-                throw new Error('Failed to initiate payment retry');
-              }
-
-              const data = await response.json();
-              if (data.success) {
-                const options = {
-                  key: data.key,
-                  amount: data.amount,
-                  currency: 'INR',
-                  name: 'BAGZO',
-                  description: `Retry Payment for Order #${order.orderId}`,
-                  order_id: data.razorpayOrderId,
-                  handler: async function (response) {
-                    const verifyResponse = await fetch('/verify-payment', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        orderId: data.orderId,
-                        razorpay_payment_id: response.razorpay_payment_id,
-                        razorpay_order_id: response.razorpay_order_id,
-                        razorpay_signature: response.razorpay_signature
-                      })
-                    });
-                    const verifyData = await verifyResponse.json();
-                    if (verifyData.success) {
-                      Swal.fire('Success', 'Payment completed successfully!', 'success')
-                        .then(() => window.location.reload());
-                    } else {
-                      Swal.fire('Error', verifyData.error || 'Payment verification failed', 'error');
-                    }
-                  },
-                  prefill: {
-                    name: userData.name,
-                    email: userData.email,
-                    contact: userData.phone
-                  },
-                  theme: {
-                    color: '#FF4B2B'
-                  },
-                  modal: {
-                    ondismiss: async function () {
-                      await fetch('/payment-failed', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ orderId: data.orderId })
-                      });
-                    }
+          // Handle repayment button
+          if (order.paymentStatus === 'failed' && order.paymentMethod === 'razorpay') {
+            repayButton.style.display = 'inline-block';
+            repayButton.onclick = async () => {
+              try {
+                const response = await fetch(`/retry-payment/${order.orderId}`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
                   }
-                };
-                const rzp = new Razorpay(options);
-                rzp.open();
-              } else {
-                Swal.fire('Error', data.error || 'Failed to initiate payment retry', 'error');
+                });
+
+                if (!response.ok) {
+                  throw new Error('Failed to initiate payment retry');
+                }
+
+                const data = await response.json();
+                if (data.success) {
+                  const options = {
+                    key: data.key,
+                    amount: data.amount,
+                    currency: 'INR',
+                    name: 'BAGZO',
+                    description: `Retry Payment for Order #${order.orderId}`,
+                    order_id: data.razorpayOrderId,
+                    handler: async function(response) {
+                      const verifyResponse = await fetch('/verify-payment', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                          orderId: data.orderId,
+                          razorpay_payment_id: response.razorpay_payment_id,
+                          razorpay_order_id: response.razorpay_order_id,
+                          razorpay_signature: response.razorpay_signature
+                        })
+                      });
+                      const verifyData = await verifyResponse.json();
+                      if (verifyData.success) {
+                        Swal.fire('Success', 'Payment completed successfully!', 'success')
+                          .then(() => window.location.reload());
+                      } else {
+                        Swal.fire('Error', verifyData.error || 'Payment verification failed', 'error');
+                      }
+                    },
+                    prefill: {
+                      name: userData.name,
+                      email: userData.email,
+                      contact: userData.phone
+                    },
+                    theme: {
+                      color: '#FF4B2B'
+                    },
+                    modal: {
+                      ondismiss: async function() {
+                        await fetch('/payment-failed', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json'
+                          },
+                          body: JSON.stringify({
+                            orderId: data.orderId
+                          })
+                        });
+                      }
+                    }
+                  };
+                  const rzp = new Razorpay(options);
+                  rzp.open();
+                } else {
+                  Swal.fire('Error', data.error || 'Failed to initiate payment retry', 'error');
+                }
+              } catch (error) {
+                console.error('Repayment error:', error);
+                Swal.fire('Error', 'Something went wrong during repayment', 'error');
               }
-            } catch (error) {
-              console.error('Repayment error:', error);
-              Swal.fire('Error', 'Something went wrong during repayment', 'error');
-            }
-          };
+            };
+          } else {
+            repayButton.style.display = 'none';
+          }
         } else {
-          repayButton.style.display = 'none';
-        }
-      } else {
-        Swal.fire('Error', data.message || 'Failed to load order details', 'error');
-      }
-    } catch (error) {
-      console.error('Error fetching order details:', error);
-      Swal.fire('Error', 'Something went wrong', 'error');
-    }
-
-    document.getElementById('closeOrderModal').onclick = () => {
-      modal.style.display = 'none';
-      overlay.style.display = 'none';
-    };
-    overlay.onclick = () => {
-      modal.style.display = 'none';
-      overlay.style.display = 'none';
-    };
-  });
-});
-
-
-
-// Razorpay Payment Function
-function initiateRazorpayPayment(orderId, amount) {
-  const options = {
-    key: 'YOUR_RAZORPAY_KEY', // Replace with your Razorpay key
-    amount: amount * 100,
-    currency: 'INR',
-    name: 'BAGZO',
-    description: `Payment for Order #${orderId}`,
-    order_id: orderId,
-    handler: async function (response) {
-      try {
-        const verifyResponse = await fetch('/verify-payment', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            orderId,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_signature: response.razorpay_signature
-          })
-        });
-        const verifyData = await verifyResponse.json();
-        if (verifyData.success) {
-          Swal.fire('Success', 'Payment completed successfully!', 'success');
-          window.location.reload();
-        } else {
-          Swal.fire('Error', 'Payment verification failed', 'error');
+          Swal.fire('Error', data.message || 'Failed to load order details', 'error');
         }
       } catch (error) {
-        Swal.fire('Error', 'Payment processing failed', 'error');
+        console.error('Error fetching order details:', error);
+        Swal.fire('Error', 'Something went wrong', 'error');
       }
-    },
-    prefill: {
-      name: userData.name,
-      email: userData.email,
-      contact: userData.phone
-    },
-    theme: {
-      color: '#FF4B2B'
-    },
-    modal: {
-      ondismiss: async function () {
+
+      document.getElementById('closeOrderModal').onclick = () => {
+        modal.style.display = 'none';
+        overlay.style.display = 'none';
+      };
+      overlay.onclick = () => {
+        modal.style.display = 'none';
+        overlay.style.display = 'none';
+      };
+    });
+  });
+
+
+
+  // Razorpay Payment Function
+  function initiateRazorpayPayment(orderId, amount, razorpayOrderId, key) {
+    const options = {
+      key: key, // Razorpay Key ID from the server
+      amount: amount, // Amount in paise (e.g., 50000 for ₹500)
+      currency: "INR",
+      name: "Your Company Name",
+      description: "Order Payment",
+      order_id: razorpayOrderId, // Razorpay order ID from the server
+      handler: async function(response) {
+        // Payment success callback
+        try {
+          const paymentData = {
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_signature: response.razorpay_signature,
+            orderId: orderId
+          };
+          const verifyResponse = await fetch('/verify-payment', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(paymentData)
+          });
+          const result = await verifyResponse.json();
+          if (result.success) {
+            window.location.href = result.redirect; // Redirect to order confirmation page
+          } else {
+            Swal.fire('Error', 'Payment verification failed', 'error');
+          }
+        } catch (error) {
+          console.error('Payment verification error:', error);
+          Swal.fire('Error', 'Something went wrong during verification', 'error');
+        }
+      },
+      prefill: {
+        name: "Customer Name", // You can dynamically fetch this
+        email: "customer@example.com", // You can dynamically fetch this
+        contact: "9999999999" // You can dynamically fetch this
+      },
+      notes: {
+        orderId: orderId
+      },
+      theme: {
+        color: "#3399cc"
+      },
+      modal: {
+        ondismiss: async function() {
+          // Handle modal dismissal (e.g., user closes the payment window)
+          try {
+            await fetch('/payment-failed', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                orderId
+              })
+            });
+            console.log(`Payment modal dismissed for order ${orderId}, status updated to failed`);
+            window.location.reload(); // Refresh to reflect updated status
+          } catch (error) {
+            console.error('Error updating payment failure on modal dismiss:', error);
+          }
+        }
+      },
+      "payment.failed": async function(response) {
+        // Handle explicit payment failure (e.g., card declined)
         try {
           await fetch('/payment-failed', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orderId })
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              orderId
+            })
           });
-          window.location.reload();
+          console.log(`Payment failed for order ${orderId}, status updated to failed`);
+          window.location.reload(); // Refresh to reflect updated status
         } catch (error) {
           console.error('Error updating payment failure:', error);
         }
       }
-    }
-  };
-  const rzp = new Razorpay(options);
-  rzp.on('payment.failed', async function (response) {
-    try {
-      await fetch('/payment-failed', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId })
-      });
-      window.location.reload();
-    } catch (error) {
-      console.error('Error updating payment failure:', error);
-    }
-  });
-  rzp.open();
-}
+    };
 
-// Pay Now Handler
-document.querySelectorAll('.pay-now-btn').forEach(button => {
-  button.addEventListener('click', async (e) => {
-    const orderId = e.target.closest('.pay-now-btn').getAttribute('data-order-id');
-    
-    try {
-      const response = await fetch(`/retry-payment/${orderId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
+    const rzp = new Razorpay(options);
+    rzp.open();
+  }
 
-      if (!response.ok) {
-        const text = await response.text();
-        console.error('Retry Payment Error - Non-JSON Response:', text);
-        throw new Error(`Server responded with status ${response.status}: ${text}`);
-      }
+  // Pay Now Handler
+  document.querySelectorAll('.pay-now-btn').forEach(button => {
+    button.addEventListener('click', async (e) => {
+      const orderId = e.target.closest('.pay-now-btn').getAttribute('data-order-id');
 
-      const data = await response.json();
-      
-      if (data.success) {
-        const options = {
-          key: data.key,
-          amount: data.amount,
-          currency: 'INR',
-          name: 'BAGZO',
-          description: `Retry Payment for Order #${orderId}`,
-          order_id: data.razorpayOrderId,
-          handler: async function (response) {
-            const verifyResponse = await fetch('/verify-payment', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                orderId: data.orderId,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_signature: response.razorpay_signature
-              })
-            });
-            
-            const verifyData = await verifyResponse.json();
-            if (verifyData.success) {
-              Swal.fire('Success', 'Payment completed successfully!', 'success')
-                .then(() => window.location.reload());
-            } else {
-              Swal.fire('Error', verifyData.error || 'Payment verification failed', 'error');
-            }
-          },
-          prefill: {
-            name: userData.name,
-            email: userData.email,
-            contact: userData.phone
-          },
-          theme: {
-            color: '#FF4B2B'
-          },
-          modal: {
-            ondismiss: async function () {
-              await fetch('/payment-failed', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orderId: data.orderId })
-              });
-            }
+      try {
+        const response = await fetch(`/retry-payment/${orderId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
           }
-        };
-        
-        const rzp = new Razorpay(options);
-        rzp.open();
-      } else {
-        Swal.fire('Error', data.error || 'Failed to initiate payment retry', 'error');
-      }
-    } catch (error) {
-      console.error('Payment retry error:', error);
-      Swal.fire('Error', 'Something went wrong: ' + error.message, 'error');
-    }
-  });
-});
+        });
 
-// Product Click Handler
-document.querySelectorAll('.product-clickable').forEach(element => {
-  element.addEventListener('click', (e) => {
-    const productId = e.target.getAttribute('data-product-id');
-    if (productId) {
-      window.location.href = `/productDetails?id=${productId}`;
-    } else {
-      Swal.fire({
-        title: 'Error',
-        text: 'Product ID not found',
-        icon: 'error',
-        confirmButtonColor: '#FF4B2B'
-      });
-    }
+        if (!response.ok) {
+          const text = await response.text();
+          console.error('Retry Payment Error - Non-JSON Response:', text);
+          throw new Error(`Server responded with status ${response.status}: ${text}`);
+        }
+
+        const data = await response.json();
+
+        if (data.success) {
+          const options = {
+            key: data.key,
+            amount: data.amount,
+            currency: 'INR',
+            name: 'BAGZO',
+            description: `Retry Payment for Order #${orderId}`,
+            order_id: data.razorpayOrderId,
+            handler: async function(response) {
+              const verifyResponse = await fetch('/verify-payment', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  orderId: data.orderId,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_signature: response.razorpay_signature
+                })
+              });
+
+              const verifyData = await verifyResponse.json();
+              if (verifyData.success) {
+                Swal.fire('Success', 'Payment completed successfully!', 'success')
+                  .then(() => window.location.reload());
+              } else {
+                Swal.fire('Error', verifyData.error || 'Payment verification failed', 'error');
+              }
+            },
+            prefill: {
+              name: userData.name,
+              email: userData.email,
+              contact: userData.phone
+            },
+            theme: {
+              color: '#FF4B2B'
+            },
+            modal: {
+              ondismiss: async function() {
+                await fetch('/payment-failed', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    orderId: data.orderId
+                  })
+                });
+              }
+            }
+          };
+
+          const rzp = new Razorpay(options);
+          rzp.open();
+        } else {
+          Swal.fire('Error', data.error || 'Failed to initiate payment retry', 'error');
+        }
+      } catch (error) {
+        console.error('Payment retry error:', error);
+        Swal.fire('Error', 'Something went wrong: ' + error.message, 'error');
+      }
+    });
   });
-});
+
+  // Product Click Handler
+  document.querySelectorAll('.product-clickable').forEach(element => {
+    element.addEventListener('click', (e) => {
+      const productId = e.target.getAttribute('data-product-id');
+      if (productId) {
+        window.location.href = `/productDetails?id=${productId}`;
+      } else {
+        Swal.fire({
+          title: 'Error',
+          text: 'Product ID not found',
+          icon: 'error',
+          confirmButtonColor: '#FF4B2B'
+        });
+      }
+    });
+  });
 </script>

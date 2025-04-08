@@ -280,13 +280,14 @@ const placeOrder = async (req, res, next) => {
 
     if (paymentMethod === "razorpay") {
       try {
-        const roundedFinalAmount = Math.round(finalAmount); // Round to nearest integer
+        const roundedFinalAmount = Math.round(finalAmount);
         const razorpayOrder = await razorpay.orders.create({
-          amount: roundedFinalAmount * 100, // Use rounded amount
+          amount: roundedFinalAmount * 100,
           currency: "INR",
           receipt: order.orderId,
         });
         order.razorpayOrderId = razorpayOrder.id;
+        order.paymentStatus = "pending"; // Explicitly set to pending
         await order.save();
         return res.json({
           success: true,
@@ -299,17 +300,22 @@ const placeOrder = async (req, res, next) => {
         order.status = "Failed";
         order.paymentStatus = "failed";
         await order.save();
-        throw error;
+        return res.status(500).json({ success: false, error: "Failed to create Razorpay order" });
       }
     }
-
     if (paymentMethod === "wallet") {
       try {
         await addWalletTransaction(userId, finalAmount, "debit", `Payment for order #${order.orderId}`);
+        order.status = "Processing"; 
+        order.paymentStatus = "success"; 
+        await order.save(); 
       } catch (error) {
+        order.status = "Failed";
+        order.paymentStatus = "failed"; 
+        await order.save();
         return res.status(400).json({ success: false, error: error.message });
       }
-
+    
       await Cart.updateOne({ userId }, { $set: { products: [] } });
       return res.json({
         success: true,

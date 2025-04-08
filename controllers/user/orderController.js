@@ -229,11 +229,14 @@ const downloadInvoice = async (req, res, next) => {
       throw err;
     }
 
-    // Check if order is in a state where invoice should not be downloadable
     const statusNumber = getOrderStatus(order.status);
-    if (order.paymentStatus === 'failed' || statusNumber === 0 || statusNumber === 6) {
-      const err = new Error("Invoice not available for failed, cancelled, or returned orders");
-      err.status = 403; // Forbidden
+    // Allow invoice download only if payment is successful or COD, block failed, pending Razorpay, cancelled, or returned
+    if (order.paymentStatus === 'failed' || 
+        (order.paymentMethod === 'razorpay' && order.paymentStatus === 'pending') || 
+        statusNumber === 0 || 
+        statusNumber === 6) {
+      const err = new Error("Invoice not available for failed, pending Razorpay, cancelled, or returned orders");
+      err.status = 403;
       throw err;
     }
 
@@ -242,6 +245,7 @@ const downloadInvoice = async (req, res, next) => {
     res.setHeader('Content-Disposition', `attachment; filename=invoice_${orderId}.pdf`);
     doc.pipe(res);
 
+    // Rest of the PDF generation logic remains unchanged...
     doc.fontSize(20).text('Invoice', { align: 'center' })
       .moveDown()
       .fontSize(12)
@@ -288,6 +292,8 @@ const downloadInvoice = async (req, res, next) => {
       .text('Thank you for shopping with BAGZO!', { align: 'center' });
 
     doc.end();
+
+    console.log('orderId:', orderId, 'paymentStatus:', order.paymentStatus, 'status:', order.status, 'paymentMethod:', order.paymentMethod);
   } catch (err) {
     next(err);
   }
