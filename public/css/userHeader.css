@@ -30,20 +30,53 @@
 }
 
 .header__menu ul li {
-  margin-right: 20px; /* Adjust spacing between menu items */
+  margin-right: 20px; /* Spacing between menu items */
 }
 
 .header__menu ul li a {
-  padding: 10px 20px; /* Match button padding for consistency */
+  padding: 10px 20px; /* Consistent padding */
   text-decoration: none;
-  color: #000; /* Default color, adjust as needed */
+  color: #333; /* Default text color (darker gray for better contrast) */
   font-size: 14px;
+  font-weight: 600; /* Slightly bold for readability */
   display: block;
-  transition: color 0.3s ease;
+  transition: all 0.3s ease; /* Smooth transition for color and background */
+  border-radius: 5px; /* Subtle rounding */
 }
 
+/* Hover state for all links */
+.header__menu ul li a:hover {
+  color: #ff0000; /* Red on hover for consistency */
+  background-color: #f8f8f8; /* Light gray background on hover */
+}
+
+/* Active state */
 .header__menu ul li.active a {
-  color: #ff0000; /* Example active state, adjust as needed */
+  color: #ff0000; /* Red for active link */
+  background-color: #ffe6e6; /* Light red background for active state */
+  font-weight: 700; /* Bolder text for emphasis */
+}
+
+/* Mobile menu toggle (unchanged) */
+.canvas__open {
+  display: none; /* Hidden by default, shown in mobile */
+}
+
+/* Media Queries for Responsive Design */
+@media (max-width: 991px) {
+  .header__menu {
+    display: none; /* Hide menu on smaller screens */
+  }
+
+  .canvas__open {
+    display: block; /* Show hamburger menu */
+    font-size: 20px;
+    cursor: pointer;
+  }
+
+  .header_nav_option {
+    margin-top: 10px; /* Add spacing in mobile view */
+  }
 }
 
 /* Right-side options (Sign Up, Log In, or Dropdown) */
