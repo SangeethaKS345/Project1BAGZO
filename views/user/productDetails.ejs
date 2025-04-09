@@ -60,20 +60,24 @@
         <p><strong>Color:</strong> <%= product.color || 'Not specified' %></p>
         
         <div class="price-container">
-          <% if (product.regularPrice > product.salesPrice || maxOffer > 0) { %>
+          <% if (product.regularPrice > product.salesPrice) { %>
             <p class="regular-price">Regular Price: ₹<%= product.regularPrice.toFixed(2) %></p>
             <% if (maxOffer > 0) { %>
               <p class="price">Offer Price: ₹<%= finalPrice.toFixed(2) %>
-                <span class="discount">
-                  (<%= discountPercentage.toFixed(1) %>% OFF)
-                </span>
+                <% if (discountPercentage > 0) { %>
+                  <span class="discount">
+                    (<%= discountPercentage.toFixed(1) %>% OFF)
+                  </span>
+                <% } %>
               </p>
               <p class="original-price">Original Sale Price: ₹<%= product.salesPrice.toFixed(2) %></p>
             <% } else { %>
               <p class="price">Sale Price: ₹<%= product.salesPrice.toFixed(2) %>
-                <span class="discount">
-                  (<%= discountPercentage.toFixed(1) %>% OFF)
-                </span>
+                <% if (discountPercentage > 0) { %>
+                  <span class="discount">
+                    (<%= discountPercentage.toFixed(1) %>% OFF)
+                  </span>
+                <% } %>
               </p>
             <% } %>
           <% } else { %>
@@ -115,20 +119,55 @@
       </div>
     </div>
 
-    <div class="related-products-container">
-      <h3>You May Also Like</h3>
-      <div class="related-products-list">
-        <% relatedProducts.forEach((related) => { %>
-          <div class="related-product">
-            <a href="/productDetails?id=<%= related._id %>">
-              <img src="/uploads/re-image/<%= related.productImage[0] %>" 
-                  alt="<%= related.productName %>">
-              <h4><%= related.productName %></h4>
-              <p>₹<%= related.salesPrice.toFixed(2) %></p>
-            </a>
+    <h3>Crafted For You</h3>
+    <div class="related-products-list">
+      <% relatedProducts.forEach((related) => { %>
+        <div class="related-product">
+          <a href="/productDetails?id=<%= related._id %>">
+            <img src="/uploads/re-image/<%= related.productImage[0] %>" 
+                alt="<%= related.productName %>">
+            <h4><%= related.productName %></h4>
+            <div class="price-container">
+              <% if (product.regularPrice > product.salesPrice) { %>
+                <p class="regular-price" style="color: black">₹<%= product.regularPrice.toFixed(2) %></p>
+                <% if (maxOffer > 0) { %>
+                  <p class="price">₹<%= finalPrice.toFixed(2) %>
+                    <% if (discountPercentage > 0) { %>
+                      <span class="discount">
+                        (<%= discountPercentage.toFixed(1) %>% OFF)
+                      </span>
+                    <% } %>
+                  </p>
+                  
+                <% } else { %>
+                  <p class="price">Sale Price: ₹<%= product.salesPrice.toFixed(2) %>
+                    <% if (discountPercentage > 0) { %>
+                      <span class="discount">
+                        (<%= discountPercentage.toFixed(1) %>% OFF)
+                      </span>
+                    <% } %>
+                  </p>
+                <% } %>
+              <% } else { %>
+                <p class="price">Price: ₹<%= product.salesPrice.toFixed(2) %></p>
+              <% } %>
+            </div>
+          </a>
+          <div class="related-product-actions">
+            <form class="related-add-to-cart-form" action="/add-to-cart" method="POST">
+              <input type="hidden" name="productId" value="<%= related._id %>">
+              <input type="hidden" name="quantity" value="1">
+              <button type="submit" class="btn related-add-to-cart-btn" 
+                      <%= (related.quantity <= 0 || related.isBlocked) ? 'disabled' : '' %>>
+                Add to Cart
+              </button>
+            </form>
+            <button class="btn related-wishlist-btn" data-product-id="<%= related._id %>">
+              <i class="fas fa-heart"></i> Add to Wishlist
+            </button>
           </div>
-        <% }); %>
-      </div>
+        </div>
+      <% }); %>
     </div>
   </div>
 
@@ -388,7 +427,141 @@
       });
     });
   });
+  // Add this after your existing wishlistBtn event listener
+document.querySelectorAll('.related-wishlist-btn').forEach(btn => {
+  const productId = btn.getAttribute('data-product-id');
+  
+  // Check initial wishlist status
+  fetch(`/wishlist/check-status?productId=${productId}`, {
+    credentials: "include",
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.inWishlist) {
+        btn.classList.add('active');
+        btn.innerHTML = '<i class="fas fa-heart"></i> Remove from Wishlist';
+      }
+    })
+    .catch(error => console.error('Error checking wishlist status:', error));
+
+  // Wishlist toggle handler
+  btn.addEventListener('click', async () => {
+    try {
+      const isActive = btn.classList.contains('active');
+      const response = await fetch(`/wishlist/toggle/${productId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ productId })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        if (isActive) {
+          btn.classList.remove('active');
+          btn.classList.add('animate');
+          btn.innerHTML = '<i class="fas fa-heart"></i> Add to Wishlist';
+          Swal.fire({
+            icon: 'success',
+            title: 'Removed',
+            text: data.message || 'Product removed from wishlist!',
+            timer: 1500,
+            showConfirmButton: false,
+          });
+          setTimeout(() => btn.classList.remove('animate'), 500);
+        } else {
+          btn.classList.add('active');
+          btn.classList.add('animate');
+          btn.innerHTML = '<i class="fas fa-heart"></i> Remove from Wishlist';
+          Swal.fire({
+            icon: 'success',
+            title: 'Added',
+            text: data.message || 'Product added to wishlist!',
+            timer: 1500,
+            showConfirmButton: false,
+          });
+          setTimeout(() => btn.classList.remove('animate'), 500);
+        }
+      } else if (response.status === 401) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Login Required',
+          text: 'Please log in to manage your wishlist.',
+        }).then(() => {
+          window.location.href = '/login';
+        });
+      } else {
+        throw new Error(data.error || 'Unknown error');
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to update wishlist: ' + error.message,
+      });
+    }
+  });
+});
+
+// Handle related products add to cart
+document.querySelectorAll('.related-add-to-cart-form').forEach(form => {
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const userData = "<%= typeof userData !== 'undefined' && userData ? 'true' : 'false' %>";
+    if (userData === "false") {
+      Swal.fire({
+        icon: "warning",
+        title: "Login Required",
+        text: "Please log in to add items to your cart.",
+      }).then(() => {
+        window.location.href = "/login";
+      });
+      return;
+    }
+
+    try {
+      const formData = new FormData(form);
+      const response = await fetch('/add-to-cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          productId: formData.get('productId'),
+          quantity: parseInt(formData.get('quantity'))
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: result.message || 'Product added to cart successfully!',
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed',
+          text: result.message || 'Unable to add product to cart.',
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'An error occurred while adding to cart.',
+      });
+    }
+  });
+});
 </script>
   <%- include('../../views/partials/user/footer') %>
 </body>
 </html>
+
+

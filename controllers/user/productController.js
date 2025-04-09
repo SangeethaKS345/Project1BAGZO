@@ -25,10 +25,16 @@ const productDetails = async (req, res, next) => {
         const categoryOffer = Number(product.category?.categoryOffer || 0);
         const productOffer = Number(product.productOffer || 0);
         
-        // Take the highest offer if both exist
+        // Take the highest offer if both exist, but only if at least one is > 0
         const maxOffer = Math.max(categoryOffer, productOffer);
-        const finalPrice = product.salesPrice - (product.salesPrice * (maxOffer / 100));
-        const discountPercentage = maxOffer > 0 ? maxOffer : ((product.regularPrice - product.salesPrice) / product.regularPrice * 100);
+        let finalPrice = product.salesPrice;
+        let discountPercentage = 0;
+
+        // Apply offer only if maxOffer is greater than 0
+        if (maxOffer > 0) {
+            finalPrice = product.salesPrice - (product.salesPrice * (maxOffer / 100));
+            discountPercentage = maxOffer;
+        }
 
         const relatedProducts = await Product.find({
             category: product.category?._id,
