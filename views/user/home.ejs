@@ -97,11 +97,29 @@
                             <span class="product-brand"><%=products[i].brandName %></span>
                             <h6 class="product-title"><%=products[i].productName%></h6>
                             <div class="product-price">
-                                <% if(products[i].offerPercentage > 0) { %>
+                                <% 
+                                    let finalPrice = products[i].salesPrice;
+                                    let displayDiscount = false;
+                                    let discountPercentage = 0;
+                            
+                                    if (products[i].offerPercentage > 0) {
+                                        finalPrice = products[i].effectivePrice;
+                                        discountPercentage = products[i].offerPercentage;
+                                        displayDiscount = true;
+                                    }
+                            
+                                    if (products[i].categoryOfferPercentage && products[i].categoryOfferPercentage > discountPercentage) {
+                                        const categoryDiscount = products[i].salesPrice * (products[i].categoryOfferPercentage / 100);
+                                        finalPrice = products[i].salesPrice - categoryDiscount;
+                                        discountPercentage = products[i].categoryOfferPercentage;
+                                        displayDiscount = true;
+                                    }
+                                %>
+                                <% if (displayDiscount) { %>
                                     <span class="original-price">₹<%= products[i].salesPrice %></span>
-                                    <span class="sale-price">₹<%= products[i].effectivePrice %></span>
-                                    <span class="offer-percentage">(<%= products[i].offerPercentage %>% OFF)</span>
-                                <% } else if(products[i].regularPrice > products[i].salesPrice) { %>
+                                    <span class="sale-price">₹<%= Math.round(finalPrice) %></span>
+                                    <span class="offer-percentage">(<%= discountPercentage %>% OFF)</span>
+                                <% } else if (products[i].regularPrice > products[i].salesPrice) { %>
                                     <span class="original-price">₹<%= products[i].regularPrice %></span>
                                     <span class="sale-price">₹<%= products[i].salesPrice %></span>
                                 <% } else { %>

@@ -21,9 +21,14 @@ const productDetails = async (req, res, next) => {
             return res.redirect("/error");
         }
 
+        // Calculate offers
         const categoryOffer = Number(product.category?.categoryOffer || 0);
         const productOffer = Number(product.productOffer || 0);
-        const totalOffer = categoryOffer + productOffer;
+        
+        // Take the highest offer if both exist
+        const maxOffer = Math.max(categoryOffer, productOffer);
+        const finalPrice = product.salesPrice - (product.salesPrice * (maxOffer / 100));
+        const discountPercentage = maxOffer > 0 ? maxOffer : ((product.regularPrice - product.salesPrice) / product.regularPrice * 100);
 
         const relatedProducts = await Product.find({
             category: product.category?._id,
@@ -36,7 +41,9 @@ const productDetails = async (req, res, next) => {
             quantity: product.quantity,
             category: product.category,
             relatedProducts,
-            totalOffer
+            finalPrice,
+            maxOffer,
+            discountPercentage
         });
 
     } catch (error) {

@@ -60,11 +60,22 @@
         <p><strong>Color:</strong> <%= product.color || 'Not specified' %></p>
         
         <div class="price-container">
-          <% if (product.regularPrice > product.salesPrice) { %>
+          <% if (product.regularPrice > product.salesPrice || maxOffer > 0) { %>
             <p class="regular-price">Regular Price: ₹<%= product.regularPrice.toFixed(2) %></p>
-            <p class="price">Sale Price: ₹<%= product.salesPrice.toFixed(2) %>  
-              <span class="discount">(<%= ((product.regularPrice - product.salesPrice) / product.regularPrice * 100).toFixed(1) %>% OFF)</span>
-            </p>
+            <% if (maxOffer > 0) { %>
+              <p class="price">Offer Price: ₹<%= finalPrice.toFixed(2) %>
+                <span class="discount">
+                  (<%= discountPercentage.toFixed(1) %>% OFF)
+                </span>
+              </p>
+              <p class="original-price">Original Sale Price: ₹<%= product.salesPrice.toFixed(2) %></p>
+            <% } else { %>
+              <p class="price">Sale Price: ₹<%= product.salesPrice.toFixed(2) %>
+                <span class="discount">
+                  (<%= discountPercentage.toFixed(1) %>% OFF)
+                </span>
+              </p>
+            <% } %>
           <% } else { %>
             <p class="price">Price: ₹<%= product.salesPrice.toFixed(2) %></p>
           <% } %>

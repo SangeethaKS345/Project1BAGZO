@@ -63,37 +63,25 @@ const generateReferralCode = async () => {
     return referralCode;
 };
 
-const calculateEffectivePrice = (product, currentDate) => {
-    let effectivePrice = product.salesPrice; // Start with salesPrice
-    let offerPercentage = 0;
-    let offerType = '';
+const calculateEffectivePrice = (product) => {
+    const categoryOffer = Number(product.category?.categoryOffer || 0);
+    const productOffer = Number(product.productOffer || 0);
+    const offerPercentage = Math.max(categoryOffer, productOffer);
+    const effectivePrice = Math.round(product.salesPrice - (product.salesPrice * (offerPercentage / 100)));
+    
+    console.log(`Product: ${product.productName}`);
+    console.log(`Category Offer: ${categoryOffer}, Product Offer: ${productOffer}`);
+    console.log(`Max Offer: ${offerPercentage}, Effective Price: ${effectivePrice}`);
 
-    // Check for product offer
-    if (product.productOffer > 0 && (!product.offerEndDate || product.offerEndDate > currentDate)) {
-        const productDiscount = product.salesPrice * (product.productOffer / 100);
-        effectivePrice -= productDiscount; // Subtract product offer discount from salesPrice
-        offerPercentage = product.productOffer;
-        offerType = 'product';
-    }
-
-    // Check for category offer and apply the higher discount
-    if (
-        product.category?.categoryOffer > 0 &&
-        (!product.category.offerEndDate || product.category.offerEndDate > currentDate)
-    ) {
-        const categoryDiscount = product.salesPrice * (product.category.categoryOffer / 100);
-        if (product.category.categoryOffer > offerPercentage) {
-            effectivePrice = product.salesPrice - categoryDiscount; // Subtract category offer discount from salesPrice
-            offerPercentage = product.category.categoryOffer;
-            offerType = 'category';
-        }
-    }
+    const discountPercentage = offerPercentage > 0 
+        ? offerPercentage 
+        : Math.round(((product.regularPrice - product.salesPrice) / product.regularPrice) * 100);
 
     return {
         ...product._doc,
-        effectivePrice: Math.round(effectivePrice), // Round to avoid decimal issues
+        effectivePrice,
         offerPercentage,
-        offerType
+        discountPercentage
     };
 };
 
