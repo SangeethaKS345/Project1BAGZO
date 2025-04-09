@@ -1,7 +1,100 @@
+/* Ensure the container and row use Flexbox for alignment */
+.container {
+  width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: auto;
+  margin-left: auto;
+}
 
+.row {
+  display: flex;
+  align-items: center; /* Vertically centers all columns */
+  justify-content: space-between; /* Ensures proper spacing */
+  flex-wrap: wrap; /* Maintains Bootstrap responsiveness */
+}
+
+/* Logo section */
+.header__logo {
+  display: flex;
+  align-items: center;
+}
+
+/* Navigation menu */
+.header__menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center; /* Vertically aligns menu items */
+}
+
+.header__menu ul li {
+  margin-right: 20px; /* Adjust spacing between menu items */
+}
+
+.header__menu ul li a {
+  padding: 10px 20px; /* Match button padding for consistency */
+  text-decoration: none;
+  color: #000; /* Default color, adjust as needed */
+  font-size: 14px;
+  display: block;
+  transition: color 0.3s ease;
+}
+
+.header__menu ul li.active a {
+  color: #ff0000; /* Example active state, adjust as needed */
+}
+
+/* Right-side options (Sign Up, Log In, or Dropdown) */
+.header_nav_option {
+  display: flex;
+  align-items: center; /* Vertically centers buttons/dropdown */
+  justify-content: flex-end; /* Aligns to the right */
+}
+
+/* Sign Up button/link */
+.sign-in-link {
+  display: inline-block;
+  padding: 10px 20px;
+  color: #fff;
+  background-color: #1b1b1b;
+  border: none;
+  border-radius: 5px;
+  text-decoration: none;
+  font-size: 14px;
+  text-align: center;
+  margin-right: 10px; /* Space between Sign Up and Log In */
+  transition: background-color 0.3s ease;
+}
+
+.sign-in-link:hover {
+  background-color: #ff0000;
+}
+
+/* Log In button/link */
+a[href="/login"] {
+  display: inline-block;
+  padding: 10px 20px;
+  color: #fff;
+  background-color: #121212;
+  border: none;
+  border-radius: 5px;
+  text-decoration: none;
+  font-size: 14px;
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
+
+a[href="/login"]:hover {
+  background-color: #ff0000;
+}
+
+/* Dropdown styles */
 .dropdown {
   position: relative;
-  display: inline-block;
+  display: flex;
+  align-items: center; /* Vertically aligns dropdown with menu */
 }
 
 .dropdown-content {
@@ -12,6 +105,7 @@
   box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
   z-index: 1000;
   right: 0;
+  top: 100%; /* Positions dropdown below the trigger */
 }
 
 .dropdown-content a {
@@ -30,50 +124,40 @@
   display: block;
 }
 
-.header {
-  position: relative;
-  z-index: 500;
+/* Mobile menu toggle */
+.canvas__open {
+  display: none; /* Hidden by default, shown in mobile */
 }
 
-/* Style for Sign Up and Log In buttons */
-.sign-in-link {
-  display: inline-block;
-  padding: 10px 20px;
-  color: #fff;
-  background-color: #1b1b1b;
-  /* Blue button color */
-  border: none;
-  border-radius: 5px;
-  text-decoration: none;
-  /* Remove underline */
-  font-size: 14px;
-  text-align: center;
-  margin-right: 10px;
-  /* Add space between buttons */
-  transition: background-color 0.3s ease;
+/* Media Queries for Responsive Design */
+@media (max-width: 991px) {
+  .header__menu {
+    display: none; /* Hide menu on smaller screens */
+  }
+
+  .canvas__open {
+    display: block; /* Show hamburger menu */
+    font-size: 20px;
+    cursor: pointer;
+  }
+
+  .header_nav_option {
+    margin-top: 10px; /* Add spacing in mobile view */
+  }
 }
 
-.sign-in-link:hover {
-  background-color: #ff0000;
-  /* Darker blue on hover */
-}
+@media (max-width: 767px) {
+  .col-lg-3, .col-md-3, .col-lg-6, .col-md-6 {
+    flex: 0 0 100%; /* Stack columns on small screens */
+    max-width: 100%;
+    text-align: center;
+  }
 
-a[href="/login"] {
-  display: inline-block;
-  padding: 10px 20px;
-  color: #fff;
-  background-color: #121212;
-  /* Green button color */
-  border: none;
-  border-radius: 5px;
-  text-decoration: none;
-  /* Remove underline */
-  font-size: 14px;
-  text-align: center;
-  transition: background-color 0.3s ease;
-}
+  .header_nav_option {
+    justify-content: center; /* Center buttons in mobile */
+  }
 
-a[href="/login"]:hover {
-  background-color: #ff0000;
-  /* Darker green on hover */
+  .sign-in-link, a[href="/login"] {
+    margin: 5px 0; /* Stack buttons vertically */
+  }
 }
