@@ -419,67 +419,67 @@
       try {
         const chartData = JSON.parse('<%- JSON.stringify(chartData) %>' || '{}');
 
-        // Sales Chart (Line Chart) - Full Definition
+        // Sales Chart (Line Chart) - Unchanged
         salesChart = new Chart(
           document.getElementById('salesChart').getContext('2d'), {
             type: 'line',
             data: {
-              labels: chartData.chartLabels || [], // X-axis labels (e.g., dates)
+              labels: chartData.chartLabels || [],
               datasets: [{
-                  label: 'Revenue (₹)', // Label for revenue line
-                  data: chartData.revenueData || [], // Revenue data points
-                  borderColor: '#DB4437', // Red line color
-                  backgroundColor: 'rgba(219, 68, 55, 0.1)', // Red fill with opacity
-                  borderWidth: 2, // Line thickness
-                  fill: true, // Fill area under the line
-                  yAxisID: 'y-revenue' // Assign to left Y-axis
+                  label: 'Revenue (₹)',
+                  data: chartData.revenueData || [],
+                  borderColor: '#DB4437',
+                  backgroundColor: 'rgba(219, 68, 55, 0.1)',
+                  borderWidth: 2,
+                  fill: true,
+                  yAxisID: 'y-revenue'
                 },
                 {
-                  label: 'Orders', // Label for orders line
-                  data: chartData.ordersData || [], // Orders data points
-                  borderColor: '#FF4B2B', // Bright Orange-Red line color
-                  backgroundColor: 'rgba(255, 75, 43, 0.1)', // Orange-Red fill with opacity
-                  borderWidth: 2, // Line thickness
-                  fill: true, // Fill area under the line
-                  yAxisID: 'y-orders' // Assign to right Y-axis
+                  label: 'Orders',
+                  data: chartData.ordersData || [],
+                  borderColor: '#FF4B2B',
+                  backgroundColor: 'rgba(255, 75, 43, 0.1)',
+                  borderWidth: 2,
+                  fill: true,
+                  yAxisID: 'y-orders'
                 }
               ]
             },
             options: {
-              responsive: true, // Adapts to container size
-              maintainAspectRatio: false, // Allows custom height/width
+              responsive: true,
+              maintainAspectRatio: false,
               scales: {
                 'y-revenue': {
                   type: 'linear',
-                  position: 'left', // Left Y-axis for revenue
+                  position: 'left',
                   title: {
                     display: true,
-                    text: 'Revenue (₹)' // Y-axis label
+                    text: 'Revenue (₹)'
                   },
                   grid: {
-                    borderColor: '#DB4437' // Match grid to theme
+                    borderColor: '#DB4437'
                   }
                 },
                 'y-orders': {
                   type: 'linear',
-                  position: 'right', // Right Y-axis for orders
+                  position: 'right',
                   title: {
                     display: true,
-                    text: 'Number of Orders' // Y-axis label
+                    text: 'Number of Orders'
                   },
                   grid: {
-                    drawOnChartArea: false // Avoid overlapping grid lines
+                    drawOnChartArea: false
                   }
                 }
               },
               plugins: {
                 legend: {
-                  position: 'top' // Legend at the top
+                  position: 'top'
                 }
               },
               animation: {
-                duration: 1500, // 1.5-second animation
-                easing: 'easeOutQuart', // Smooth easing effect
+                duration: 1500,
+                easing: 'easeOutQuart',
                 onComplete: function() {
                   console.log('Sales chart animation complete');
                 }
@@ -488,7 +488,7 @@
           }
         );
 
-        // Top Products Chart (Doughnut) - Unchanged
+        // Top Products Chart (Doughnut) - Updated for Top 10
         topProductsChart = new Chart(
           document.getElementById('topProductsChart').getContext('2d'), {
             type: 'doughnut',
@@ -496,7 +496,10 @@
               labels: chartData.topProductLabels || [],
               datasets: [{
                 data: chartData.topProductData || [],
-                backgroundColor: ['#FF416C', '#FF4B2B', '#DB4437', '#FF6384', '#9966FF']
+                backgroundColor: [
+                  '#FF416C', '#FF4B2B', '#DB4437', '#FF6384', '#9966FF',
+                  '#36A2EB', '#FFCE56', '#4BC0C0', '#E7E9ED', '#FF9F40' // 10 colors
+                ]
               }]
             },
             options: {
@@ -506,9 +509,9 @@
                 legend: {
                   position: 'bottom',
                   labels: {
-                    boxWidth: 12,
+                    boxWidth: 10, // Smaller box for 10 items
                     font: {
-                      size: 11
+                      size: 10 // Smaller font for readability
                     }
                   }
                 }
@@ -525,7 +528,7 @@
           }
         );
 
-        // Top Categories Chart (Doughnut) - Unchanged
+        // Top Categories Chart (Doughnut) - Updated for Top 10
         topCategoriesChart = new Chart(
           document.getElementById('topCategoriesChart').getContext('2d'), {
             type: 'doughnut',
@@ -533,7 +536,10 @@
               labels: chartData.topCategoryLabels || [],
               datasets: [{
                 data: chartData.topCategoryData || [],
-                backgroundColor: ['#FF416C', '#FF4B2B', '#DB4437', '#FF6384', '#9966FF']
+                backgroundColor: [
+                  '#FF416C', '#FF4B2B', '#DB4437', '#FF6384', '#9966FF',
+                  '#36A2EB', '#FFCE56', '#4BC0C0', '#E7E9ED', '#FF9F40' // 10 colors
+                ]
               }]
             },
             options: {
@@ -543,9 +549,9 @@
                 legend: {
                   position: 'bottom',
                   labels: {
-                    boxWidth: 12,
+                    boxWidth: 10,
                     font: {
-                      size: 11
+                      size: 10
                     }
                   }
                 }
@@ -562,7 +568,7 @@
           }
         );
 
-        // Top Brands Chart (Doughnut) - Unchanged
+        // Top Brands Chart (Doughnut) - Updated for Top 10
         topBrandsChart = new Chart(
           document.getElementById('topBrandsChart').getContext('2d'), {
             type: 'doughnut',
@@ -570,7 +576,10 @@
               labels: chartData.topBrandLabels || [],
               datasets: [{
                 data: chartData.topBrandData || [],
-                backgroundColor: ['#FF416C', '#FF4B2B', '#DB4437', '#FF6384', '#9966FF']
+                backgroundColor: [
+                  '#FF416C', '#FF4B2B', '#DB4437', '#FF6384', '#9966FF',
+                  '#36A2EB', '#FFCE56', '#4BC0C0', '#E7E9ED', '#FF9F40' // 10 colors
+                ]
               }]
             },
             options: {
@@ -580,9 +589,9 @@
                 legend: {
                   position: 'bottom',
                   labels: {
-                    boxWidth: 12,
+                    boxWidth: 10,
                     font: {
-                      size: 11
+                      size: 10
                     }
                   }
                 }
@@ -647,8 +656,8 @@
       let downloadUrl = `/admin/downloadReport?reportType=${reportType}&reportFormat=${reportFormat}`;
 
       if (reportType === 'custom') {
-        const startDate = document.getElementById('startDate').value; // Fixed typo
-        const endDate = document.getElementById('endDate').value; // Fixed typo
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
         if (!startDate || !endDate) {
           alert('Please select both start and end dates');
           return;

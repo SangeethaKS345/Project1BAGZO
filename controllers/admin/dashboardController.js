@@ -167,7 +167,7 @@ const getTopProductsData = async () => {
       }
     },
     { $sort: { totalQuantity: -1 } },
-    { $limit: 5 }
+    { $limit: 10 } // Changed from 5 to 10
   ]);
 
   const productLabels = topProducts.map(p => p.productName || 'Unknown Product');
@@ -205,7 +205,7 @@ const getTopBrandsData = async () => {
       }
     },
     { $sort: { totalQuantity: -1 } },
-    { $limit: 5 }
+    { $limit: 10 } // Changed from 5 to 10
   ]);
 
   const brandLabels = topBrands.map(b => b.brandName || 'Unknown Brand');
@@ -238,12 +238,12 @@ const getTopCategoriesData = async () => {
     {
       $group: {
         _id: "$product.category",
-        categoryName: { $first: "$category.name" }, 
+        categoryName: { $first: "$category.name" },
         totalQuantity: { $sum: "$OrderItems.quantity" }
       }
     },
     { $sort: { totalQuantity: -1 } },
-    { $limit: 5 }
+    { $limit: 10 } // Changed from 5 to 10
   ]);
 
   const categoryLabels = topCategories.map(c => c.categoryName || 'Unknown Category');
