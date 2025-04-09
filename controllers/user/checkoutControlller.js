@@ -192,6 +192,17 @@ const placeOrder = async (req, res, next) => {
       return res.status(400).json({ success: false, error: "Quantity limit exceeded. Maximum 5 items per product allowed." });
     }
 
+    // Check stock availability before proceeding
+    for (const item of cartItems) {
+      const product = await Product.findById(item.productDetails._id);
+      if (!product || product.quantity < item.quantity) {
+        return res.status(400).json({
+          success: false,
+          error: `Insufficient stock for ${item.productDetails.productName}. Available: ${product?.quantity || 0}`,
+        });
+      }
+    }
+
     const subtotal = cartItems.reduce((sum, item) => sum + (item.productDetails.regularPrice * item.quantity), 0);
     const cartDiscount = cartItems.reduce((sum, item) => sum + (item.discount * item.quantity), 0);
     let finalAmount = subtotal - cartDiscount;
@@ -265,7 +276,18 @@ const placeOrder = async (req, res, next) => {
 
     await order.save();
 
+    // Function to update product stock
+    const updateStock = async () => {
+      for (const item of cartItems) {
+        await Product.updateOne(
+          { _id: item.productDetails._id },
+          { $inc: { quantity: -item.quantity } } // Decrease stock
+        );
+      }
+    };
+
     if (paymentMethod === "cod") {
+      await updateStock(); // Decrease stock for COD
       await Cart.updateOne({ userId }, { $set: { products: [] } });
       return res.json({
         success: true,
@@ -287,7 +309,7 @@ const placeOrder = async (req, res, next) => {
           receipt: order.orderId,
         });
         order.razorpayOrderId = razorpayOrder.id;
-        order.paymentStatus = "pending"; // Explicitly set to pending
+        order.paymentStatus = "pending";
         await order.save();
         return res.json({
           success: true,
@@ -303,19 +325,21 @@ const placeOrder = async (req, res, next) => {
         return res.status(500).json({ success: false, error: "Failed to create Razorpay order" });
       }
     }
+
     if (paymentMethod === "wallet") {
       try {
         await addWalletTransaction(userId, finalAmount, "debit", `Payment for order #${order.orderId}`);
-        order.status = "Processing"; 
-        order.paymentStatus = "success"; 
-        await order.save(); 
+        order.status = "Processing";
+        order.paymentStatus = "success";
+        await updateStock(); // Decrease stock for wallet payment
+        await order.save();
       } catch (error) {
         order.status = "Failed";
-        order.paymentStatus = "failed"; 
+        order.paymentStatus = "failed";
         await order.save();
         return res.status(400).json({ success: false, error: error.message });
       }
-    
+
       await Cart.updateOne({ userId }, { $set: { products: [] } });
       return res.json({
         success: true,
@@ -327,17 +351,6 @@ const placeOrder = async (req, res, next) => {
         },
       });
     }
-
-    await Cart.updateOne({ userId }, { $set: { products: [] } });
-    res.json({
-      success: true,
-      redirect: "/orderPlaced",
-      order: {
-        orderId: order.orderId,
-        totalAmount: order.finalAmount,
-        placedAt: order.createdOn,
-      },
-    });
   } catch (error) {
     next(error);
   }
@@ -353,7 +366,7 @@ const verifyPayment = async (req, res, next) => {
       .update(razorpay_order_id + "|" + razorpay_payment_id)
       .digest("hex");
 
-    const order = await Order.findById(orderId);
+    const order = await Order.findById(orderId).populate("OrderItems.product");
     if (!order) {
       return res.status(404).json({ success: false, error: "Order not found" });
     }
@@ -363,6 +376,14 @@ const verifyPayment = async (req, res, next) => {
       order.paymentStatus = "failed";
       await order.save();
       return res.status(400).json({ success: false, error: "Invalid payment signature" });
+    }
+
+    // Decrease stock after successful payment
+    for (const item of order.OrderItems) {
+      await Product.updateOne(
+        { _id: item.product._id },
+        { $inc: { quantity: -item.quantity } }
+      );
     }
 
     order.status = "Processing";
