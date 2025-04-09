@@ -64,25 +64,34 @@ const generateReferralCode = async () => {
 };
 
 const calculateEffectivePrice = (product, currentDate) => {
-    let effectivePrice = product.salesPrice;
+    let effectivePrice = product.salesPrice; // Start with salesPrice
     let offerPercentage = 0;
     let offerType = '';
 
+    // Check for product offer
     if (product.productOffer > 0 && (!product.offerEndDate || product.offerEndDate > currentDate)) {
-        effectivePrice = product.regularPrice * (1 - product.productOffer / 100);
+        const productDiscount = product.salesPrice * (product.productOffer / 100);
+        effectivePrice -= productDiscount; // Subtract product offer discount from salesPrice
         offerPercentage = product.productOffer;
         offerType = 'product';
     }
 
-    if (product.category?.categoryOffer > offerPercentage && (!product.category.offerEndDate || product.category.offerEndDate > currentDate)) {
-        effectivePrice = product.regularPrice * (1 - product.category.categoryOffer / 100);
-        offerPercentage = product.category.categoryOffer;
-        offerType = 'category';
+    // Check for category offer and apply the higher discount
+    if (
+        product.category?.categoryOffer > 0 &&
+        (!product.category.offerEndDate || product.category.offerEndDate > currentDate)
+    ) {
+        const categoryDiscount = product.salesPrice * (product.category.categoryOffer / 100);
+        if (product.category.categoryOffer > offerPercentage) {
+            effectivePrice = product.salesPrice - categoryDiscount; // Subtract category offer discount from salesPrice
+            offerPercentage = product.category.categoryOffer;
+            offerType = 'category';
+        }
     }
 
     return {
         ...product._doc,
-        effectivePrice: Math.round(effectivePrice),
+        effectivePrice: Math.round(effectivePrice), // Round to avoid decimal issues
         offerPercentage,
         offerType
     };
