@@ -9,6 +9,8 @@ const db = require("./config/db");
 const userRouter = require("./routes/userRouter");
 const adminRouter = require("./routes/adminRouter");
 const app = express();
+const multer = require('multer');
+
 
 const { errorHandler, adminErrorHandler } = require("./middlewares/errorHandler.js");
 const nocache = require('nocache');
@@ -84,6 +86,19 @@ app.use("/admin", adminRouter);
 
 // Error handler
 app.use(errorHandler, adminErrorHandler);
+
+// Multer configuration
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'public/uploads/re-image');
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ storage: storage });
+app.use('/admin/addProducts', upload.array('images', 4));
 
 // Start Server
 const PORT = process.env.PORT || 4488;

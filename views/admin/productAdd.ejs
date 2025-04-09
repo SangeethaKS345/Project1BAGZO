@@ -1,9 +1,10 @@
 <%- include("../../views/partials/admin/header") %>
 <head>
    <!-- Add to your HTML head section -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-<link rel="stylesheet" href="/css/productAdd.css" type="text/css">
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+   <link rel="stylesheet" href="/css/productAdd.css" type="text/css">
 </head>
 <section class="content-main">
     <div class="row">
@@ -15,8 +16,7 @@
         <div class="col-lg-8 mx-auto">
             <div class="card mb-4 shadow-sm">
                 <div class="card-body">
-                    <form method="post" action="/admin/addProducts" enctype="multipart/form-data"
-                        onsubmit="return validateForm()">
+                    <form method="post" action="/admin/addProducts" enctype="multipart/form-data" id="productForm">                        onsubmit="return validateForm()">
                         <!-- Form-wide error alert -->
                         <div id="form-errors" class="alert alert-danger" style="display: none;"></div>
                         
@@ -521,6 +521,56 @@ function updateThumbnailsPreview() {
         errorElement.style.display = 'none';
     }
 }
+
+// Handle form submission with AJAX
+document.getElementById('productForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        if (!validateForm()) {
+            return; // Stop if validation fails
+        }
+
+        const formData = new FormData(this);
+
+        fetch('/admin/addProducts', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message with SweetAlert2
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: 'Product added successfully!',
+                    confirmButtonText: 'OK'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Optionally reset the form or redirect
+                        resetForm();
+                        // Uncomment below line if you want to redirect after success
+                        // window.location.href = '/admin/addProducts';
+                    }
+                });
+            } else {
+                // Show error message if product addition fails
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.error || 'Failed to add product. Please try again.',
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'An unexpected error occurred. Please try again.',
+            });
+        });
+    });
 
 // Reset the form
 function resetForm() {

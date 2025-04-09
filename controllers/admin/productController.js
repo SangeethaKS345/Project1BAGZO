@@ -26,7 +26,7 @@ const addProducts = async (req, res, next) => {
     const productExists = await Product.findOne({ productName: products.productName });
 
     if (productExists) {
-      return res.status(400).json({ error: "Product already exists, please try another name" });
+      return res.status(400).json({ success: false, error: "Product already exists, please try another name" });
     }
 
     const images = [];
@@ -36,10 +36,10 @@ const addProducts = async (req, res, next) => {
 
       for (let file of req.files) {
         if (!allowedTypes.includes(file.mimetype)) {
-          return res.status(400).json({ error: `Invalid file type for ${file.originalname}` });
+          return res.status(400).json({ success: false, error: `Invalid file type for ${file.originalname}` });
         }
         if (file.size > maxSize) {
-          return res.status(400).json({ error: `File ${file.originalname} exceeds max size of 5MB.` });
+          return res.status(400).json({ success: false, error: `File ${file.originalname} exceeds max size of 5MB.` });
         }
         images.push(file.filename);
       }
@@ -60,7 +60,8 @@ const addProducts = async (req, res, next) => {
     });
 
     await newProduct.save();
-    res.redirect("/admin/addProducts");
+    // Return success JSON response instead of redirecting
+    return res.status(200).json({ success: true, message: "Product added successfully" });
   } catch (error) {
     next(error); 
   }
