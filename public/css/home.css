@@ -260,37 +260,30 @@
 }
 
 .product-price {
-    margin-bottom: 15px;
     display: flex;
     align-items: center;
-    gap: 8px; /* Adjusted for tighter spacing */
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    gap: 12px;
+    margin: 10px 0;
+    flex-wrap: wrap;
 }
 
-.product-price .old-price {
+.product-price .original-price {
     font-size: 14px;
     color: var(--medium-gray);
     text-decoration: line-through;
 }
 
-.product-price .sales-price {
-    font-size: 14px;
-    color: var(--dark-gray);
-    text-decoration: line-through;
-    opacity: 0.7; /* Slightly faded to differentiate from current-price */
-}
-
-.product-price .current-price {
+.product-price .sale-price {
     font-size: 18px;
     font-weight: 700;
-    color: var(--primary-red);
+    color: var(--text-red);
 }
 
 .product-price .offer-percentage {
     font-size: 12px;
     color: var(--accent-red);
-    background: rgba(219, 68, 55, 0.1); /* Light red background for emphasis */
     padding: 2px 6px;
+    background: rgba(255, 65, 108, 0.1);
     border-radius: 3px;
 }
 
@@ -422,12 +415,11 @@
         height: 34px;
     }
 
-    .product-price .current-price {
+    .product-price .sale-price {
         font-size: 16px;
     }
 
-    .product-price .old-price,
-    .product-price .sales-price {
+    .product-price .original-price {
         font-size: 12px;
     }
 
@@ -448,12 +440,11 @@
         gap: 4px;
     }
 
-    .product-price .current-price {
+    .product-price .sale-price {
         font-size: 14px;
     }
 
-    .product-price .old-price,
-    .product-price .sales-price {
+    .product-price .original-price {
         font-size: 11px;
     }
 }

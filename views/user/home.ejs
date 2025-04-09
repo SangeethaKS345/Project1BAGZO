@@ -88,7 +88,7 @@
                             </button>
                         </div>
                         <% if(products[i].offerPercentage > 0) { %>
-                            <div class="product-badge">Suber Offer</div>
+                            <div class="product-badge">Super Offer</div>
                         <% } else if(products[i].regularPrice > products[i].salesPrice) { %>
                             <div class="product-badge">Sale</div>
                         <% } %>
@@ -98,18 +98,14 @@
                             <h6 class="product-title"><%=products[i].productName%></h6>
                             <div class="product-price">
                                 <% if(products[i].offerPercentage > 0) { %>
-                                    <!-- Show regular price, sales price, and effective price if there's an offer -->
-                                    <span class="old-price">₹<%= products[i].regularPrice %></span>
-                                    <span class="sales-price">₹<%= products[i].salesPrice %></span>
-                                    <span class="current-price">₹<%= products[i].effectivePrice %></span>
+                                    <span class="original-price">₹<%= products[i].salesPrice %></span>
+                                    <span class="sale-price">₹<%= products[i].effectivePrice %></span>
                                     <span class="offer-percentage">(<%= products[i].offerPercentage %>% OFF)</span>
                                 <% } else if(products[i].regularPrice > products[i].salesPrice) { %>
-                                    <!-- Show regular price and sales price if no offer but sales price is lower -->
-                                    <span class="old-price">₹<%= products[i].regularPrice %></span>
-                                    <span class="current-price">₹<%= products[i].salesPrice %></span>
+                                    <span class="original-price">₹<%= products[i].regularPrice %></span>
+                                    <span class="sale-price">₹<%= products[i].salesPrice %></span>
                                 <% } else { %>
-                                    <!-- Show only regular price if no discounts apply -->
-                                    <span class="current-price">₹<%= products[i].regularPrice %></span>
+                                    <span class="sale-price">₹<%= products[i].regularPrice %></span>
                                 <% } %>
                             </div>
                             <a href="javascript:void(0)" onclick="addToCart('<%= products[i]._id %>')" class="add-to-cart-btn">Add to Cart</a>
