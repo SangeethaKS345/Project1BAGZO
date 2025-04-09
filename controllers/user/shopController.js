@@ -58,14 +58,27 @@ const calculateEffectivePrice = (product, currentDate) => {
     let offerPercentage = 0;
     let offerType = '';
 
-    if (product.productOffer > 0 && (!product.offerEndDate || product.offerEndDate > currentDate)) {
-        effectivePrice = product.regularPrice * (1 - product.productOffer / 100);
+    // Check product offer
+    const productOfferActive = product.productOffer > 0 && (!product.offerEndDate || product.offerEndDate > currentDate);
+    const categoryOfferActive = product.category?.categoryOffer > 0 && (!product.category.offerEndDate || product.category.offerEndDate > currentDate);
+
+    if (productOfferActive && categoryOfferActive) {
+        // Take the highest offer
+        if (product.productOffer >= product.category.categoryOffer) {
+            effectivePrice = product.salesPrice - (product.salesPrice * (product.productOffer / 100));
+            offerPercentage = product.productOffer;
+            offerType = 'product';
+        } else {
+            effectivePrice = product.salesPrice - (product.salesPrice * (product.category.categoryOffer / 100));
+            offerPercentage = product.category.categoryOffer;
+            offerType = 'category';
+        }
+    } else if (productOfferActive) {
+        effectivePrice = product.salesPrice - (product.salesPrice * (product.productOffer / 100));
         offerPercentage = product.productOffer;
         offerType = 'product';
-    }
-
-    if (product.category?.categoryOffer > offerPercentage && (!product.category.offerEndDate || product.category.offerEndDate > currentDate)) {
-        effectivePrice = product.regularPrice * (1 - product.category.categoryOffer / 100);
+    } else if (categoryOfferActive) {
+        effectivePrice = product.salesPrice - (product.salesPrice * (product.category.categoryOffer / 100));
         offerPercentage = product.category.categoryOffer;
         offerType = 'category';
     }

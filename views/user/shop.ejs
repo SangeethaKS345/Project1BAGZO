@@ -115,7 +115,7 @@
                             </div>
                         </a>
                         <% if(product.offerPercentage > 0) { %>
-                            <div class="product-badge">Offer</div>
+                            <div class="product-badge">Super Offer</div>
                         <% } else if(product.regularPrice > product.salesPrice) { %>
                             <div class="product-badge">Sale</div>
                         <% } %>
@@ -128,7 +128,7 @@
                         <h4 class="product-name"><%= product.productName %></h4>
                         <p class="product-price">
                             <% if(product.offerPercentage > 0) { %>
-                                <span class="original-price">₹<%= product.regularPrice %></span>
+                                <span class="original-price">₹<%= product.salesPrice %></span>
                                 <span class="sale-price">₹<%= product.effectivePrice %></span>
                                 <span class="offer-percentage">(<%= product.offerPercentage %>% OFF)</span>
                             <% } else if(product.regularPrice > product.salesPrice) { %>
