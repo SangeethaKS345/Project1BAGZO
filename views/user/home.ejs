@@ -4,100 +4,93 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css">
 
 <section class="hero">
-    <div class="hero__slider owl-carousel">
-        <div class="hero__items set-bg" data-setbg="/img/banner/banner1.jpg">
-            <div class="container">
-                <div class="row">
-                    <div class="col-xl-5 col-lg-7 col-md-8">
-                        <div class="hero__text animate-on-load">
-                            <h6>Summer Collection</h6>
-                            <h2> - Winter Collections 2025</h2>
-                            <p>A specialist label creating luxury essentials. Ethically created.</p>
-                            <a href="/shop" class="primary-btn">Shop now <span class="arrow_right"></span></a>
-                        </div>
-                    </div>
-                </div>
+  <div class="hero__slider owl-carousel">
+    <div class="hero__items set-bg" data-setbg="/img/banner/banner1.jpg">
+      <div class="container">
+        <div class="row">
+          <div class="col-xl-5 col-lg-7 col-md-8">
+            <div class="hero__text animate-on-load">
+              <h6>Summer Collection</h6>
+              <h2> - Winter Collections 2025</h2>
+              <p>A specialist label creating luxury essentials. Ethically created.</p>
+              <a href="/shop" class="primary-btn">Shop now <span class="arrow_right"></span></a>
             </div>
+          </div>
         </div>
-        <div class="hero__items set-bg" data-setbg="/img/banner/banner2.jpg">
-            <div class="container">
-                <div class="row">
-                    <div class="col-xl-5 col-lg-7 col-md-8">
-                        <div class="hero__text animate-on-load">
-                            <h6>Summer Collection</h6>
-                            <h2> - Winter Collections 2025</h2>
-                            <p>A specialist label creating luxury essentials.</p>
-                            <a href="/shop" class="primary-btn">Shop now <span class="arrow_right"></span></a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
+    <div class="hero__items set-bg" data-setbg="/img/banner/banner2.jpg">
+      <div class="container">
+        <div class="row">
+          <div class="col-xl-5 col-lg-7 col-md-8">
+            <div class="hero__text animate-on-load">
+              <h6>Summer Collection</h6>
+              <h2> - Winter Collections 2025</h2>
+              <p>A specialist label creating luxury essentials.</p>
+              <a href="/shop" class="primary-btn">Shop now <span class="arrow_right"></span></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
 
 <!-- Featured Brands Section -->
 <section class="additional-brands container section">
-    <h3 class="section__title"><span>Featured</span> Brands</h3>
-    <div class="additional-brands__container swiper">
-        <div class="swiper-wrapper">
-            <% brand.forEach(b => { %>
-                <a href="/shop" class="brand__item swiper-slide">
-                    <img src="/uploads/re-image/<%= b.brandImage[0] %>" alt="<%= b.brandName %>" class="brand__img" />
-                    <h3 class="brand__title"><%= b.brandName %></h3>
-                </a>
-            <% }) %>
-        </div>
-        <div class="swiper-button-prev additional-prev"></div>
-        <div class="swiper-button-next additional-next"></div>
+  <h3 class="section__title"><span>Featured</span> Brands</h3>
+  <div class="additional-brands__container swiper">
+    <div class="swiper-wrapper">
+      <% brand.forEach(b => { %>
+      <a href="/shop" class="brand__item swiper-slide">
+        <img src="/uploads/re-image/<%= b.brandImage[0] %>" alt="<%= b.brandName %>" class="brand__img" />
+        <h3 class="brand__title"><%= b.brandName %></h3>
+      </a>
+      <% }) %>
     </div>
+    <div class="swiper-button-prev additional-prev"></div>
+    <div class="swiper-button-next additional-next"></div>
+  </div>
 </section>
 
 <section class="product spad">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-12">
-                <ul class="filter__controls">
-                    <li class="active" data-filter=".new-arrivals">New Arrivals</li>
-                </ul>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12">
+        <ul class="filter__controls">
+          <li class="active" data-filter=".new-arrivals">New Arrivals</li>
+        </ul>
+      </div>
+    </div>
+    <div class="row product__filter">
+      <% for(let i=0; i < Math.min(products.length, 8); i++) { %>
+      <div class="col-lg-3 col-md-4 col-sm-6 col-12 new-arrivals">
+        <div class="product-card">
+          <div class="product-img-wrapper">
+            <div class="product-img">
+              <a href="/productDetails?id=<%=products[i]._id%>">
+                <img src="/uploads/re-image/<%= products[i].productImage[0] %>" alt="<%=products[i].productName%>" class="primary-img">
+                <% if(products[i].productImage[1]) { %>
+                <img src="/uploads/re-image/<%= products[i].productImage[1] %>" alt="<%=products[i].productName%>" class="hover-img">
+                <% } %>
+              </a>
             </div>
-        </div>
-        <div class="row product__filter">
-            <% for(let i=0; i < Math.min(products.length, 8); i++) { %>
-                <div class="col-lg-3 col-md-4 col-sm-6 col-12 new-arrivals">
-                    <div class="product-card">
-                      <div class="product-img-wrapper">
-                        <div class="product-img">
-                            <a href="/productDetails?id=<%=products[i]._id%>">
-                                <img src="/uploads/re-image/<%= products[i].productImage[0] %>" 
-                                     alt="<%=products[i].productName%>"
-                                     class="primary-img">
-                                <% if(products[i].productImage[1]) { %>
-                                    <img src="/uploads/re-image/<%= products[i].productImage[1] %>" 
-                                         alt="<%=products[i].productName%>"
-                                         class="hover-img">
-                                <% } %>
-                            </a>
-                        </div>
-                        <div class="product-action">
-                            <button id="wishlist-btn-<%= products[i]._id %>" 
-                                    class="wishlist-btn" 
-                                    data-product-id="<%= products[i]._id %>"
-                                    onclick="toggleWishlist('<%= products[i]._id %>', this)">
-                                <i class="fas fa-heart"></i>
-                            </button>
-                        </div>
-                        <% if(products[i].offerPercentage > 0) { %>
-                            <div class="product-badge">Super Offer</div>
-                        <% } else if(products[i].regularPrice > products[i].salesPrice) { %>
-                            <div class="product-badge">Sale</div>
-                        <% } %>
-                    </div>
-                        <div class="product-content">
-                            <span class="product-brand"><%=products[i].brandName %></span>
-                            <h6 class="product-title"><%=products[i].productName%></h6>
-                            <div class="product-price">
-                                <% 
+            <div class="product-action">
+              <button id="wishlist-btn-<%= products[i]._id %>" class="wishlist-btn" data-product-id="<%= products[i]._id %>" onclick="toggleWishlist('<%= products[i]._id %>', this)">
+                <i class="fas fa-heart"></i>
+              </button>
+            </div>
+            <% if(products[i].offerPercentage > 0) { %>
+            <div class="product-badge">Super Offer</div>
+            <% } else if(products[i].regularPrice > products[i].salesPrice) { %>
+            <div class="product-badge">Sale</div>
+            <% } %>
+          </div>
+          <div class="product-content">
+            <span class="product-brand"><%=products[i].brandName %></span>
+            <h6 class="product-title"><%=products[i].productName%></h6>
+            <div class="product-price">
+              <% 
                                     let finalPrice = products[i].salesPrice;
                                     let displayDiscount = false;
                                     let discountPercentage = 0;
@@ -115,25 +108,25 @@
                                         displayDiscount = true;
                                     }
                                 %>
-                                <% if (displayDiscount) { %>
-                                    <span class="original-price">₹<%= products[i].salesPrice %></span>
-                                    <span class="sale-price">₹<%= Math.round(finalPrice) %></span>
-                                    <span class="offer-percentage">(<%= discountPercentage %>% OFF)</span>
-                                <% } else if (products[i].regularPrice > products[i].salesPrice) { %>
-                                    <span class="original-price">₹<%= products[i].regularPrice %></span>
-                                    <span class="sale-price">₹<%= products[i].salesPrice %></span>
-                                <% } else { %>
-                                    <span class="sale-price">₹<%= products[i].regularPrice %></span>
-                                <% } %>
-                            </div>
-                            <a href="javascript:void(0)" onclick="addToCart('<%= products[i]._id %>')" class="add-to-cart-btn">Add to Cart</a>
-                        </div>
-                    </div>
-                </div>
-            <% } %>
+              <% if (displayDiscount) { %>
+              <span class="original-price">₹<%= products[i].salesPrice %></span>
+              <span class="sale-price">₹<%= Math.round(finalPrice) %></span>
+              <span class="offer-percentage">(<%= discountPercentage %>% OFF)</span>
+              <% } else if (products[i].regularPrice > products[i].salesPrice) { %>
+              <span class="original-price">₹<%= products[i].regularPrice %></span>
+              <span class="sale-price">₹<%= products[i].salesPrice %></span>
+              <% } else { %>
+              <span class="sale-price">₹<%= products[i].regularPrice %></span>
+              <% } %>
+            </div>
+            <a href="javascript:void(0)" onclick="addToCart('<%= products[i]._id %>')" class="add-to-cart-btn">Add to Cart</a>
+          </div>
         </div>
-        <a href="/shop" class="shop-more-btn">Crafted For Her</a>
+      </div>
+      <% } %>
     </div>
+    <a href="/shop" class="shop-more-btn">Crafted For Her</a>
+  </div>
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -141,201 +134,222 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', () => {
     // Initialize Owl Carousel for Hero Slider
     $('.hero__slider').owlCarousel({
-        items: 1,
-        loop: true,
-        autoplay: true,
-        autoplayTimeout: 5000,
-        animateOut: 'fadeOut',
-        animateIn: 'fadeIn',
-        dots: true,
-        nav: false,
-        onInitialized: function() {
-            $('.owl-item.active .hero__text').addClass('animate-on-load');
-        },
-        onTranslated: function() {
-            $('.hero__text').removeClass('animate-on-load');
-            $('.owl-item.active .hero__text').addClass('animate-on-load');
-        }
+      items: 1,
+      loop: true,
+      autoplay: true,
+      autoplayTimeout: 5000,
+      animateOut: 'fadeOut',
+      animateIn: 'fadeIn',
+      dots: true,
+      nav: false,
+      onInitialized: function() {
+        $('.owl-item.active .hero__text').addClass('animate-on-load');
+      },
+      onTranslated: function() {
+        $('.hero__text').removeClass('animate-on-load');
+        $('.owl-item.active .hero__text').addClass('animate-on-load');
+      }
     });
 
     // Initialize Swiper for Brands
     const additionalBrandSwiper = new Swiper('.additional-brands__container', {
-        slidesPerView: 4,
-        spaceBetween: 20,
-        loop: true,
-        autoplay: {
-            delay: 3000,
-            disableOnInteraction: false,
+      slidesPerView: 4,
+      spaceBetween: 20,
+      loop: true,
+      autoplay: {
+        delay: 3000,
+        disableOnInteraction: false,
+      },
+      navigation: {
+        nextEl: '.additional-next',
+        prevEl: '.additional-prev',
+      },
+      breakpoints: {
+        320: {
+          slidesPerView: 1
         },
-        navigation: {
-            nextEl: '.additional-next',
-            prevEl: '.additional-prev',
+        768: {
+          slidesPerView: 2
         },
-        breakpoints: {
-            320: { slidesPerView: 1 },
-            768: { slidesPerView: 2 },
-            1024: { slidesPerView: 4 }
+        1024: {
+          slidesPerView: 4
         }
+      }
     });
-});
-    document.addEventListener('DOMContentLoaded', () => {
-        // Initialize Swiper for Additional Brands Slider
-        const additionalBrandSwiper = new Swiper('.additional-brands__container', {
-            slidesPerView: 4,
-            spaceBetween: 20,
-            loop: true,
-            autoplay: {
-                delay: 3000,
-                disableOnInteraction: false,
-            },
-            navigation: {
-                nextEl: '.additional-next', // Unique navigation class
-                prevEl: '.additional-prev', // Unique navigation class
-            },
-            breakpoints: {
-                320: { slidesPerView: 1 },
-                768: { slidesPerView: 2 },
-                1024: { slidesPerView: 4 }
-            }
-        });
+  });
+  document.addEventListener('DOMContentLoaded', () => {
+    // Initialize Swiper for Additional Brands Slider
+    const additionalBrandSwiper = new Swiper('.additional-brands__container', {
+      slidesPerView: 4,
+      spaceBetween: 20,
+      loop: true,
+      autoplay: {
+        delay: 3000,
+        disableOnInteraction: false,
+      },
+      navigation: {
+        nextEl: '.additional-next', // Unique navigation class
+        prevEl: '.additional-prev', // Unique navigation class
+      },
+      breakpoints: {
+        320: {
+          slidesPerView: 1
+        },
+        768: {
+          slidesPerView: 2
+        },
+        1024: {
+          slidesPerView: 4
+        }
+      }
     });
+  });
 
-    async function addToCart(productId, quantity, isBlocked, categoryListed, brandBlocked) {
-        if (quantity <= 0) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Out of Stock',
-                text: 'This product is currently out of stock.',
-                timer: 2000,
-                showConfirmButton: false
-            });
-            return;
-        }
-
-        try {
-            const response = await fetch('/add-to-cart', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ productId }),
-                credentials: 'include'
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: data.message || 'Product added to cart successfully!',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-            } else if (response.status === 401 || response.redirected) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Login Required',
-                    text: 'Please log in to add items to your cart.',
-                }).then(() => {
-                    window.location.href = '/login';
-                });
-            } else {
-                const errorData = await response.json();
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Failed to add product: ' + (errorData.message || 'Unknown error'),
-                });
-            }
-        } catch (error) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Error adding product to cart: ' + error.message,
-            });
-        }
+  async function addToCart(productId, quantity, isBlocked, categoryListed, brandBlocked) {
+    if (quantity <= 0) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Out of Stock',
+        text: 'This product is currently out of stock.',
+        timer: 2000,
+        showConfirmButton: false
+      });
+      return;
     }
 
-    document.addEventListener('DOMContentLoaded', async () => {
-        const wishlistButtons = document.querySelectorAll('.wishlist-btn');
-        wishlistButtons.forEach(async (btn) => {
-            const productId = btn.getAttribute('data-product-id');
-            try {
-                const response = await fetch(`/wishlist/check-status?productId=${productId}`, {
-                    credentials: 'include'
-                });
-                const data = await response.json();
-                if (data.success && data.inWishlist) {
-                    btn.classList.add('active');
-                }
-            } catch (error) {
-                console.error('Error checking wishlist status:', error);
-            }
+    try {
+      const response = await fetch('/add-to-cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId
+        }),
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: data.message || 'Product added to cart successfully!',
+          timer: 1500,
+          showConfirmButton: false
+        }).then(() => {
+          window.location.reload(); // Refresh the page after success
         });
-    });
-
-    async function toggleWishlist(productId, button) {
-        try {
-            const isActive = button.classList.contains('active');
-            const response = await fetch(`/wishlist/toggle/${productId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include'
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                if (isActive) {
-                    button.classList.remove('active');
-                    button.classList.add('animate');
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Removed',
-                        text: data.message || 'Product removed from wishlist!',
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-                    setTimeout(() => button.classList.remove('animate'), 500);
-                } else {
-                    button.classList.add('active');
-                    button.classList.add('animate');
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Added',
-                        text: data.message || 'Product added to wishlist!',
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-                    setTimeout(() => button.classList.remove('animate'), 500);
-                }
-            } else if (response.status === 401) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Login Required',
-                    text: 'Please log in to manage your wishlist.',
-                }).then(() => {
-                    window.location.href = '/login';
-                });
-            } else {
-                throw new Error(data.error || 'Unknown error');
-            }
-        } catch (error) {
-            console.error('Wishlist toggle error:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Failed to update wishlist: ' + error.message,
-            });
-        }
+      } else if (response.status === 401 || response.redirected) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Login Required',
+          text: 'Please log in to add items to your cart.',
+        }).then(() => {
+          window.location.href = '/login';
+        });
+      } else {
+        const errorData = await response.json();
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to add product: ' + (errorData.message || 'Unknown error'),
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Error adding product to cart: ' + error.message,
+      });
     }
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const wishlistButtons = document.querySelectorAll('.wishlist-btn');
+    wishlistButtons.forEach(async (btn) => {
+      const productId = btn.getAttribute('data-product-id');
+      try {
+        const response = await fetch(`/wishlist/check-status?productId=${productId}`, {
+          credentials: 'include'
+        });
+        const data = await response.json();
+        if (data.success && data.inWishlist) {
+          btn.classList.add('active');
+        }
+      } catch (error) {
+        console.error('Error checking wishlist status:', error);
+      }
+    });
+  });
+
+  async function toggleWishlist(productId, button) {
+    try {
+      const isActive = button.classList.contains('active');
+      const response = await fetch(`/wishlist/toggle/${productId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        if (isActive) {
+          button.classList.remove('active');
+          button.classList.add('animate');
+          Swal.fire({
+            icon: 'success',
+            title: 'Removed',
+            text: data.message || 'Product removed from wishlist!',
+            timer: 1500,
+            showConfirmButton: false
+          }).then(() => {
+            window.location.reload(); // Refresh the page after removal
+          });
+          setTimeout(() => button.classList.remove('animate'), 500);
+        } else {
+          button.classList.add('active');
+          button.classList.add('animate');
+          Swal.fire({
+            icon: 'success',
+            title: 'Added',
+            text: data.message || 'Product added to wishlist!',
+            timer: 1500,
+            showConfirmButton: false
+          }).then(() => {
+            window.location.reload(); // Refresh the page after addition
+          });
+          setTimeout(() => button.classList.remove('animate'), 500);
+        }
+      } else if (response.status === 401) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Login Required',
+          text: 'Please log in to manage your wishlist.',
+        }).then(() => {
+          window.location.href = '/login';
+        });
+      } else {
+        throw new Error(data.error || 'Unknown error');
+      }
+    } catch (error) {
+      console.error('Wishlist toggle error:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to update wishlist: ' + error.message,
+      });
+    }
+  }
 </script>
 
 <%- include('../../views/partials/user/footer') %>
 </body>
+
 </html>
