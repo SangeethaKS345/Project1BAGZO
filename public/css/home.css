@@ -268,19 +268,19 @@
 }
 
 .product-price .original-price {
-    font-size: 14px;
+    font-size: 12px;
     color: var(--medium-gray);
     text-decoration: line-through;
 }
 
 .product-price .sale-price {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     color: var(--text-red);
 }
 
 .product-price .offer-percentage {
-    font-size: 12px;
+    font-size: 10px;
     color: var(--accent-red);
     padding: 2px 6px;
     background: rgba(255, 65, 108, 0.1);
