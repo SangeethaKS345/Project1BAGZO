@@ -188,8 +188,6 @@ const updateEditProfile = async (req, res) => {
 
             const { name, phone, email, currentpassword, NewPassword, Cpassword } = req.body;
 
-            // ... email verification and password logic ...
-
             if (req.file) {
                 // Delete old image if it exists and isn't the default
                 if (user.profileImage && !user.profileImage.includes('default-profile')) {
@@ -208,6 +206,29 @@ const updateEditProfile = async (req, res) => {
                 delete req.session.emailVerified;
                 delete req.session.emailOtp;
                 delete req.session.newEmail;
+            }
+
+            // Password update logic
+            if (currentpassword && NewPassword && Cpassword) {
+                // Verify current password
+                const isMatch = await bcrypt.compare(currentpassword, user.password);
+                if (!isMatch) {
+                    return res.status(400).json({ error: "Current password is incorrect" });
+                }
+                
+                // Verify new password and confirm password match
+                if (NewPassword !== Cpassword) {
+                    return res.status(400).json({ error: "New password and confirmation do not match" });
+                }
+                
+                // Validate new password length
+                if (NewPassword.length < 8) {
+                    return res.status(400).json({ error: "New password must be at least 8 characters long" });
+                }
+                
+                // Hash and update the new password
+                const hashedPassword = await securePassword(NewPassword);
+                user.password = hashedPassword;
             }
 
             await user.save();
