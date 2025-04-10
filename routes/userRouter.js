@@ -69,7 +69,7 @@ router.get("/reset-password", profileController.getResetPassword);
 router.post("/reset-password", profileController.postNewPassword);
 router.post("/resend-otp", profileController.resendOtp);
 
-// User Profile Routes (Protected)
+// User Profile Routes 
 router.get("/profile", userAuth, profileController.userProfile);
 router.get("/editProfile", userAuth, profileController.getEditProfile);
 router.patch("/editProfile/update", userAuth, profileController.updateEditProfile);

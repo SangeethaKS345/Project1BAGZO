@@ -1,5 +1,6 @@
 const Category = require("../../models/categorySchema.js");
 
+//Load Category Page
 const categoryInfo = async (req, res, next) => {
     try {
         const search = req.query.search || '';
@@ -31,12 +32,14 @@ const categoryInfo = async (req, res, next) => {
     }
 };
 
+//Category Name Standardization
 const standardizeCategoryName = (name) => {
     return name.trim().split(' ')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
 };
 
+//Add Category
 const addCategory = async (req, res, next) => {
     try {
         const { name, description } = req.body;
@@ -64,6 +67,7 @@ const addCategory = async (req, res, next) => {
     }
 };
 
+//Get Edit Category Page
 const getEditCategory = async (req, res, next) => {
     try {
         const category = await Category.findById(req.query.id);
@@ -74,6 +78,7 @@ const getEditCategory = async (req, res, next) => {
     }
 };
 
+//Edit Category
 const editCategory = async (req, res, next) => {
     try {
         const { id } = req.params;
@@ -110,6 +115,7 @@ const editCategory = async (req, res, next) => {
     }
 };
 
+//Get List Category
 const updateCategoryListing = async (req, res, next, isListed) => {
     try {
         await Category.updateOne({ _id: req.query.id }, { $set: { isListed } });
@@ -119,9 +125,11 @@ const updateCategoryListing = async (req, res, next, isListed) => {
     }
 };
 
+//Unlist and list Category
 const getListCategory = (req, res, next) => updateCategoryListing(req, res, next, true);
 const getUnlistCategory = (req, res, next) => updateCategoryListing(req, res, next, false);
 
+//Delete Category
 const deleteCategory = async (req, res, next) => {
     try {
         const deletedCategory = await Category.findByIdAndDelete(req.params.id);
@@ -134,6 +142,7 @@ const deleteCategory = async (req, res, next) => {
     }
 };
 
+//Add Category Offer
 const addCategoryOffer = async (req, res, next) => {
     try {
         const { categoryId, percentage, endDate } = req.body;
@@ -193,6 +202,7 @@ const addCategoryOffer = async (req, res, next) => {
     }
 };
 
+//Remove Category Offer
 const removeCategoryOffer = async (req, res, next) => {
     try {
         const categoryId = req.params.categoryId;

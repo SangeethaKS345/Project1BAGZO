@@ -3,15 +3,18 @@ const User = require("../../models/userSchema");
 const Product = require("../../models/productSchema");
 const Order = require("../../models/orderSchema");
 
+// Load Wallet Page
 const getTransactionDetails = async (req, res, next) => {
   try {
     const transactionId = req.params.id;
     console.log('Fetching transaction details for ID:', transactionId);
 
-    // Find wallet containing the transaction
-    const wallet = await Wallet.findOne({ 'transactions._id': transactionId })
-      .populate('user', 'name email phone')
-      .lean();
+    // Fetch wallet and transaction data
+    const [wallet] = await Promise.all([
+      Wallet.findOne({ 'transactions._id': transactionId })
+        .populate('user', 'name email phone')
+        .lean()
+    ]);
 
     if (!wallet || !wallet.transactions) {
       console.log('Wallet or transactions not found for ID:', transactionId);
@@ -54,9 +57,12 @@ const loadWalletPage = async (req, res, next) => {
     const limit = 10;
     const skip = (page - 1) * limit;
 
-    const wallets = await Wallet.find()
-      .populate('user', 'name email phone')
-      .lean();
+    // Fetch wallets data in parallel
+    const [wallets] = await Promise.all([
+      Wallet.find()
+        .populate('user', 'name email phone')
+        .lean()
+    ]);
 
     // Flatten transactions from all wallets
     const allTransactions = wallets.reduce((acc, wallet) => {
@@ -88,5 +94,5 @@ const loadWalletPage = async (req, res, next) => {
 
 module.exports = {
   loadWalletPage,
-  getTransactionDetails, // Exporting getTransactionDetails method
+  getTransactionDetails
 };

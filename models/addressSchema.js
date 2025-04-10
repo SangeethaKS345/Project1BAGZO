@@ -18,7 +18,7 @@ const addressSchema = new Schema({
     trim: true,
     minlength: 2
   },
-  houseNo: {  // New field
+  houseNo: {  
     type: String,
     required: true,
     trim: true

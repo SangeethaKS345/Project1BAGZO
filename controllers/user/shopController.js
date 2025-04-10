@@ -4,6 +4,7 @@ const Brand = require('../../models/brandSchema');
 const Category = require('../../models/categorySchema');
 const User = require('../../models/userSchema');
 
+// Get User Data 
 const getUserData = async (userId) => {
     if (mongoose.Types.ObjectId.isValid(userId)) {
         return await User.findOne({ _id: new mongoose.Types.ObjectId(userId) });
@@ -12,6 +13,7 @@ const getUserData = async (userId) => {
     return null;
 };
 
+// Load Shop Page with Filters and Sorting
 const getFilters = (query) => {
     const filter = {
         isBlocked: false,
@@ -43,6 +45,7 @@ const getFilters = (query) => {
     return filter;
 };
 
+// Sort Options
 const getSortOptions = (sort) => {
     switch (sort) {
         case 'price-asc': return { salesPrice: 1 };
@@ -53,6 +56,7 @@ const getSortOptions = (sort) => {
     }
 };
 
+// Calculate Price Details
 const calculatePriceDetails = (product) => {
     const categoryOffer = Number(product.category?.categoryOffer || 0);
     const productOffer = Number(product.productOffer || 0);
@@ -75,6 +79,7 @@ const calculatePriceDetails = (product) => {
     };
 };
 
+// Load Shop Page
 const loadShop = async (req, res, next) => {
     try {
         const userId = req.session.user;

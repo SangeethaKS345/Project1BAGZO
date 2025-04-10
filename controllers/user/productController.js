@@ -3,6 +3,7 @@ const Category = require("../../models/categorySchema");
 const User = require("../../models/userSchema");
 const { ObjectId } = require("mongoose").Types;
 
+// Load Product Details Page
 const productDetails = async (req, res, next) => {
     try {
         const userId = req.session.user?.id;

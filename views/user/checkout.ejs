@@ -262,7 +262,7 @@
       initPaymentMethodSelection();
       setupOrderForm();
       initWalletValidation();
-      updateCODAvailability(); // NEW: Check COD availability on load
+      updateCODAvailability(); 
 
       // Add coupon input Enter key listener
       document.getElementById('couponCode').addEventListener('keypress', function(e) {
@@ -353,7 +353,7 @@
       return true;
     }
 
-    // NEW: Function to enable/disable COD based on total amount
+    //Function to enable/disable COD based on total amount
     function updateCODAvailability() {
       const totalAmount = parseFloat(document.getElementById('total').textContent.replace('₹', '')) || 0;
       const codRadio = document.getElementById('cod');

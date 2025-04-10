@@ -28,6 +28,14 @@ const userSchema = new Schema({
         type: String,
         required: false
     },
+    forgotPasswordOtp: { 
+        type: String, 
+        default: null 
+    },
+    otpExpires: { 
+        type: Date, 
+        default: null 
+    },
     isBlocked: {
         type: Boolean,
         default: false

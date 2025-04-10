@@ -8,7 +8,7 @@ const Product = require("../../models/productSchema");
 const Brand = require("../../models/brandSchema");
 const Wallet = require("../../models/walletSchema");
 
-// Helper functions
+// Helper functions for OTP generation and email sending
 const generateOtp = () => String(Math.floor(100000 + Math.random() * 900000));
 
 const sendVerificationEmail = async (email, otp) => {
@@ -35,6 +35,7 @@ const sendVerificationEmail = async (email, otp) => {
     }
 };
 
+// Helper function to generate a secure password
 const securePassword = async (password) => {
     try {
         return await bcrypt.hash(password, 10);
@@ -44,6 +45,7 @@ const securePassword = async (password) => {
     }
 };
 
+// Helper function to generate a unique referral code
 const generateReferralCode = async () => {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let referralCode;
@@ -63,6 +65,7 @@ const generateReferralCode = async () => {
     return referralCode;
 };
 
+// Helper function to calculate effective price and discount percentage
 const calculateEffectivePrice = (product) => {
     const categoryOffer = Number(product.category?.categoryOffer || 0);
     const productOffer = Number(product.productOffer || 0);
@@ -85,6 +88,7 @@ const calculateEffectivePrice = (product) => {
     };
 };
 
+// Load Homepage
 const loadHomepage = async (req, res, next) => {
     console.log(req.session.user, "user session in loadHomepage");
     try {
@@ -123,6 +127,7 @@ const loadHomepage = async (req, res, next) => {
     }
 };
 
+// Load Signup Page
 const loadSignup = (req, res, next) => {
     try {
         return res.render('signup', { message: "" });
@@ -131,6 +136,7 @@ const loadSignup = (req, res, next) => {
     }
 };
 
+// Signup User
 const signup = async (req, res, next) => {
     try {
         const { name, phone, email, password, cPassword, referralCode } = req.body;
@@ -163,7 +169,7 @@ const signup = async (req, res, next) => {
         res.redirect(`/signup?action=signup&form=signup&message=${encodeURIComponent("An error occurred. Please try again.")}`);
     }
 };
-
+// Check Referral Code
 const checkReferralCode = async (req, res, next) => {
     try {
         const { referralCode } = req.body;
@@ -179,6 +185,7 @@ const checkReferralCode = async (req, res, next) => {
     }
 };
 
+// Verify OTP
 const verifyOtp = async (req, res, next) => {
     try {
         const { otp } = req.body;
@@ -267,7 +274,7 @@ const verifyOtp = async (req, res, next) => {
         next(error);
     }
 };
-
+// Load Page Not Found
 const pageNotFound = (req, res, next) => {
     try {
         res.status(404).render("404");
@@ -275,7 +282,7 @@ const pageNotFound = (req, res, next) => {
         next(error); 
     }
 };
-
+// Load Login Page
 const loadLogin = (req, res, next) => {
     try {
         if (!req.session.user) {
@@ -286,38 +293,56 @@ const loadLogin = (req, res, next) => {
         next(error);
     }
 };
-
+// User Login   
 const login = async (req, res, next) => {
     try {
         console.log("User login route hit");
         const { email, password } = req.body;
 
         if (!email || !password) {
+            console.log("Missing email or password");
             return res.redirect("/signin?message=" + encodeURIComponent("Email and password are required"));
         }
 
         const user = await User.findOne({ email, isAdmin: false });
         if (!user) {
+            console.log(`No user found for email: ${email}`);
             return res.redirect("/signin?message=" + encodeURIComponent("Email not found. Please sign up."));
         }
 
         if (user.isBlocked) {
+            console.log(`Blocked user attempted login: ${email}`);
             return res.redirect("/signin?message=" + encodeURIComponent("Your account is blocked. Contact support."));
         }
 
+        console.log('Stored password hash from DB:', user.password);
+        console.log('Input password:', password);
         const passwordMatch = await bcrypt.compare(password, user.password);
+        console.log('Password match result:', passwordMatch);
+
         if (!passwordMatch) {
+            console.log(`Password mismatch for user: ${email}`);
             return res.redirect("/signin?message=" + encodeURIComponent("Incorrect password."));
         }
 
-        req.session.user = { id: user._id, name: user.name };
-        res.redirect("/");
+        // Ensure session is fresh
+        req.session.regenerate((err) => {
+            if (err) {
+                console.error("Session regeneration error:", err);
+                return next(err);
+            }
+            
+            req.session.user = { id: user._id.toString(), name: user.name };
+            console.log(`Login successful for: ${email}, Session ID: ${req.session.id}`);
+
+            res.redirect("/");
+        });
     } catch (error) {
         console.error("User Login Error:", error);
         next(error);
     }
 };
-
+// Resend OTP
 const resendOtp = async (req, res) => {
     try {
         if (!req.session.userData || !req.session.userData.email) {
@@ -339,7 +364,7 @@ const resendOtp = async (req, res) => {
         res.status(500).json({ success: false, message: "Internal server error. Try again" });
     }
 };
-
+// Logout User
 const logout = async (req, res, next) => {
     try {
         req.session.user = null;
@@ -349,7 +374,7 @@ const logout = async (req, res, next) => {
         next(error); 
     }
 };
-
+// Forgot Password
 const forgotPassword = (req, res) => {
     try {
         return res.render("forgotPassword");
@@ -358,7 +383,7 @@ const forgotPassword = (req, res) => {
         res.redirect("/pageNotFound");
     }
 };
-
+//  Send Forgot Password Link
 const forgotPasswordSendLink = async (req, res) => {
     try {
         const { email } = req.body;
@@ -401,7 +426,7 @@ const forgotPasswordSendLink = async (req, res) => {
         return res.status(500).json({ success: false, message: "Server error" });
     }
 };
-
+// Load New Password Page
 const newPassword = (req, res) => {
     try {
         return res.render("newPassword");
@@ -410,7 +435,7 @@ const newPassword = (req, res) => {
         res.redirect("/pageNotFound");
     }
 };
-
+//  Change Password
 const changePassword = async (req, res) => {
     try {
         const passwordHash = await bcrypt.hash(req.body.password, 10);
@@ -422,7 +447,7 @@ const changePassword = async (req, res) => {
         res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
-
+//  Load Shop Page
 const loadShop = async (req, res, next) => {
     try {
         let userData = null;
@@ -478,7 +503,7 @@ const loadShop = async (req, res, next) => {
         next(error); 
     }
 };
-
+// Handle Google Authentication
 const handleGoogleAuth = async (req, res, next) => {
     try {
         const userId = req.user._id;
@@ -524,7 +549,7 @@ const handleGoogleAuth = async (req, res, next) => {
     }
 };
 
-// Export Routes
+
 module.exports = {
     loadHomepage,
     loadSignup,

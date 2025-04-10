@@ -620,8 +620,8 @@
   // Razorpay Payment Function
   function initiateRazorpayPayment(orderId, amount, razorpayOrderId, key) {
     const options = {
-      key: key, // Razorpay Key ID from the server
-      amount: amount, // Amount in paise (e.g., 50000 for ₹500)
+      key: key, // Razorpay Key ID from the server(this will fetch from backend)
+      amount: amount, // Amount in paise 
       currency: "INR",
       name: "Your Company Name",
       description: "Order Payment",
@@ -654,9 +654,9 @@
         }
       },
       prefill: {
-        name: "Customer Name", // You can dynamically fetch this
-        email: "customer@example.com", // You can dynamically fetch this
-        contact: "9999999999" // You can dynamically fetch this
+        name: "Customer Name", 
+        email: "customer@example.com", 
+        contact: "9999999999" 
       },
       notes: {
         orderId: orderId

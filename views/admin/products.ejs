@@ -64,7 +64,7 @@
                 <th scope="col"><b>Sale Price</b></th>
                 <th scope="col"><b>Offer %</b></th>
                 <th scope="col"><b>Offer</b></th>
-                <th scope="col"><b>Stock</b></th> <!-- Changed from Quantity -->
+                <th scope="col"><b>Stock</b></th>
                 <th scope="col"><b>Action</b></th>
                 <th scope="col"><b>Edit</b></th>
             </tr>
@@ -89,7 +89,7 @@
                     </button>
                     <% } %>
                 </td>
-                <td><%= data[i].quantity %></td> <!-- Still using quantity field but labeled as Stock -->
+                <td><%= data[i].quantity %></td> 
                 <td>
                     <% if(data[i].isBlocked===false) { %>
                     <button class="btn btn-danger" style="width: 80px;">

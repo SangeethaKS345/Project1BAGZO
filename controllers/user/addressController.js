@@ -1,6 +1,7 @@
 const Address = require("../../models/addressSchema");
 const User = require("../../models/userSchema");
 
+// Load Address Page
 const getAddresses = async (req, res, next) => {
   try {
     const userId = req.session.user.id;
@@ -17,6 +18,7 @@ const getAddresses = async (req, res, next) => {
   }
 };
 
+// Load Add Address Form
 const addAddressForm = async (req, res, next) => {
   try {
     const userId = req.session.user.id;
@@ -31,6 +33,7 @@ const addAddressForm = async (req, res, next) => {
   }
 };
 
+// Add Address
 const addAddress = async (req, res, next) => {
   try {
     const userId = req.body.userId || req.session.user.id;
@@ -78,6 +81,7 @@ const addAddress = async (req, res, next) => {
   }
 };
 
+// Load Edit Address Form
 const editAddressForm = async (req, res, next) => {
   try {
     const userId = req.session.user.id;
@@ -94,6 +98,7 @@ const editAddressForm = async (req, res, next) => {
   }
 };
 
+// Update Address
 const updateAddress = async (req, res, next) => {
   try {
     const userId = req.session.user.id;
@@ -126,6 +131,7 @@ const updateAddress = async (req, res, next) => {
   }
 };
 
+// Delete Address
 const deleteAddress = async (req, res, next) => {
   try {
     const userId = req.session.user.id;
@@ -143,7 +149,7 @@ const deleteAddress = async (req, res, next) => {
   }
 };
 
-// Utility functions
+// Helper Functions
 const validateRequiredFields = (fields) => {
   return Object.keys(fields).filter(key => !fields[key]?.toString().trim());
 };

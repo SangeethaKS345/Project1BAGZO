@@ -1,4 +1,4 @@
-
+// This controller handles the contact page rendering
 
 const contactController = {
   loadContact: (req, res) => {

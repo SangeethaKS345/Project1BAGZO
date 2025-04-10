@@ -5,6 +5,7 @@ const Product = require("../../models/productSchema");
 const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
 
+// Load Dashboard Page
 const loadDashboard = async (req, res, next) => {
   if (req.session.admin) {
     try {
@@ -74,6 +75,7 @@ const loadDashboard = async (req, res, next) => {
   }
 };
 
+// Get Chart Data
 const getChartData = async (req, res) => {
   try {
     const { range, startDate, endDate } = req.query;
@@ -111,6 +113,7 @@ const getChartData = async (req, res) => {
   }
 };
 
+// Get Date Filter for Chart Data
 const getDateFilter = (range, startDate, endDate) => {
   let dateFilter = {};
   switch (range) {
@@ -146,6 +149,7 @@ const getDateFilter = (range, startDate, endDate) => {
   return dateFilter;
 };
 
+// Get Top Products Data
 const getTopProductsData = async () => {
   const topProducts = await Order.aggregate([
     { $unwind: "$OrderItems" },
@@ -167,7 +171,7 @@ const getTopProductsData = async () => {
       }
     },
     { $sort: { totalQuantity: -1 } },
-    { $limit: 10 } // Changed from 5 to 10
+    { $limit: 10 } 
   ]);
 
   const productLabels = topProducts.map(p => p.productName || 'Unknown Product');
@@ -176,6 +180,7 @@ const getTopProductsData = async () => {
   return { productLabels, productData };
 };
 
+// Get Top  Brand Data
 const getTopBrandsData = async () => {
   const topBrands = await Order.aggregate([
     { $unwind: "$OrderItems" },
@@ -205,7 +210,7 @@ const getTopBrandsData = async () => {
       }
     },
     { $sort: { totalQuantity: -1 } },
-    { $limit: 10 } // Changed from 5 to 10
+    { $limit: 10 } 
   ]);
 
   const brandLabels = topBrands.map(b => b.brandName || 'Unknown Brand');
@@ -214,6 +219,7 @@ const getTopBrandsData = async () => {
   return { brandLabels, brandData };
 };
 
+// Get Top Categories Data
 const getTopCategoriesData = async () => {
   const topCategories = await Order.aggregate([
     { $unwind: "$OrderItems" },
@@ -252,6 +258,7 @@ const getTopCategoriesData = async () => {
   return { categoryLabels, categoryData };
 };
 
+// Download Report
 const downloadReport = async (req, res) => {
   try {
     const { reportType, reportFormat, startDate, endDate } = req.query;
@@ -298,6 +305,7 @@ const downloadReport = async (req, res) => {
   }
 };
 
+//Get Custom Report
 const getDateRange = (reportType, startDate, endDate) => {
   const endDateTime = new Date();
   let startDateTime = new Date();
@@ -323,6 +331,7 @@ const getDateRange = (reportType, startDate, endDate) => {
   return { startDate: startDateTime, endDate: endDateTime };
 };
 
+// Generate Excel Report
 const generateExcelReport = async (data, reportType) => {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet('Sales Report');
@@ -369,6 +378,7 @@ const generateExcelReport = async (data, reportType) => {
   return workbook;
 };
 
+// Generate PDF Report
 const generatePDFReport = (data, reportType) => {
   const doc = new PDFDocument({ margin: 30, size: 'A4' });
   const pageWidth = doc.page.width - 60;
@@ -477,6 +487,7 @@ const generatePDFReport = (data, reportType) => {
   return doc;
 };
 
+// Get Monthly Data for Chart
 const getMonthlyData = async (range = 'yearly') => {
   const now = new Date();
   let startDate;

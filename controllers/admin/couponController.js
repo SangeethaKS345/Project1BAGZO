@@ -41,7 +41,7 @@ const getCouponPage = async (req, res, next) => {
     const [totalCoupons, coupons] = await Promise.all([
       Coupons.countDocuments(query),
       Coupons.find(query)
-        .sort({ createdOn: -1 }) // Ensure newest first
+        .sort({ createdOn: -1 }) 
         .skip(skip)
         .limit(limit),
     ]);
@@ -121,7 +121,7 @@ const addCoupon = async (req, res) => {
   }
 };
 
-// In couponController.js
+//Coupon status toggle
 const toggleCouponStatus = async (req, res) => {
   try {
     const { couponId } = req.params;

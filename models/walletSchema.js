@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { v4: uuidv4 } = require('uuid'); // Add this line to import uuid
+const { v4: uuidv4 } = require('uuid'); 
 
 const walletSchema = new mongoose.Schema({
   user: {

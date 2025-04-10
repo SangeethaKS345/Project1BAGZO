@@ -11,6 +11,7 @@ const Wallet = require("../../models/walletSchema");
 const { addWalletTransaction } = require("../../controllers/user/walletController");
 const OrderSequence = require('../../models/orderSequenceSchema');
 
+// Load Cart Page
 const getCartPage = async (req, res, next) => {
   try {
     const cartData = await getCartDataForUser(req.user._id);
@@ -20,6 +21,7 @@ const getCartPage = async (req, res, next) => {
   }
 };
 
+// Load Checkout Page
 const getCheckoutPage = async (req, res, next) => {
   try {
     const userId = req.user._id;
@@ -71,6 +73,7 @@ const getCheckoutPage = async (req, res, next) => {
   }
 };
 
+// Fetch Cart Data for User
 async function getCartDataForUser(userId) {
   try {
     let cart = await Cart.findOne({ userId }).populate("products.productId");
@@ -158,6 +161,7 @@ async function getCartDataForUser(userId) {
   }
 }
 
+// Generate Order ID
 async function generateOrderId() {
   const dateStr = new Date().toISOString().slice(2, 10).replace(/-/g, '');
   const sequenceDoc = await OrderSequence.findOneAndUpdate(
@@ -169,6 +173,7 @@ async function generateOrderId() {
   return `ORD${dateStr}${String(sequenceDoc.sequence).padStart(3, '0')}`;
 }
 
+// Place Order
 const placeOrder = async (req, res, next) => {
   try {
     const { addressId, paymentMethod, couponCode } = req.body;
@@ -203,9 +208,12 @@ const placeOrder = async (req, res, next) => {
       }
     }
 
+    // Calculate subtotal, discount, and final amount
     const subtotal = cartItems.reduce((sum, item) => sum + (item.productDetails.regularPrice * item.quantity), 0);
     const cartDiscount = cartItems.reduce((sum, item) => sum + (item.discount * item.quantity), 0);
     let finalAmount = subtotal - cartDiscount;
+
+    // Coupon Logic
     let couponDiscount = 0;
     let appliedCoupon = null;
 
@@ -281,7 +289,7 @@ const placeOrder = async (req, res, next) => {
       for (const item of cartItems) {
         await Product.updateOne(
           { _id: item.productDetails._id },
-          { $inc: { quantity: -item.quantity } } // Decrease stock
+          { $inc: { quantity: -item.quantity } } // Decrease stock from backend
         );
       }
     };
@@ -412,7 +420,7 @@ const verifyPayment = async (req, res, next) => {
   }
 };
 
-
+// Get Order Failure Page
 const getOrderFailurePage = async (req, res, next) => {
   try {
     const { message, orderId, totalAmount } = req.query;
@@ -433,6 +441,7 @@ const getOrderFailurePage = async (req, res, next) => {
   }
 };
 
+// Retry Payment
 const retryPayment = async (req, res, next) => {
   try {
     const { orderId } = req.params;
@@ -477,6 +486,8 @@ const retryPayment = async (req, res, next) => {
     next(error);
   }
 };
+
+// Verify Retry Payment
 const verifyRetryPayment = async (req, res, next) => {
   try {
     const { razorpay_payment_id, razorpay_order_id, razorpay_signature, orderId } = req.body;
@@ -513,6 +524,7 @@ const verifyRetryPayment = async (req, res, next) => {
   }
 };
 
+// Apply Coupon
 const applyCoupon = async (req, res, next) => {
   try {
     const { couponCode, subtotal } = req.body;
@@ -550,6 +562,7 @@ const applyCoupon = async (req, res, next) => {
   }
 };
 
+// Payment Failed
 const paymentFailed = async (req, res, next) => {
   try {
     const { orderId } = req.body;

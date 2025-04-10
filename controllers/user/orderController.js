@@ -5,7 +5,7 @@ const Wallet = require('../../models/walletSchema');
 const walletController = require('./walletController');
 const PDFDocument = require('pdfkit');
 
-// Constants
+// Constants for Order Status Tracker
 const ORDERS_PER_PAGE = 3;
 const STATUS_MAP = {
   'Pending': 1,
@@ -31,7 +31,7 @@ const validateAuth = (req) => {
   return req.user._id;
 };
 
-// Main Controllers
+// Main Controllers 
 const getOrderPlaced = async (req, res, next) => {
   try {
     validateAuth(req);
@@ -55,6 +55,7 @@ const getOrderPlaced = async (req, res, next) => {
   }
 };
 
+// Cancel Order
 const cancelOrder = async (req, res, next) => {
   try {
     const userId = validateAuth(req);
@@ -114,6 +115,7 @@ const cancelOrder = async (req, res, next) => {
   }
 };
 
+// Load My Orders
 const loadMyOrders = async (req, res, next) => {
   try {
     const userId = validateAuth(req);
@@ -173,6 +175,7 @@ const loadMyOrders = async (req, res, next) => {
   }
 };
 
+// Return Order
 const returnOrder = async (req, res, next) => {
   try {
     const userId = validateAuth(req);
@@ -213,6 +216,7 @@ const returnOrder = async (req, res, next) => {
   }
 };
 
+// Download Invoice
 const downloadInvoice = async (req, res, next) => {
   try {
     const userId = validateAuth(req);
@@ -230,7 +234,7 @@ const downloadInvoice = async (req, res, next) => {
     }
 
     const statusNumber = getOrderStatus(order.status);
-    // Allow invoice download only if payment is successful or COD, block failed, pending Razorpay, cancelled, or returned
+    // Allow invoice download only if payment is successful or COD, block :- failed, pending Razorpay, cancelled, or returned
     if (order.paymentStatus === 'failed' || 
         (order.paymentMethod === 'razorpay' && order.paymentStatus === 'pending') || 
         statusNumber === 0 || 
@@ -245,7 +249,6 @@ const downloadInvoice = async (req, res, next) => {
     res.setHeader('Content-Disposition', `attachment; filename=invoice_${orderId}.pdf`);
     doc.pipe(res);
 
-    // Rest of the PDF generation logic remains unchanged...
     doc.fontSize(20).text('Invoice', { align: 'center' })
       .moveDown()
       .fontSize(12)
@@ -299,6 +302,7 @@ const downloadInvoice = async (req, res, next) => {
   }
 };
 
+// Get Order Details
 const getOrderDetails = async (req, res, next) => {
   try {
     const userId = validateAuth(req);

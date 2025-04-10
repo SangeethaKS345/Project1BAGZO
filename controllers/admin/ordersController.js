@@ -4,6 +4,7 @@ const User = require("../../models/userSchema");
 const Address = require("../../models/addressSchema");
 const Wallet = require("../../models/walletSchema");
 
+// Load all orders for admin
 const getAllOrders = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -45,7 +46,7 @@ const getAllOrders = async (req, res) => {
     res.status(500).send('Error fetching orders');
   }
 };
-
+// Load order details for admin
 const getOrderDetails = async (req, res) => {
   try {
     const order = await Order.findOne({ orderId: req.params.orderId })
@@ -95,6 +96,7 @@ const getOrderDetails = async (req, res) => {
   }
 };
 
+// Update order status for admin
 const updateOrderStatus = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -121,6 +123,7 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
+// Get return requests for admin
 const getReturnRequests = async (req, res) => {
   try {
     const returnRequests = await Order.find({ status: 'Return Request' })
@@ -145,7 +148,7 @@ const getReturnRequests = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
-
+// Update return status for admin
 const updateReturnStatus = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -203,7 +206,7 @@ const updateReturnStatus = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
-
+// Get order details for payment retry
 const getOrderDetailsForPayment = async (req, res, next) => {
   try {
     const userId = validateAuth(req);

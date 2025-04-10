@@ -59,7 +59,7 @@ const loadWalletPage = async (req, res, next) => {
     }
 };
 
-// Add Money to Wallet
+// Add Money to Wallet - Recharge Wallet with RazorPay
 const addMoneyToWallet = async (req, res, next) => {
     try {
         const { amount } = req.body;

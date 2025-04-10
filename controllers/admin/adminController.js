@@ -4,15 +4,16 @@ const bcrypt = require("bcrypt");
 // Load Login Page
 const loadLogin = async (req, res, next) => {
     try {
-        console.log("Admin loadLogin called, rendering login.ejs");
+        //console.log("Admin loadLogin called, rendering login.ejs");
         return res.render("login", { message: "" });
     } catch (error) {
         next(error);
     }
 };
 
+// Admin Login
 const login = async (req, res, next) => {
-    console.log("Admin login route hit");
+    //console.log("Admin login route hit");
     try {
         const { email, password } = req.body;
 

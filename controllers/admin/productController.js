@@ -4,6 +4,7 @@ const Brand = require("../../models/brandSchema");
 const fs = require("fs");
 const path = require("path");
 
+//Load Product Add Page
 const getProductAddPage = async (req, res, next) => {
   try {
     const [category, brand] = await Promise.all([
@@ -16,7 +17,7 @@ const getProductAddPage = async (req, res, next) => {
   }
 };
 
-// Function to add products
+// Add Product
 const addProducts = async (req, res, next) => {
   try {
     console.log("hello");
@@ -60,14 +61,13 @@ const addProducts = async (req, res, next) => {
     });
 
     await newProduct.save();
-    // Return success JSON response instead of redirecting
     return res.status(200).json({ success: true, message: "Product added successfully" });
   } catch (error) {
     next(error); 
   }
 };
 
-// Function to get all products
+// Get All Products
 const getAllProducts = async (req, res, next) => {
   try {
     const search = req.query.search || "";
@@ -107,7 +107,7 @@ const getAllProducts = async (req, res, next) => {
   }
 };
 
-// Function to block a product
+// Block Product
 const blockProduct = async (req, res, next) => {
   try {
     const id = req.query.id;
@@ -118,7 +118,7 @@ const blockProduct = async (req, res, next) => {
   }
 };
 
-// Function to unblock a product
+// Unblock Product
 const unblockProduct = async (req, res, next) => {
   try {
     const id = req.query.id;
@@ -129,7 +129,7 @@ const unblockProduct = async (req, res, next) => {
   }
 };
 
-// Function to get edit product page
+// Load Edit Product Page
 const getEditProduct = async (req, res, next) => {
   try {
     const id = req.query.id;
@@ -151,7 +151,7 @@ const getEditProduct = async (req, res, next) => {
   }
 };
 
-// Function to edit a product
+//  Edit Product
 const editProduct = async (req, res) => {
   try {
     const id = req.params.id;
@@ -210,6 +210,7 @@ const editProduct = async (req, res) => {
   }
 };
 
+// Delete Single Image
 const deleteSingleImage = async (req, res) => {
   try {
     const { imageNameToServer, productIdToServer } = req.body;
@@ -232,6 +233,7 @@ const deleteSingleImage = async (req, res) => {
   }
 };
 
+// Add Product Offer
 const addProductOffer = async (req, res, next) => {
   try {
     const { productId, percentage, endDate } = req.body;
@@ -264,6 +266,7 @@ const addProductOffer = async (req, res, next) => {
   }
 };
 
+// Remove Product Offer
 const removeProductOffer = async (req, res, next) => {
   try {
     const productId = req.params.productId;
@@ -290,7 +293,7 @@ const removeProductOffer = async (req, res, next) => {
   }
 };
 
-// Utility functions
+// Helper Function to Get Search Conditions
 const getSearchConditions = async (search) => {
   const searchConditions = [];
   const searchRegex = new RegExp(search, "i");
@@ -310,6 +313,7 @@ const getSearchConditions = async (search) => {
   return searchConditions;
 };
 
+// Helper Function to Handle Image Updates
 const handleImageUpdates = async (req, currentImages) => {
   let updatedImages = [...currentImages];
   
@@ -334,6 +338,7 @@ const handleImageUpdates = async (req, currentImages) => {
   return updatedImages;
 };
 
+// Helper Function to Calculate Sale Price
 const calculateSalePrice = (regularPrice, percentage) => {
   const discountAmount = regularPrice * (percentage / 100);
   return regularPrice - discountAmount;

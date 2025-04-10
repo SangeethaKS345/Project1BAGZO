@@ -6,6 +6,7 @@ const Brand = require("../../models/brandSchema");
 const Cart = require("../../models/cartSchema");
 const Wishlist = require("../../models/wishListSchema");
 
+// Utility function to get user ID from session
 const getUserIdFromSession = (sessionUser) => {
     if (typeof sessionUser === 'string') return sessionUser;
     if (typeof sessionUser === 'object') return sessionUser.id || sessionUser._id;
@@ -49,17 +50,17 @@ const getCartPage = async (req, res, next) => {
             let finalPrice = regularPrice;
             let discount = 0;
 
-            // Case 1: No offer and prices equal
+            //  No offer and prices equal
             if (productOffer === 0 && categoryOffer === 0 && salesPrice === regularPrice) {
                 finalPrice = regularPrice;
                 discount = 0;
             }
-            // Case 2: No offer and prices not equal
+            // No offer and prices not equal
             else if (productOffer === 0 && categoryOffer === 0 && salesPrice !== regularPrice) {
                 finalPrice = salesPrice;
                 discount = regularPrice - salesPrice;
             }
-            // Case 3 & 4: Has offer(s)
+            // Have both offers
             else if (productOffer > 0 || categoryOffer > 0) {
                 const offer = Math.max(productOffer, categoryOffer); // Take highest offer
                 const offerDiscount = salesPrice * (offer / 100);
@@ -99,7 +100,7 @@ const getCartPage = async (req, res, next) => {
     }
 };
 
-// Add to cart function (unchanged)
+// Add to cart function 
 const addToCart = async (req, res) => {
     try {
         const { productId, quantity = 1 } = req.body;
@@ -162,7 +163,7 @@ const addToCart = async (req, res) => {
     }
 };
 
-// Change product quantity in cart (unchanged)
+// Change product quantity in cart 
 const changeQuantity = async (req, res) => {
     try {
         const { productId, quantity } = req.body;
@@ -216,7 +217,7 @@ const changeQuantity = async (req, res) => {
     }
 };
 
-// Delete product from cart (unchanged)
+// Delete product from cart 
 const deleteProduct = async (req, res) => {
     try {
         const productId = req.query.id;
