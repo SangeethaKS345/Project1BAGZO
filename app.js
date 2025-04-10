@@ -10,6 +10,8 @@ const userRouter = require("./routes/userRouter");
 const adminRouter = require("./routes/adminRouter");
 const app = express();
 const multer = require("./helpers/multer");
+const Cart = require("./models/cartSchema");
+const Wishlist = require("./models/wishListSchema");
 
 
 
@@ -56,9 +58,23 @@ app.use((req, res, next) => {
   next();
 });
 
-// Middleware to pass user data to all views
-app.use((req, res, next) => {
+// Middleware to fetch cart and wishlist counts
+app.use(async (req, res, next) => {
   res.locals.userData = req.session.user || null;
+  res.locals.cartCount = 0;
+  res.locals.wishlistCount = 0;
+
+  if (req.session.user && req.session.user.id) {
+    try {
+      const cart = await Cart.findOne({ userId: req.session.user.id });
+      const wishlist = await Wishlist.findOne({ userId: req.session.user.id });
+
+      res.locals.cartCount = cart ? cart.products.length : 0;
+      res.locals.wishlistCount = wishlist ? wishlist.products.length : 0;
+    } catch (error) {
+      console.error("Error fetching cart/wishlist counts:", error);
+    }
+  }
   next();
 });
 
@@ -68,7 +84,6 @@ app.set("views", [path.join(__dirname, "views/user"), path.join(__dirname, "view
 
 app.use((req, res, next) => {
   res.locals.viewsPaths = app.get('views');
-  res.locals.userData = req.session.user || null;
   next();
 });
 

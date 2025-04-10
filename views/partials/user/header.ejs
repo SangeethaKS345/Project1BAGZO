@@ -37,35 +37,53 @@
         <nav class="header__menu mobile-menu">
           <ul>
             <li class="<%= (typeof activePage !== 'undefined' && activePage === 'home') ? 'active' : '' %>"><a href="/">Home</a></li>
-          
-            <!-- Only show Shop link if user is logged in -->
             <li><a href="/shop">Shop</a></li>
+            <li><a href="/contact">Contacts</a></li>
 
             <% if (userData) { %>
-            <li><a href="/cart">Cart</a></li>
-            <li><a href="/wishlist">Wishlist</a></li>
+            <li>
+              <a href="/cart">
+                <i class="fas fa-shopping-cart"></i>
+                <% if (cartCount > 0) { %>
+                  <span class="badge"><%= cartCount %></span>
+                <% } %>
+              </a>
+            </li>
+            <li>
+              <a href="/wishlist">
+                <i class="fas fa-heart"></i>
+                <% if (wishlistCount > 0) { %>
+                  <span class="badge"><%= wishlistCount %></span>
+                <% } %>
+              </a>
+            </li>
             <% } else { %>
-            <li><a href="#" onclick="redirectToLogin('/cart')">Cart</a></li>
-            <li><a href="#" onclick="redirectToLogin('/wishlist')">Wishlist</a></li>
+            <li>
+              <a href="#" onclick="redirectToLogin('/cart')">
+                <i class="fas fa-shopping-cart"></i>
+              </a>
+            </li>
+            <li>
+              <a href="#" onclick="redirectToLogin('/wishlist')">
+                <i class="fas fa-heart"></i>
+              </a>
+            </li>
             <% } %>
-            
-            <li><a href="/contact">Contacts</a></li>
           </ul>
         </nav>
       </div>
       <div class="col-lg-3 col-md-3">
-        <div class="header_nav_option ">
+        <div class="header_nav_option">
           <% if (!userData) { %>
           <a href="/signup" class="sign-in-link">Sign Up</a>
           <a href="/login">Log in</a>
           <% } else { %>
           <div class="dropdown">
-            <a href="#" class="sign-in-link"><%=userData?.name || 'User' %></a>
+            <a href="#" class="sign-in-link"><%= userData?.name || 'User' %></a>
             <div class="dropdown-content">
               <a href="/profile">Profile</a>
               <a href="/logout">Logout</a>
             </div>
-
           </div>
           <% } %>
         </div>
@@ -74,7 +92,6 @@
     <div class="canvas__open"><i class="fa fa-bars"></i></div>
   </div>
 
-  
   <script>
     function redirectToLogin(redirectUrl) {
       window.location.href = '/login?redirect=' + encodeURIComponent(redirectUrl);

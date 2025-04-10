@@ -9,9 +9,9 @@
 
 .row {
   display: flex;
-  align-items: center; 
-  justify-content: space-between; 
-  flex-wrap: wrap; 
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
 }
 
 /* Logo section */
@@ -26,28 +26,52 @@
   margin: 0;
   padding: 0;
   display: flex;
-  align-items: center; 
+  align-items: center;
 }
 
 .header__menu ul li {
-  margin-right: 20px; 
+  margin-right: 20px;
+  position: relative; /* For badge positioning */
 }
 
 .header__menu ul li a {
-  padding: 10px 20px; 
+  padding: 10px 20px;
   text-decoration: none;
-  color: #333; 
+  color: #333;
   font-size: 20px;
-  font-weight: 750; 
-  display: block;
+  font-weight: 750;
+  display: flex;
+  align-items: center;
   transition: all 0.3s ease;
   border-radius: 5px;
+}
+
+/* Icon styling */
+.header__menu ul li a i {
+  font-size: 22px;
+}
+
+/* Badge styling */
+.header__menu ul li a .badge {
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  background-color: #ff0000;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
 }
 
 /* Hover state for all links */
 .header__menu ul li a:hover {
   color: #ff0000;
-  background-color: #f8f8f8; 
+  background-color: #f8f8f8;
 }
 
 /* Active state */
@@ -59,30 +83,13 @@
 
 /* Mobile menu toggle */
 .canvas__open {
-  display: none; 
-}
-
-/* Media Queries for Responsive Design */
-@media (max-width: 991px) {
-  .header__menu {
-    display: none; 
-  }
-
-  .canvas__open {
-    display: block; 
-    font-size: 20px;
-    cursor: pointer;
-  }
-
-  .header_nav_option {
-    margin-top: 10px; 
-  }
+  display: none;
 }
 
 /* Right-side options (Sign Up, Log In, or Dropdown) */
 .header_nav_option {
   display: flex;
-  align-items: center; 
+  align-items: center;
   justify-content: flex-end;
 }
 
@@ -97,7 +104,7 @@
   text-decoration: none;
   font-size: 20px;
   text-align: center;
-  margin-right: 18px; /* Space between Sign Up and Log In */
+  margin-right: 18px;
   transition: background-color 0.3s ease;
 }
 
@@ -127,7 +134,7 @@ a[href="/login"]:hover {
 .dropdown {
   position: relative;
   display: flex;
-  align-items: center; /* Vertically aligns dropdown with menu */
+  align-items: center;
 }
 
 .dropdown-content {
@@ -138,7 +145,7 @@ a[href="/login"]:hover {
   box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
   z-index: 1000;
   right: 0;
-  top: 100%; /* Positions dropdown below the trigger */
+  top: 100%;
 }
 
 .dropdown-content a {
@@ -157,40 +164,35 @@ a[href="/login"]:hover {
   display: block;
 }
 
-/* Mobile menu toggle */
-.canvas__open {
-  display: none; /* Hidden by default, shown in mobile */
-}
-
 /* Media Queries for Responsive Design */
 @media (max-width: 991px) {
   .header__menu {
-    display: none; /* Hide menu on smaller screens */
+    display: none;
   }
 
   .canvas__open {
-    display: block; /* Show hamburger menu */
+    display: block;
     font-size: 20px;
     cursor: pointer;
   }
 
   .header_nav_option {
-    margin-top: 10px; /* Add spacing in mobile view */
+    margin-top: 10px;
   }
 }
 
 @media (max-width: 767px) {
   .col-lg-3, .col-md-3, .col-lg-6, .col-md-6 {
-    flex: 0 0 100%; /* Stack columns on small screens */
+    flex: 0 0 100%;
     max-width: 100%;
     text-align: center;
   }
 
   .header_nav_option {
-    justify-content: center; /* Center buttons in mobile */
+    justify-content: center;
   }
 
   .sign-in-link, a[href="/login"] {
-    margin: 5px 0; /* Stack buttons vertically */
+    margin: 5px 0;
   }
 }
