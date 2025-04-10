@@ -214,13 +214,13 @@
                   <% 
                     const today = new Date();
                     const expireDate = new Date(coupon.expireOn);
-                    if (!coupon.isListed) { 
-                  %>
-                    Inactive
-                  <% 
-                    } else if (expireDate < today) { 
+                    if (expireDate < today) { 
                   %>
                     Expired
+                  <% 
+                    } else if (!coupon.isListed) { 
+                  %>
+                    Inactive
                   <% 
                     } else { 
                   %>
