@@ -13,16 +13,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Css Styles -->
-  <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css">
-  <link rel="stylesheet" href="css/font-awesome.min.css" type="text/css">
-  <link rel="stylesheet" href="css/elegant-icons.css" type="text/css">
-  <link rel="stylesheet" href="css/magnific-popup.css" type="text/css">
-  <link rel="stylesheet" href="css/nice-select.css" type="text/css">
-  <link rel="stylesheet" href="css/owl.carousel.min.css" type="text/css">
+  <link rel="stylesheet" href="/css/bootstrap.min.css" type="text/css">
+  <link rel="stylesheet" href="/css/font-awesome.min.css" type="text/css">
+  <link rel="stylesheet" href="/css/elegant-icons.css" type="text/css">
+  <link rel="stylesheet" href="/css/magnific-popup.css" type="text/css">
+  <link rel="stylesheet" href="/css/nice-select.css" type="text/css">
+  <link rel="stylesheet" href="/css/owl.carousel.min.css" type="text/css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="css/slicknav.min.css" type="text/css">
-  <link rel="stylesheet" href="../../../css/style.css" type="text/css">
+  <link rel="stylesheet" href="/css/slicknav.min.css" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
   <link rel="stylesheet" href="/css/userHeader.css" type="text/css">
+  <!-- SweetAlert2 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -30,7 +32,8 @@
     <div class="row">
       <div class="col-lg-3 col-md-3">
         <div class="header__logo">
-          <a href="/"><img src="/img/BAGZO (3).png" alt="Bagzo Logo"></a>       </div>
+          <a href="/"><img src="/img/BAGZO (3).png" alt="Bagzo Logo"></a>
+        </div>
       </div>
       <div class="col-lg-6 col-md-6">
         <nav class="header__menu mobile-menu">
@@ -38,10 +41,9 @@
             <li class="<%= (typeof activePage !== 'undefined' && activePage === 'home') ? 'active' : '' %>"><a href="/">Home</a></li>
             <li><a href="/shop">Shop</a></li>
             <li><a href="/contact">Contacts</a></li>
-
             <% if (userData) { %>
             <li>
-              <a href="/cart">
+              <a href="#" onclick="navigateToCart()">
                 <i class="fas fa-shopping-cart"></i>
                 <% if (cartCount > 0) { %>
                   <span class="badge"><%= cartCount %></span>
@@ -49,7 +51,7 @@
               </a>
             </li>
             <li>
-              <a href="/wishlist">
+              <a href="#" onclick="navigateToWishlist()">
                 <i class="fas fa-heart"></i>
                 <% if (wishlistCount > 0) { %>
                   <span class="badge"><%= wishlistCount %></span>
@@ -74,13 +76,15 @@
       <div class="col-lg-3 col-md-3">
         <div class="header_nav_option">
           <% if (!userData) { %>
-          <a href="/signup" class="sign-in-link">Sign Up</a>
-          <a href="/login">Log in</a>
+            <div class="header_nav_option">
+              <a href="/signup" class="sign-in-link">Sign Up</a>
+              <a href="/signin" class="login-link">Log In</a>
+            </div>
           <% } else { %>
           <div class="dropdown">
-            <a href="#" class="sign-in-link"><%= userData?.name || 'User' %></a>
+            <a href="#" class="sign-in-link" onclick="navigateToProfile()"><%= userData?.name || 'User' %></a>
             <div class="dropdown-content">
-              <a href="/profile">Profile</a>
+              <a href="#" onclick="navigateToProfile()">Profile</a>
               <a href="/logout">Logout</a>
             </div>
           </div>
@@ -93,7 +97,115 @@
 
   <script>
     function redirectToLogin(redirectUrl) {
-      window.location.href = '/login?redirect=' + encodeURIComponent(redirectUrl);
+      window.location.href = '/signin?redirect=' + encodeURIComponent(redirectUrl);
+    }
+
+    function navigateToProfile() {
+      fetch('/profile', {
+        method: 'GET',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+        .then(response => {
+          if (response.ok) {
+            window.location.href = '/profile';
+          } else if (response.status === 401 || response.status === 403) {
+            return response.json().then(data => {
+              Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.error || 'Authentication failed',
+                confirmButtonText: 'OK'
+              }).then(() => {
+                window.location.href = '/signin';
+              });
+            });
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An unexpected error occurred',
+            confirmButtonText: 'OK'
+          }).then(() => {
+            window.location.href = '/signin';
+          });
+        });
+    }
+
+    function navigateToCart() {
+      fetch('/cart', {
+        method: 'GET',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+        .then(response => {
+          if (response.ok) {
+            window.location.href = '/cart';
+          } else if (response.status === 401 || response.status === 403) {
+            return response.json().then(data => {
+              Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.error || 'Authentication failed',
+                confirmButtonText: 'OK'
+              }).then(() => {
+                window.location.href = '/signin';
+              });
+            });
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An unexpected error occurred',
+            confirmButtonText: 'OK'
+          }).then(() => {
+            window.location.href = '/signin';
+          });
+        });
+    }
+
+    function navigateToWishlist() {
+      fetch('/wishlist', {
+        method: 'GET',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+        .then(response => {
+          if (response.ok) {
+            window.location.href = '/wishlist';
+          } else if (response.status === 401 || response.status === 403) {
+            return response.json().then(data => {
+              Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.error || 'Authentication failed',
+                confirmButtonText: 'OK'
+              }).then(() => {
+                window.location.href = '/signin';
+              });
+            });
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An unexpected error occurred',
+            confirmButtonText: 'OK'
+          }).then(() => {
+            window.location.href = '/signin';
+          });
+        });
     }
   </script>
 </body>

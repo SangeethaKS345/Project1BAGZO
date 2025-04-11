@@ -118,21 +118,22 @@
 }
 
 /* Log In button/link */
-a[href="/login"] {
+.login-link {
   display: inline-block;
   padding: 10px 20px;
   color: #fff;
-  background-color: #121212;
+  background-color: #1b1b1b; /* Matches .sign-in-link */
   border: none;
   border-radius: 5px;
   text-decoration: none;
   font-size: 20px;
   text-align: center;
+  margin-right: 18px; /* Matches .sign-in-link */
   transition: background-color 0.3s ease;
 }
 
-a[href="/login"]:hover {
-  background-color: #ff0000;
+.login-link:hover {
+  background-color: #ff0000; /* Matches .sign-in-link */
 }
 
 /* Dropdown styles */
@@ -187,7 +188,10 @@ a[href="/login"]:hover {
 }
 
 @media (max-width: 767px) {
-  .col-lg-3, .col-md-3, .col-lg-6, .col-md-6 {
+  .col-lg-3,
+  .col-md-3,
+  .col-lg-6,
+  .col-md-6 {
     flex: 0 0 100%;
     max-width: 100%;
     text-align: center;
@@ -197,7 +201,8 @@ a[href="/login"]:hover {
     justify-content: center;
   }
 
-  .sign-in-link, a[href="/login"] {
+  .sign-in-link,
+  .login-link {
     margin: 5px 0;
   }
 }
