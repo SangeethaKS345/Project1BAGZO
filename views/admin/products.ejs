@@ -33,6 +33,12 @@
         .search-suggestions div:hover {
             background-color: #f0f0f0;
         }
+        .product-img {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <div class="content-header">
@@ -57,6 +63,7 @@
     <table class="table table-striped">
         <thead>
             <tr>
+                <th scope="col"><b>Image</b></th>
                 <th scope="col"><b>Product name</b></th>
                 <th scope="col"><b>Brand</b></th>
                 <th scope="col"><b>Category</b></th>
@@ -72,6 +79,10 @@
         <tbody id="productTableBody">
             <% for(let i=data.length-1; i>=0; i--) { %>
             <tr>
+                <td>
+                    <img src="<%= data[i].productImage && data[i].productImage.length > 0 ? '/uploads/re-image/' + data[i].productImage[0] : '/images/placeholder.jpg' %>" 
+                         alt="<%= data[i].productName %>" class="product-img">
+                </td>
                 <td><%= data[i].productName %></td>
                 <td><%= data[i].brand.brandName %></td>
                 <td><%= data[i].category.name %></td>

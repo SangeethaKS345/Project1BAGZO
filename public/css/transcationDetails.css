@@ -91,7 +91,7 @@
   }
   
   .modal-header .modal-title {
-    color: #FF4B2B;
+    color: yellow;
     font-weight: 600;
   }
   
@@ -100,7 +100,7 @@
   }
   
   .text-warning {
-    color: #FF4B2B !important;
+    color: yellow;
     font-weight: 600;
     border-bottom: 1px solid rgba(255, 75, 43, 0.3);
     padding-bottom: 5px;
@@ -108,17 +108,17 @@
   
   .shipping-address .address-box {
     background-color: rgba(219, 68, 55, 0.1) !important;
-    border-left: 4px solid #DB4437;
+    border-left: 4px solid #d7d6d5;
   }
   
   /* Table styling */
   .table-dark {
-    background-color: #2b2b2b;
+    background-color: #a59696;
   }
   
   .table-dark thead th {
     background-color: #3d3d3d;
-    color: #FF4B2B;
+    color: yellow;
     font-weight: 600;
     text-transform: uppercase;
     font-size: 0.85rem;

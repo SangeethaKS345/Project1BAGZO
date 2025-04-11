@@ -196,12 +196,21 @@
                         modalMobile.innerText = orderData.shippingAddress.phone;
                         modalAltPhone.innerText = orderData.shippingAddress.altPhone;
 
+                        // Updated to include product image and color
                         contentDiv.innerHTML = orderData.products.map(product => `
                             <tr>
-                                <td>${product.name}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="${product.image}" alt="${product.name}" width="40" class="me-2">
+                                        <div>
+                                            <div>${product.name}</div>
+                                            <small>Color: ${product.color}</small>
+                                        </div>
+                                    </div>
+                                </td>
                                 <td>₹${product.price}</td>
                                 <td>${product.quantity}</td>
-                                <td>${product.status}</td>
+                                <td><span class="badge bg-warning">${product.status}</span></td>
                                 <td>₹${product.price * product.quantity}</td>
                             </tr>
                         `).join('');
