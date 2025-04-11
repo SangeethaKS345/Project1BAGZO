@@ -83,11 +83,11 @@
             <% if(products[i].offerPercentage > 0) { %>
             <div class="product-badge">Super Offer</div>
             <% } else if(products[i].regularPrice > products[i].salesPrice) { %>
-            <div class="product-badge">Sale</div>
+            <div class="product-badge">Hot Sale</div>
             <% } %>
           </div>
           <div class="product-content">
-            <span class="product-brand"><%=products[i].brandName %></span>
+            <span class="product-brand"><%=products[i].brand.brandName %></span>
             <h6 class="product-title"><%=products[i].productName%></h6>
             <div class="product-price">
               <% 

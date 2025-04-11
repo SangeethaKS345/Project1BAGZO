@@ -167,6 +167,46 @@
   left: 0;
   transition: opacity 0.3s ease;
 }
+.product-price .offer-percentage {
+  color: #e91e63;
+  font-size: 12px;
+  margin-left: 5px;
+}
+
+.product-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: #e91e63;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+<style>
+.product-price .offer-percentage {
+color: #e91e63;
+font-size: 12px;
+margin-left: 5px;
+}
+
+.product-badge {
+position: absolute;
+top: 10px;
+left: 10px;
+background-color: #e91e63;
+color: white;
+padding: 2px 8px;
+border-radius: 3px;
+font-size: 12px;
+}
+
+.product-brand {
+font-size: 16px;
+color: red;
+display: block;
+margin-bottom: 5px;
+}
 
 .product-img .primary-img {
   opacity: 1;

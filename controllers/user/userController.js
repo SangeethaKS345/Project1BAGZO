@@ -103,7 +103,8 @@ const loadHomepage = async (req, res, next) => {
             category: { $in: categories.map(category => category._id) },
             brand: { $in: brand.map(brand => brand._id) }
         })
-        .populate('category')
+        .populate('category') // Populate category
+        .populate('brand')    // Populate brand
         .sort({ createdAt: -1 })
         .limit(8); // Limit to 8 products
 
