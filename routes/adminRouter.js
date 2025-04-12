@@ -28,9 +28,9 @@ router.get('/dashboard/chartData', dashboardController.getChartData);
 router.get('/downloadReport', dashboardController.downloadReport);
 
 // Customer Management
-router.get("/users", adminAuth, customerController.customerInfo);
-router.get("/blockCustomer", adminAuth, customerController.customerBlocked);
-router.get("/unblockCustomer", adminAuth, customerController.customerunBlocked);
+router.get("/users", adminAuth, customerController.renderCustomersPage);
+router.post("/blockCustomer", adminAuth, customerController.blockCustomer);
+router.post("/unblockCustomer", adminAuth, customerController.unblockCustomer);
 
 // Category Management
 router.get("/category", adminAuth, categoryController.categoryInfo);
