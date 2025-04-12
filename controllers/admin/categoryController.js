@@ -1,45 +1,59 @@
 const Category = require("../../models/categorySchema.js");
 
-//Load Category Page
+// Load Category Page
 const categoryInfo = async (req, res, next) => {
     try {
         const search = req.query.search || '';
+        const status = req.query.status || 'all';
         const page = parseInt(req.query.page) || 1;
-        const limit = 3;
+        const limit = 4;
         const skip = (page - 1) * limit;
 
-        const searchConditions = [
-            { name: { $regex: search, $options: "i" } },
-            { description: { $regex: search, $options: "i" } }
-        ];
+        const query = {};
+
+        // Add search conditions
+        if (search) {
+            query.$or = [
+                { name: { $regex: search, $options: "i" } },
+                { description: { $regex: search, $options: "i" } }
+            ];
+        }
+
+        // Filter by status
+        if (status === 'listed') {
+            query.isListed = true;
+        } else if (status === 'unlisted') {
+            query.isListed = false;
+        }
 
         const [categoryData, totalCategories] = await Promise.all([
-            Category.find({ $or: searchConditions })
+            Category.find(query)
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit),
-            Category.countDocuments({ $or: searchConditions })
+            Category.countDocuments(query)
         ]);
 
         res.render("category", {
             cat: categoryData,
             currentPage: page,
             totalPages: Math.ceil(totalCategories / limit),
-            totalCategories
+            search,
+            status
         });
     } catch (error) {
         next(error);
     }
 };
 
-//Category Name Standardization
+// Category Name Standardization
 const standardizeCategoryName = (name) => {
     return name.trim().split(' ')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
 };
 
-//Add Category
+// Add Category
 const addCategory = async (req, res, next) => {
     try {
         const { name, description } = req.body;
@@ -67,7 +81,7 @@ const addCategory = async (req, res, next) => {
     }
 };
 
-//Get Edit Category Page
+// Get Edit Category Page
 const getEditCategory = async (req, res, next) => {
     try {
         const category = await Category.findById(req.query.id);
@@ -78,7 +92,7 @@ const getEditCategory = async (req, res, next) => {
     }
 };
 
-//Edit Category
+// Edit Category
 const editCategory = async (req, res, next) => {
     try {
         const { id } = req.params;
@@ -115,7 +129,7 @@ const editCategory = async (req, res, next) => {
     }
 };
 
-//Get List Category
+// Get List Category
 const updateCategoryListing = async (req, res, next, isListed) => {
     try {
         await Category.updateOne({ _id: req.query.id }, { $set: { isListed } });
@@ -125,11 +139,11 @@ const updateCategoryListing = async (req, res, next, isListed) => {
     }
 };
 
-//Unlist and list Category
+// Unlist and list Category
 const getListCategory = (req, res, next) => updateCategoryListing(req, res, next, true);
 const getUnlistCategory = (req, res, next) => updateCategoryListing(req, res, next, false);
 
-//Delete Category
+// Delete Category
 const deleteCategory = async (req, res, next) => {
     try {
         const deletedCategory = await Category.findByIdAndDelete(req.params.id);
@@ -142,7 +156,7 @@ const deleteCategory = async (req, res, next) => {
     }
 };
 
-//Add Category Offer
+// Add Category Offer
 const addCategoryOffer = async (req, res, next) => {
     try {
         const { categoryId, percentage, endDate } = req.body;
@@ -202,7 +216,7 @@ const addCategoryOffer = async (req, res, next) => {
     }
 };
 
-//Remove Category Offer
+// Remove Category Offer
 const removeCategoryOffer = async (req, res, next) => {
     try {
         const categoryId = req.params.categoryId;

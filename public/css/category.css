@@ -16,12 +16,13 @@
 
 /* General Layout */
 body {
-  background-color: #fafafa;
+  background Retrieved 3,058 tokens in 0.3s (8,967 t/s) — $0.0002 cost-color: #fafafa;
   font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
-.content-main {
-  padding: 30px;
+.container-fluid {
+  padding-left: 15px;
+  padding-right: 15px;
 }
 
 .content-header {
@@ -40,13 +41,18 @@ body {
 }
 
 /* Search and Filter Container */
+.card-header {
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+  padding: 25px;
+  margin-bottom: 25px !important;
+}
+
 .search-container {
   width: 100%;
   max-width: 700px;
   position: relative;
-  margin-bottom: 30px;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 .input-group {
@@ -62,8 +68,7 @@ body {
   overflow: hidden;
   background-color: white;
   max-width: 600px;
-  margin-right: auto;
-  margin-left: auto;
+  margin-right: auto; /* Aligns to the left */
 }
 
 .input-group.border input.form-control {
@@ -72,6 +77,22 @@ body {
   padding: 12px 15px;
   border-radius: 30px 0 0 30px;
   flex: 1;
+}
+
+.input-group.border select.form-select {
+  border: none;
+  box-shadow: none;
+  padding: 8px 15px;
+  border-radius: 0;
+  width: 120px;
+  background-color: #fff;
+  font-size: 14px;
+  color: #444;
+}
+
+.input-group.border select.form-select:focus {
+  outline: none;
+  box-shadow: none;
 }
 
 .input-group.border .btn {
@@ -85,6 +106,7 @@ body {
   background-color: #f0f0f0;
   border-color: #f0f0f0;
   color: var(--text-dark);
+  border-radius: 0 30px 30px 0;
 }
 
 .input-group.border .btn-secondary:hover {
@@ -109,13 +131,27 @@ body {
   color: var(--text-muted);
 }
 
-/* Search Suggestions Dropdown */
+.form-select {
+  height: 50px;
+  min-width: 120px;
+  color: var(--text-dark);
+  font-weight: 500;
+  background-color: white;
+  transition: all 0.2s;
+  font-size: 15px;
+}
+
+.form-select:focus {
+  box-shadow: none;
+  border-color: var(--primary-red);
+}
+
+/* Search Suggestions */
 .search-suggestions {
   position: absolute;
   top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 600px; /* Match input-group width */
+  left: 0; /* Aligns suggestions with the left edge of the input */
+  width: 600px;
   max-width: 100%;
   background: white;
   border: 1px solid var(--border-color);
@@ -124,11 +160,11 @@ body {
   max-height: 240px;
   overflow-y: auto;
   z-index: 1000;
-  display: none; /* Hidden by default, shown via JS */
+  display: none;
 }
 
 .search-suggestions.active {
-  display: block; /* Show when active */
+  display: block;
 }
 
 .search-suggestions div {
@@ -146,7 +182,7 @@ body {
 }
 
 .search-suggestions div:last-child {
-  border-bottom: none; /* Remove border from last suggestion */
+  border-bottom: none;
 }
 
 /* Card and Form Container */
@@ -260,7 +296,7 @@ textarea.form-control {
   box-shadow: 0 4px 8px rgba(219, 68, 55, 0.2);
 }
 
-.action-btn {
+.btn-action {
   border: none;
   font-weight: 500;
   padding: 8px 0;
@@ -307,7 +343,7 @@ textarea.form-control {
   box-shadow: 0 4px 8px rgba(23, 162, 184, 0.2);
 }
 
-.status-badge {
+.badge {
   font-weight: 500;
   font-size: 13px;
   padding: 7px 12px;
@@ -317,13 +353,13 @@ textarea.form-control {
   border-radius: 20px;
 }
 
-.status-listed {
+.alert-success {
   background-color: var(--badge-success-bg);
   color: var(--badge-success-color);
   border: 1px solid rgba(40, 167, 69, 0.2);
 }
 
-.status-unlisted {
+.alert-danger {
   background-color: var(--badge-danger-bg);
   color: var(--badge-danger-color);
   border: 1px solid rgba(220, 53, 69, 0.2);
@@ -338,7 +374,7 @@ textarea.form-control {
 }
 
 /* Pagination */
-.pagination-container {
+.container.mt-3 {
   display: flex;
   justify-content: center;
   width: 100%;
@@ -355,8 +391,7 @@ textarea.form-control {
   list-style: none;
 }
 
-.pagination a,
-.pagination .current-page {
+.page-item .page-link {
   width: 36px;
   height: 36px;
   margin: 0 5px;
@@ -374,17 +409,25 @@ textarea.form-control {
   cursor: pointer;
 }
 
-.pagination a:hover {
+.page-item .page-link:hover {
   color: var(--primary-red);
   border-color: var(--primary-red);
   background-color: var(--light-red);
 }
 
-.pagination .current-page {
+.page-item.active .page-link {
   background: linear-gradient(to right, var(--secondary-red), var(--gradient-end));
   border-color: var(--gradient-end);
   color: white;
   cursor: default;
+}
+
+.page-item.disabled .page-link {
+  background-color: transparent;
+  border-color: var(--border-color);
+  color: var(--text-muted);
+  cursor: default;
+  pointer-events: none;
 }
 
 /* Modal Styling */
@@ -433,8 +476,8 @@ textarea.form-control {
     height: auto;
   }
 
-  .content-main {
-    padding: 15px;
+  .content-header {
+    padding: 15px 0;
   }
 
   .content-title {
@@ -459,7 +502,6 @@ textarea.form-control {
   .search-suggestions {
     width: 100%;
     left: 0;
-    transform: none;
   }
 }
 
@@ -468,9 +510,13 @@ textarea.form-control {
     max-width: 100%;
   }
 
-  .action-btn,
+  .btn-action,
   .btn-info {
     width: 80px;
     font-size: 12px;
+  }
+
+  .form-select {
+    min-width: 100px;
   }
 }
