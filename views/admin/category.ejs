@@ -3,65 +3,41 @@
 <head>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css" />
     <link rel="stylesheet" href="/css/category.css">
-    <style>
-        .modal-backdrop {
-            z-index: 1040 !important;
-        }
-        .modal {
-            z-index: 1050 !important;
-        }
-        .search-container {
-            position: relative;
-            display: inline-block;
-        }
-        .search-suggestions {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 1000;
-            display: none;
-        }
-        .search-suggestions div {
-            padding: 8px;
-            cursor: pointer;
-        }
-        .search-suggestions div:hover {
-            background-color: #f0f0f0;
-        }
-    </style>
 </head>
 
 <body>
     <section class="content-main">
-        <div class="content-header">
-            <div>
-                <h2 class="content-title card-title">Category</h2>
+        <div class="content-header row">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="content-title">Category</h2>
             </div>
         </div>
-
-        <header class="search-container text-center mb-4">
-            <form action="/admin/category/" method="get" class="d-inline" id="searchForm">
-                <div class="input-group input-group-sm rounded-pill" style="width: 500px; margin: 0 auto;">
-                    <input type="text" class="form-control rounded-pill" placeholder="Search categories, descriptions, or offers" 
-                           name="search" id="searchInput" value="<%= typeof search !== 'undefined' ? search : '' %>" autocomplete="off"/>
-                    <button class="btn" type="submit" style="display: none;">Search</button>
-                    <button class="btn btn-secondary" type="button" onclick="clearSearch()">Clear</button>
-                </div>
-            </form>
-            <div class="search-suggestions" id="searchSuggestions"></div>
+        
+        <header class="card-header mb-20">
+            <div class="search-container">
+                <form action="/admin/category/" method="get" class="d-inline" id="searchForm">
+                    <div class="input-group border rounded-pill overflow-hidden" style="width: 100%;">
+                        <input type="text" class="form-control border-0 rounded-pill" 
+                               placeholder="Search categories, descriptions, or offers" 
+                               name="search" 
+                               id="searchInput" 
+                               value="<%= typeof search !== 'undefined' ? search : '' %>" 
+                               autocomplete="off">
+                        <button class="btn border-0" type="submit" style="display: none;">Search</button>
+                        <button class="btn btn-secondary border-0 rounded-pill" type="button" onclick="clearSearch()">Clear</button>
+                    </div>
+                </form>
+                <div class="search-suggestions" id="searchSuggestions"></div>
+            </div>
         </header>
 
         <div class="card">
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-3">
+                    <!-- Form Section -->
+                    <div class="col-md-4">
                         <div class="form-container">
+                            <h3 class="form-title">Add Category</h3>
                             <form method="post" action="/admin/addCategory" onsubmit="return handleFormSubmit(event)">
                                 <div class="mb-4">
                                     <label for="product_name" class="form-label">Name</label>
@@ -80,19 +56,20 @@
                         </div>
                     </div>
 
-                    <div class="col-md-9">
+                    <!-- Table Section -->
+                    <div class="col-md-8">
                         <div class="table-responsive">
-                            <table class="table">
+                            <table class="table table-striped">
                                 <thead>
                                     <tr>
-                                        <th></th>
-                                        <th>Name</th>
-                                        <th>Description</th>
-                                        <th>Offer Percentage</th>
-                                        <th>Offer</th>
-                                        <th>Status</th>
-                                        <th>List/Unlist</th>
-                                        <th>Edit</th>
+                                        <th scope="col"></th>
+                                        <th scope="col">Name</th>
+                                        <th scope="col">Description</th>
+                                        <th scope="col">Offer Percentage</th>
+                                        <th scope="col">Offer</th>
+                                        <th scope="col">Status</th>
+                                        <th scope="col">List/Unlist</th>
+                                        <th scope="col">Edit</th>
                                     </tr>
                                 </thead>
                                 <tbody id="categoryTableBody">
@@ -146,20 +123,26 @@
             </div>
         </div>
 
-        <div class="pagination-container">
-            <% if (currentPage > 1) { %>
-            <a href="?page=<%= currentPage - 1 %>&search=<%= typeof search !== 'undefined' ? search : '' %>">« Previous</a>
-            <% } %>
-            <% for (let i = 1; i <= totalPages; i++) { %>
-            <% if (i === currentPage) { %>
-            <span class="current-page"><%= i %></span>
-            <% } else { %>
-            <a href="?page=<%= i %>&search=<%= typeof search !== 'undefined' ? search : '' %>"><%= i %></a>
-            <% } %>
-            <% } %>
-            <% if (currentPage < totalPages) { %>
-            <a href="?page=<%= currentPage + 1 %>&search=<%= typeof search !== 'undefined' ? search : '' %>">Next »</a>
-            <% } %>
+        <div class="container mt-3">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                        <a class="page-link pagination-arrow" href="?page=<%= currentPage - 1 %>&search=<%= typeof search !== 'undefined' ? search : '' %>" aria-label="Previous">
+                            <span aria-hidden="true">«</span>
+                        </a>
+                    </li>
+                    <% for (let i = 1; i <= totalPages; i++) { %>
+                        <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                            <a class="page-link pagination-number" href="?page=<%= i %>&search=<%= typeof search !== 'undefined' ? search : '' %>"><%= i %></a>
+                        </li>
+                    <% } %>
+                    <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                        <a class="page-link pagination-arrow" href="?page=<%= currentPage + 1 %>&search=<%= typeof search !== 'undefined' ? search : '' %>" aria-label="Next">
+                            <span aria-hidden="true">»</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
         </div>
 
         <div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
@@ -269,166 +252,116 @@
                 });
             }
         }
-        
-    async function handleFormSubmit(event) {
-      event.preventDefault();
-      if (!validateForm()) {
-        return false;
-      }
 
-      const name = document.querySelector('input[name="name"]').value.trim();
-      const description = document.getElementById("descriptionId").value.trim();
+        function validateForm() {
+            clearErrorMessages();
 
-      try {
-        const response = await fetch('/admin/addCategory', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name,
-            description
-          }),
-        });
+            const name = document.getElementsByName("name")[0].value.trim();
+            const description = document.getElementById("descriptionId").value.trim();
+            let isValid = true;
 
-        const data = await response.json();
+            if (name === "") {
+                displayErrorMessage("name-error", "Please enter a category name.");
+                isValid = false;
+            } else if (!/^[a-zA-Z\s]+$/.test(name)) {
+                displayErrorMessage("name-error", "Category name should contain only alphabetic characters.");
+                isValid = false;
+            }
 
-        if (!response.ok) {
-          throw new Error(data.error || 'Something went wrong');
+            if (description === "") {
+                displayErrorMessage("description-error", "Please enter a description.");
+                isValid = false;
+            }
+
+            return isValid;
         }
 
-        await Swal.fire({
-          icon: 'success',
-          title: 'Success',
-          text: data.message,
-          confirmButtonColor: "#FF416C"
-        });
-
-        window.location.reload();
-      } catch (error) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: error.message,
-          confirmButtonColor: "#DB4437"
-        });
-      }
-    }
-
-    function validateForm() {
-      clearErrorMessages();
-
-      const name = document.getElementsByName("name")[0].value.trim();
-      const description = document.getElementById("descriptionId").value.trim();
-      let isValid = true;
-
-      if (name === "") {
-        displayErrorMessage("name-error", "Please enter a category name.");
-        isValid = false;
-      } else if (!/^[a-zA-Z\s]+$/.test(name)) {
-        displayErrorMessage("name-error", "Category name should contain only alphabetic characters.");
-        isValid = false;
-      }
-
-      if (description === "") {
-        displayErrorMessage("description-error", "Please enter a description.");
-        isValid = false;
-      }
-
-      return isValid;
-    }
-
-    function displayErrorMessage(elementId, message) {
-      const errorElement = document.getElementById(elementId);
-      errorElement.innerText = message;
-      errorElement.style.display = "block";
-    }
-
-    function clearErrorMessages() {
-      const errorElements = document.getElementsByClassName("error-message");
-      Array.from(errorElements).forEach((element) => {
-        element.innerText = "";
-        element.style.display = "none";
-      });
-    }
-
-    function toggleCategoryStatus(categoryId, isListed) {
-  isListed = isListed === 'true' || isListed === true;
-  const action = isListed ? 'unlist' : 'list';
-
-  Swal.fire({
-    title: `Are you sure you want to ${action} this category?`,
-    text: "You can change it later if needed.",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#FF416C",
-    cancelButtonColor: "#DB4437",
-    confirmButtonText: `Yes, ${action} it!`
-  }).then((result) => {
-    if (result.isConfirmed) {
-      fetch(`/admin/${action}Category?id=${categoryId}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json"
+        function displayErrorMessage(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.innerText = message;
+            errorElement.style.display = "block";
         }
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
+
+        function clearErrorMessages() {
+            const errorElements = document.getElementsByClassName("error-message");
+            Array.from(errorElements).forEach((element) => {
+                element.innerText = "";
+                element.style.display = "none";
+            });
         }
-        return response.json();
-      })
-      .then(data => {
-        if (data.success) {
-          // Update the UI elements
-          const statusBadge = document.getElementById(`status-${categoryId}`);
-          const toggleButton = document.getElementById(`toggle-btn-${categoryId}`);
 
-          // If we're listing the category
-          if (action === 'list') {
-            statusBadge.className = 'status-badge status-listed';
-            statusBadge.textContent = 'LISTED';
-            toggleButton.className = 'btn btn-danger action-btn';
-            toggleButton.textContent = 'Unlist';
-            // Update the onclick with the new status (true for listed)
-            toggleButton.setAttribute('onclick', `toggleCategoryStatus('${categoryId}', 'true')`);
-          } else {
-            // If we're unlisting the category
-            statusBadge.className = 'status-badge status-unlisted';
-            statusBadge.textContent = 'UNLISTED';
-            toggleButton.className = 'btn btn-success action-btn';
-            toggleButton.textContent = 'List';
-            // Update the onclick with the new status (false for unlisted)
-            toggleButton.setAttribute('onclick', `toggleCategoryStatus('${categoryId}', 'false')`);
-          }
+        function toggleCategoryStatus(categoryId, isListed) {
+            isListed = isListed === 'true' || isListed === true;
+            const action = isListed ? 'unlist' : 'list';
 
-          Swal.fire({
-            title: 'Success!',
-            text: data.message,
-            icon: 'success',
-            confirmButtonColor: "#FF416C"
-          });
-        } else {
-          throw new Error(data.message || "Something went wrong");
+            Swal.fire({
+                title: `Are you sure you want to ${action} this category?`,
+                text: "You can change it later if needed.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#FF416C",
+                cancelButtonColor: "#DB4437",
+                confirmButtonText: `Yes, ${action} it!`
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`/admin/${action}Category?id=${categoryId}`, {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json"
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            const statusBadge = document.getElementById(`status-${categoryId}`);
+                            const toggleButton = document.getElementById(`toggle-btn-${categoryId}`);
+
+                            if (action === 'list') {
+                                statusBadge.className = 'status-badge status-listed';
+                                statusBadge.textContent = 'LISTED';
+                                toggleButton.className = 'btn btn-danger action-btn';
+                                toggleButton.textContent = 'Unlist';
+                                toggleButton.setAttribute('onclick', `toggleCategoryStatus('${categoryId}', 'true')`);
+                            } else {
+                                statusBadge.className = 'status-badge status-unlisted';
+                                statusBadge.textContent = 'UNLISTED';
+                                toggleButton.className = 'btn btn-success action-btn';
+                                toggleButton.textContent = 'List';
+                                toggleButton.setAttribute('onclick', `toggleCategoryStatus('${categoryId}', 'false')`);
+                            }
+
+                            Swal.fire({
+                                title: 'Success!',
+                                text: data.message,
+                                icon: 'success',
+                                confirmButtonColor: "#FF416C"
+                            });
+                        } else {
+                            throw new Error(data.message || "Something went wrong");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error:", error);
+                        Swal.fire({
+                            title: "Error!",
+                            text: error.message || "Something went wrong",
+                            icon: "error",
+                            confirmButtonColor: "#DB4437"
+                        });
+                    });
+                }
+            });
         }
-      })
-      .catch(error => {
-        console.error("Error:", error);
-        Swal.fire({
-          title: "Error!",
-          text: error.message || "Something went wrong",
-          icon: "error",
-          confirmButtonColor: "#DB4437"
-        });
-      });
-    }
-  });
-}
 
-function addOffer(categoryId) {
+        function addOffer(categoryId) {
             $('#addOfferModal').modal('show');
             $('#offerCategoryId').val(categoryId);
-            $('#offerPercentageError').text('');  // Clear errors when opening modal
+            $('#offerPercentageError').text('');
             $('#offerEndDateError').text('');
         }
 
@@ -473,7 +406,6 @@ function addOffer(categoryId) {
             $('#offerPercentageError').text('');
             $('#offerEndDateError').text('');
 
-            // Check if fields are empty
             if (!percentage) {
                 $('#offerPercentageError').text('Offer percentage is required');
                 isValid = false;
@@ -515,4 +447,5 @@ function addOffer(categoryId) {
             }
         });
     </script>
-  <%- include("../../views/partials/admin/footer") %>
+    <%- include("../../views/partials/admin/footer") %>
+</body>
