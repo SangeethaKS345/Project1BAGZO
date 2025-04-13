@@ -43,12 +43,12 @@ router.delete("/deleteCategory/:id", adminAuth, categoryController.deleteCategor
 router.post("/addCategoryOffer", adminAuth, categoryController.addCategoryOffer);
 router.delete("/removeCategoryOffer/:categoryId", adminAuth, categoryController.removeCategoryOffer);
 
-// Brand Management
+//Brand Management
 router.get("/brands", adminAuth, brandController.getBrandPage);
 router.post("/addBrand", adminAuth, uploads.single("image"), brandController.addBrand);
-router.get("/blockBrand", adminAuth, brandController.blockBrand);
-router.get("/unBlockBrand", adminAuth, brandController.unBlockBrand);
-router.get("/deleteBrand", adminAuth, brandController.deleteBrand);
+router.post("/blockBrand", adminAuth, brandController.blockBrand); 
+router.post("/unBlockBrand", adminAuth, brandController.unBlockBrand); 
+router.post("/deleteBrand", adminAuth, brandController.deleteBrand); 
 
 // Product Management
 router.get("/addProducts", adminAuth, productController.getProductAddPage);
