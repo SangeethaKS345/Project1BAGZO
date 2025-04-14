@@ -1,51 +1,464 @@
+/* orders.css */
 
-    .product-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+/* Root Variables for Consistent Theme */
+:root {
+  --primary-red: #DB4437;
+  --secondary-red: #FF4B2B;
+  --gradient-end: #FF416C;
+  --light-red: rgba(219, 68, 55, 0.1);
+  --border-color: #e0e0e0;
+  --text-dark: #333333;
+  --text-muted: #777777;
+  --bg-light: #fafafa;
+  --bg-card: #ffffff;
+  --shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+}
 
-    .product-info {
-      font-size: 0.9em;
-    }
+/* General Layout */
+.container-fluid {
+  padding: 25px;
+  background-color: var(--bg-light);
+  min-height: 100vh;
+}
 
-    .status-select {
-      min-width: 150px;
-    }
+.content-header {
+  padding: 20px 0;
+  margin-bottom: 30px;
+}
 
-    .img-xs {
-      object-fit: cover;
-    }
+.content-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--primary-red);
+  letter-spacing: -0.5px;
+}
 
-    .modal-content {
-      border: none;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-    }
+/* Search and Filter Container */
+.card-header {
+  background-color: var(--bg-card);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  padding: 20px;
+  margin-bottom: 25px;
+}
 
-    .address-box {
-      border: 1px solid #3d3d3d;
-    }
+.search-container {
+  max-width: 100%;
+  text-align: left;
+}
 
-    .table-dark {
-      background-color: #1f1f1f;
-      color: #fff;
-    }
+#searchForm {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
 
-    .table-dark thead th {
-      border-color: #3d3d3d;
-    }
+#searchInput {
+  border-radius: 30px !important;
+  padding: 10px 20px;
+  font-size: 15px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+  flex: 1;
+  min-width: 200px;
+  color: var(--text-dark);
+}
 
-    .table-dark td {
-      border-color: #3d3d3d;
-    }
-    .content-header .form-control, 
-  .content-header .form-select, 
-  .content-header .btn {
-    min-width: 0; /* Prevents elements from being too wide */
+#searchInput:focus {
+  outline: none;
+  border-color: var(--primary-red);
+  box-shadow: none;
+}
+
+#statusFilter,
+#sortFilter {
+  border-radius: 30px !important;
+  padding: 8px 15px;
+  font-size: 14px;
+  min-width: 150px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-card);
+  color: var(--text-dark);
+}
+
+#statusFilter:focus,
+#sortFilter:focus {
+  outline: none;
+  border-color: var(--primary-red);
+  box-shadow: none;
+}
+
+#clearFilters {
+  border-radius: 30px !important;
+  padding: 8px 20px;
+  font-size: 14px;
+  background-color: #6c757d;
+  color: #fff;
+  border: none;
+  white-space: nowrap;
+}
+
+#clearFilters:hover {
+  background-color: #5a6268;
+}
+
+.search-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0 0 8px 8px;
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 1000;
+  display: none;
+  max-width: 600px;
+}
+
+.search-suggestions.active {
+  display: block;
+}
+
+.search-suggestions div {
+  padding: 12px 15px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.search-suggestions div:hover {
+  background-color: var(--light-red);
+  color: var(--primary-red);
+}
+
+/* Table Styles */
+.right {
+  background-color: var(--bg-card);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.table {
+  margin-bottom: 0;
+  background-color: transparent;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.table thead th {
+  background: linear-gradient(to right, var(--secondary-red), var(--gradient-end));
+  color: #fff;
+  font-weight: 600;
+  padding: 18px;
+  font-size: 15px;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.table tbody td {
+  padding: 16px;
+  vertical-align: middle;
+  font-size: 15px;
+  color: var(--text-dark);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.product-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.img-xs {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.product-info span {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-dark);
+}
+
+.product-info small {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* Payment Method Badges with Distinct Colors */
+.badge {
+  padding: 7px 12px;
+  font-size: 13px;
+  border-radius: 20px;
+  text-transform: capitalize;
+  min-width: 80px;
+  text-align: center;
+}
+
+.badge.payment-cod {
+  background-color: #ffc107; /* Yellow for COD */
+  color: #000;
+}
+
+.badge.payment-razorpay {
+  background-color: #28a745; /* Green for Razorpay */
+  color: #fff;
+}
+
+.badge.payment-wallet {
+  background-color: #007bff; /* Blue for Wallet */
+  color: #fff;
+}
+
+.badge.payment-pending {
+  background-color: #17a2b8; /* Cyan for Pending */
+  color: #fff;
+}
+
+/* Status Select */
+.status-select {
+  font-size: 14px;
+  padding: 8px;
+  border-radius: 6px;
+  width: 150px;
+  border: 1px solid var(--border-color);
+  background-color: #fff;
+  color: var(--text-dark);
+}
+
+.status-select:focus {
+  border-color: var(--primary-red);
+  box-shadow: none;
+}
+
+/* Action Button */
+.btn-action {
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 6px;
+  background: linear-gradient(to right, #fd7e14, #ff9f43); /* Orange gradient */
+  color: #fff;
+  border: none;
+  transition: all 0.3s;
+}
+
+.btn-action:hover {
+  background: #fd7e14;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(253, 126, 20, 0.2);
+}
+
+/* Return Requests Button */
+#returnRequestsBtn {
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 30px;
+  background: linear-gradient(to right, var(--secondary-red), var(--gradient-end));
+  color: #fff;
+  border: none;
+}
+
+#returnRequestsBtn:hover {
+  background: var(--primary-red);
+}
+
+/* Pagination */
+.pagination {
+  margin: 25px 0;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.page-item .page-link {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--text-dark);
+  font-size: 14px;
+  border: 1px solid var(--border-color);
+  background-color: #fff;
+  transition: all 0.3s;
+}
+
+.page-item.active .page-link {
+  background: linear-gradient(to right, var(--secondary-red), var(--gradient-end));
+  border-color: var(--gradient-end);
+  color: #fff;
+}
+
+.page-item.disabled .page-link {
+  color: var(--text-muted);
+  background-color: #fff;
+  cursor: not-allowed;
+}
+
+.page-item .page-link:hover {
+  color: var(--primary-red);
+  border-color: var(--primary-red);
+  background-color: var(--light-red);
+}
+
+/* Modal Styles */
+.modal-content {
+  border-radius: 10px;
+  background-color: #2b2b2b;
+  color: #ffffff;
+  overflow: visible;
+}
+
+.modal-header {
+  border-bottom: 1px solid #444;
+  background: linear-gradient(to right, var(--secondary-red), var(--gradient-end));
+  padding: 15px;
+}
+
+.modal-title {
+  font-size: 18px;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.btn-close-white {
+  filter: invert(1);
+  opacity: 1;
+}
+
+.modal-body {
+  padding: 20px;
+  color: #ffffff;
+}
+
+.modal-body h6 {
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: #ff9f43; /* Orange for headings */
+  font-weight: 600;
+}
+
+.modal-body p {
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: #ffffff; /* Bright white for all text */
+  display: block;
+  opacity: 1;
+}
+
+.modal-body p strong {
+  color: #e0e0e0; /* Light gray for labels */
+  font-weight: 600;
+}
+
+.address-box {
+  background-color: #3a3a3a;
+  border-radius: 6px;
+  padding: 12px;
+  margin-top: 15px;
+  color: #ffffff;
+}
+
+.address-box p {
+  color: #ffffff;
+}
+
+.table-dark {
+  background-color: #3a3a3a;
+  color: #ffffff;
+}
+
+.table-dark th,
+.table-dark td {
+  border-color: #555;
+  font-size: 14px;
+  color: #ffffff; /* Bright white for all table text */
+  padding: 10px;
+}
+
+.table-dark thead th {
+  background-color: #444;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.table-dark tbody td {
+  vertical-align: middle;
+}
+
+.table-dark tbody td:not(:first-child):not(:nth-child(4)) {
+  color: #ffffff; /* Explicitly white for Price, Quantity, Total */
+  font-weight: 500;
+}
+
+.table-dark .badge {
+  color: #000000; /* Black text for status badge */
+  background-color: #ff9f43; /* Orange for status */
+  font-weight: 500;
+}
+
+.table-dark .d-flex div,
+.table-dark .d-flex small {
+  color: #ffffff; /* White for product name and color */
+  font-weight: 500;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.modal-footer {
+  border-top: 1px solid #444;
+  padding: 15px;
+}
+
+.modal-body .row {
+  margin: 0;
+}
+
+.modal-body .col-md-6 {
+  padding: 10px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  #searchForm {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
   }
-  @media (max-width: 576px) {
-    .content-header .col-sm-6 {
-      margin-bottom: 10px; /* Extra spacing on small screens */
-    }
+
+  #searchInput,
+  #statusFilter,
+  #sortFilter,
+  #clearFilters {
+    border-radius: 30px !important;
+    width: 100%;
+    min-width: unset;
   }
-  
+
+  .table {
+    font-size: 13px;
+  }
+
+  .status-select {
+    width: 100%;
+  }
+
+  .btn-action {
+    width: 100%;
+    text-align: center;
+  }
+
+  .modal-body .col-md-6 {
+    padding: 5px;
+  }
+}
