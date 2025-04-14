@@ -1,361 +1,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css" />
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<style>
-    :root {
-        --primary-red: #DB4437;
-        --secondary-red: #FF4B2B;
-        --gradient-end: #FF416C;
-        --light-red: rgba(219, 68, 55, 0.1);
-        --border-color: #e0e0e0;
-        --text-dark: #333333;
-        --text-muted: #777777;
-        --bg-light: #f8f9fa;
-        --badge-success-bg: rgba(40, 167, 69, 0.1);
-        --badge-success-color: #28a745;
-        --badge-danger-bg: rgba(220, 53, 69, 0.1);
-        --badge-danger-color: #dc3545;
-        --badge-warning-bg: rgba(255, 193, 7, 0.1);
-        --badge-warning-color: #ffc107;
-    }
-
-    body {
-        background-color: #fafafa;
-        font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    }
-
-    /* Header Styling */
-    .content-header {
-        padding: 25px 0 15px;
-        margin-bottom: 40px;
-        margin-top: 20px;
-    }
-
-    .content-title {
-        color: var(--primary-red);
-        font-size: 28px;
-        font-weight: 600;
-        margin: 0;
-        letter-spacing: -0.5px;
-    }
-
-    /* Search Container */
-    .card-header {
-        background-color: white;
-        border-radius: 10px;
-        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
-        padding: 25px;
-        margin-bottom: 25px !important;
-    }
-
-    .search-container {
-        width: 100%;
-        max-width: 700px;
-        position: relative;
-    }
-
-    .search-filter-container {
-        text-align: left;
-        width: 100%;
-        position: relative;
-        margin-top: 20px;
-        margin-bottom: 30px;
-    }
-
-    .input-group {
-        position: relative;
-        display: flex;
-        align-items: center;
-        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-    }
-
-    .input-group.border {
-        border: 1px solid var(--border-color);
-        border-radius: 30px;
-        overflow: hidden;
-        background-color: white;
-    }
-
-    .form-control {
-        height: 50px;
-        font-size: 15px;
-        color: var(--text-dark);
-        padding-left: 20px;
-        transition: all 0.2s;
-        border: none;
-    }
-
-    .form-control:focus {
-        box-shadow: none;
-        border-color: var(--primary-red);
-    }
-
-    .form-control::placeholder {
-        color: var(--text-muted);
-    }
-
-    .form-select {
-        height: 50px;
-        min-width: 120px;
-        color: var(--text-dark);
-        font-weight: 500;
-        background-color: white;
-        transition: all 0.2s;
-        font-size: 15px;
-        border: none;
-    }
-    
-    .form-select:focus {
-        box-shadow: none;
-        border-color: var(--primary-red);
-    }
-
-    .btn {
-        height: 50px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 500;
-        transition: all 0.3s;
-        padding: 0 20px;
-        font-size: 13px;
-    }
-
-    .btn-secondary {
-        background-color: #f0f0f0;
-        color: var(--text-dark);
-    }
-
-    .btn-secondary:hover {
-        background-color: #e0e0e0;
-        color: var(--primary-red);
-    }
-
-    /* Table Container */
-    .right {
-        background-color: white;
-        border-radius: 10px;
-        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
-        padding: 0;
-        overflow: hidden;
-        margin-top: 20px !important;
-    }
-
-    .table {
-        width: 100%;
-        margin-bottom: 0;
-        background-color: transparent;
-        border-collapse: collapse;
-    }
-
-    .table thead {
-        background-color: var(--bg-light);
-    }
-
-    .table thead th {
-        padding: 18px 20px;
-        color: var(--primary-red);
-        font-weight: 600;
-        font-size: 15px;
-        border-bottom: 2px solid var(--border-color);
-        vertical-align: middle;
-    }
-
-    .table tbody td {
-        padding: 16px 20px;
-        vertical-align: middle;
-        border-bottom: 1px solid var(--border-color);
-        color: var(--text-dark);
-        font-size: 15px;
-    }
-
-    .table-striped tbody tr:nth-of-type(odd) {
-        background-color: rgba(0, 0, 0, 0.02);
-    }
-
-    /* Action Buttons */
-    .btn-action {
-        border: none;
-        font-weight: 500;
-        padding: 8px 0;
-        width: 100px;
-        border-radius: 6px;
-        font-size: 14px;
-        transition: all 0.3s;
-    }
-
-    .btn-danger {
-        background: linear-gradient(to right, var(--secondary-red), var(--gradient-end));
-        border: none;
-        color: white;
-    }
-
-    .btn-danger:hover {
-        background: var(--primary-red);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(219, 68, 55, 0.2);
-    }
-
-    .btn-success {
-        background: linear-gradient(to right, #28a745, #20c997);
-        border: none;
-        color: white;
-    }
-
-    .btn-success:hover {
-        background: #28a745;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2);
-    }
-
-    .gradientButton {
-        background: linear-gradient(to right, #FF4B2B, #FF416C);
-        border: none;
-        color: white;
-        border-radius: 30px;
-    }
-
-    .gradientButton:hover {
-        background: #DB4437;
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(219, 68, 55, 0.2);
-    }
-
-    /* Status Badges */
-    .badge {
-        font-weight: 500;
-        font-size: 13px;
-        padding: 7px 12px;
-        display: inline-block;
-        text-align: center;
-        min-width: 80px;
-        border-radius: 20px;
-    }
-
-    .alert-success {
-        background-color: var(--badge-success-bg);
-        color: var(--badge-success-color);
-        border: 1px solid rgba(40, 167, 69, 0.2);
-    }
-
-    .alert-danger {
-        background-color: var(--badge-danger-bg);
-        color: var(--badge-danger-color);
-        border: 1px solid rgba(220, 53, 69, 0.2);
-    }
-
-    .alert-warning {
-        background-color: var(--badge-warning-bg);
-        color: var(--badge-warning-color);
-        border: 1px solid rgba(255, 193, 7, 0.2);
-    }
-
-    /* Search Suggestions */
-    .search-suggestions {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        background: white;
-        border: 1px solid var(--border-color);
-        border-radius: 0 0 8px 8px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        max-height: 240px;
-        overflow-y: auto;
-        z-index: 1000;
-        display: none;
-        max-width: 700px;
-    }
-
-    .search-suggestions div {
-        padding: 12px 15px;
-        border-bottom: 1px solid #f0f0f0;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .search-suggestions div:hover {
-        background-color: var(--light-red);
-        color: var(--primary-red);
-    }
-
-    /* Error Message */
-    .errorMessage {
-        font-size: 0.875rem;
-        margin-top: 0.25rem;
-        color: #DB4437;
-    }
-
-    /* Pagination */
-    .container.mt-3 {
-        display: flex;
-        justify-content: center;
-        width: 100%;
-        margin-top: 20px;
-    }
-
-    .pagination {
-        margin-top: 25px;
-        margin-bottom: 25px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 10px 0;
-        list-style: none;
-    }
-
-    .page-item {
-        display: flex;
-        align-items: center;
-    }
-
-    .page-item .page-link {
-        width: 36px;
-        height: 36px;
-        margin: 0 5px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        color: var(--text-dark);
-        font-weight: 500;
-        font-size: 14px;
-        border: 1px solid var(--border-color);
-        background-color: white;
-        transition: all 0.3s;
-        text-decoration: none;
-        cursor: pointer;
-    }
-
-    .page-item .page-link:hover {
-        color: var(--primary-red);
-        border-color: var(--primary-red);
-        background-color: var(--light-red);
-    }
-
-    .page-item.active .page-link {
-        background: linear-gradient(to right, var(--secondary-red), var(--gradient-end));
-        border-color: var(--gradient-end);
-        color: white;
-        cursor: default;
-    }
-
-    .page-item.disabled .page-link {
-        background-color: transparent;
-        border-color: var(--border-color);
-        color: var(--text-muted);
-        cursor: default;
-        pointer-events: none;
-    }
-
-    .page-link.pagination-arrow {
-        font-size: 16px;
-        width: 40px;
-        height: 40px;
-        line-height: 1;
-    }
-</style>
+<link rel="stylesheet" href="/css/coupon.css" type="text/css">
 
 <%- include("../../views/partials/admin/header") %>
 
@@ -369,33 +15,37 @@
         </div>
     </div>
 
-    <header class="card-header mb-4">
-        <div class="search-container">
-            <form action="/admin/coupon" method="get" class="d-inline" id="searchForm">
-                <div class="input-group border rounded-pill overflow-hidden" style="width: 100%;">
-                    <input type="text" class="form-control border-0 rounded-pill" 
-                           placeholder="Search coupons by code, amount, dates..." 
-                           name="search" 
-                           id="searchInput" 
-                           value="<%= typeof search !== 'undefined' ? search : '' %>" 
-                           autocomplete="off">
-                    <select class="form-select border-0" name="status" id="listingFilter">
-                        <option value="all" <%= status === 'all' ? 'selected' : '' %>>All Status</option>
-                        <option value="listed" <%= status === 'listed' ? 'selected' : '' %>>Listed</option>
-                        <option value="unlisted" <%= status === 'unlisted' ? 'selected' : '' %>>Unlisted</option>
-                    </select>
-                    <select class="form-select border-0" name="validity" id="validityFilter">
-                        <option value="all" <%= validity === 'all' ? 'selected' : '' %>>All Validity</option>
-                        <option value="active" <%= validity === 'active' ? 'selected' : '' %>>Active</option>
-                        <option value="expired" <%= validity === 'expired' ? 'selected' : '' %>>Expired</option>
-                    </select>
-                    <button class="btn border-0" type="submit" style="display: none;">Search</button>
-                    <button class="btn btn-secondary border-0 rounded-pill" type="button" onclick="clearSearch()">Clear</button>
-                </div>
-            </form>
-            <div class="search-suggestions" id="searchSuggestions"></div>
-        </div>
-    </header>
+    <header class="card-header mb-20">
+      <div class="row align-items-center">
+          <!-- Search Container -->
+          <div class="col-md-8 col-sm-12 mb-3 mb-md-0">
+              <div class="search-container">
+                  <form action="/admin/coupon" method="get" class="d-inline" id="searchForm">
+                      <div class="input-group border border-1 rounded-pill overflow-hidden">
+                          <input type="text" class="form-control border-0 rounded-pill" 
+                                 placeholder="Search coupons by code, amount, dates..." 
+                                 name="search" 
+                                 id="searchInput" 
+                                 value="<%= typeof search !== 'undefined' ? search : '' %>" 
+                                 autocomplete="off">
+                          <button class="btn btn-secondary border-0 rounded-pill" type="button" onclick="clearSearch()">Clear</button>
+                      </div>
+                  </form>
+                  <div class="search-suggestions" id="searchSuggestions"></div>
+              </div>
+          </div>
+          <!-- Filter Container -->
+          <div class="col-md-4 col-sm-12">
+              <div class="filter-container">
+                  <select class="form-select" name="status" id="statusFilter">
+                      <option value="all" <%= status === 'all' ? 'selected' : '' %>>All Status</option>
+                      <option value="listed" <%= status === 'listed' ? 'selected' : '' %>>Listed</option>
+                      <option value="unlisted" <%= status === 'unlisted' ? 'selected' : '' %>>Unlisted</option>
+                  </select>
+              </div>
+          </div>
+      </div>
+  </header>
 
     <div class="right">
       <table class="table table-striped">
