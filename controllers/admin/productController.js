@@ -4,25 +4,22 @@ const Brand = require("../../models/brandSchema");
 const fs = require("fs");
 const path = require("path");
 
-//Load Product Add Page
+// Load Product Add Page
 const getProductAddPage = async (req, res, next) => {
   try {
     const [category, brand] = await Promise.all([
       Category.find({ isListed: true }),
-      Brand.find({ isBlocked: false })
+      Brand.find({ isBlocked: false }),
     ]);
     res.render("productAdd", { cat: category, brand: brand });
   } catch (error) {
-    next(error); 
+    next(error);
   }
 };
 
 // Add Product
 const addProducts = async (req, res, next) => {
   try {
-    console.log("hello");
-    console.log(req.files);
-
     const products = req.body;
     const productExists = await Product.findOne({ productName: products.productName });
 
@@ -32,7 +29,7 @@ const addProducts = async (req, res, next) => {
 
     const images = [];
     if (req.files && req.files.length > 0) {
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+      const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
       const maxSize = 5 * 1024 * 1024;
 
       for (let file of req.files) {
@@ -57,53 +54,68 @@ const addProducts = async (req, res, next) => {
       quantity: products.quantity,
       size: products.size,
       color: products.color,
-      productImage: images
+      productImage: images,
     });
 
     await newProduct.save();
     return res.status(200).json({ success: true, message: "Product added successfully" });
   } catch (error) {
-    next(error); 
+    next(error);
   }
 };
 
 // Get All Products
 const getAllProducts = async (req, res, next) => {
   try {
-    const search = req.query.search || "";
-    const page = parseInt(req.query.page) || 1;
-    const limit = 4;
+      const perPage = parseInt(req.query.limit, 10) || 10;
+      const page = parseInt(req.query.page, 10) || 1;
+      const search = req.query.search || "";
+      const action = req.query.action || "all"; // Ensure action is defined
 
-    const searchConditions = await getSearchConditions(search);
-    const [productData, count, category, brand] = await Promise.all([
-      Product.find({ $or: searchConditions })
-        .limit(limit)
-        .skip((page - 1) * limit)
-        .sort({ createdOn: -1 })
-        .populate("category")
-        .populate("brand")
-        .exec(),
-      Product.countDocuments({ $or: searchConditions }),
-      Category.find({ isListed: true }),
-      Brand.find({ isBlocked: false })
-    ]);
+      const query = {};
 
-    const safeProductData = productData.map(product => ({
-      ...product.toObject(),
-      brand: product.brand || { brandName: 'Unknown' },
-      category: product.category || { name: 'Uncategorized' },
-    }));
+      // Add search conditions
+      if (search) {
+          query.$or = [
+              { productName: { $regex: search, $options: "i" } },
+              { "brand.brandName": { $regex: search, $options: "i" } },
+              { "category.name": { $regex: search, $options: "i" } },
+          ];
+      }
 
-    res.render("products", {
-      data: safeProductData,
-      currentPage: page,
-      totalPages: Math.ceil(count / limit),
-      cat: category,
-      brand: brand,
-      search: search
-    });
+      // Filter by action
+      if (action === "block") {
+          query.isBlocked = true;
+      } else if (action === "unblock") {
+          query.isBlocked = false;
+      }
+
+      // Fetch products and total count
+      const [products, totalProducts] = await Promise.all([
+          Product.find(query)
+              .populate('brand')
+              .populate('category')
+              .sort({ createdAt: -1 })
+              .skip((page - 1) * perPage)
+              .limit(perPage),
+          Product.countDocuments(query),
+      ]);
+
+      const totalPages = Math.ceil(totalProducts / perPage);
+
+      // Render the products page
+      res.render("products", {
+          data: products,
+          currentPage: page,
+          totalPages,
+          perPage,
+          search,
+          action, // Pass action to the template
+          queryParams: `search=${search}&action=${action}`,
+      });
   } catch (error) {
-    next(error);
+      console.error("Error rendering products page:", error);
+      next(error);
   }
 };
 
@@ -134,9 +146,9 @@ const getEditProduct = async (req, res, next) => {
   try {
     const id = req.query.id;
     const [product, category, brand] = await Promise.all([
-      Product.findOne({ _id: id }).populate('brand'),
+      Product.findOne({ _id: id }).populate("brand"),
       Category.find({}),
-      Brand.find({})
+      Brand.find({}),
     ]);
 
     res.render("editProduct", {
@@ -144,14 +156,14 @@ const getEditProduct = async (req, res, next) => {
       cat: category,
       brand: brand,
       totalPages: 1,
-      currentPage: 1
+      currentPage: 1,
     });
   } catch (error) {
     next(error);
   }
 };
 
-//  Edit Product
+// Edit Product
 const editProduct = async (req, res) => {
   try {
     const id = req.params.id;
@@ -173,7 +185,7 @@ const editProduct = async (req, res) => {
 
     const [brand, category] = await Promise.all([
       Brand.findOne({ brandName: data.brand }),
-      Category.findById(data.category)
+      Category.findById(data.category),
     ]);
 
     if (!brand) return res.status(400).json({ error: "Brand not found" });
@@ -190,7 +202,7 @@ const editProduct = async (req, res) => {
       salesPrice: parseFloat(data.salesPrice || 0),
       quantity: parseInt(data.quantity),
       color: data.color,
-      productImage: updatedImages
+      productImage: updatedImages,
     };
 
     const updatedProduct = await Product.findByIdAndUpdate(id, updateFields, { new: true, runValidators: true });
@@ -200,12 +212,11 @@ const editProduct = async (req, res) => {
     }
 
     return res.redirect(`/admin/editProduct?id=${id}&success=true`);
-
   } catch (error) {
     console.error("Error updating product:", error);
-    return res.status(500).render('error', { 
-      message: 'An error occurred while updating the product',
-      error: {status: 500}
+    return res.status(500).render("error", {
+      message: "An error occurred while updating the product",
+      error: { status: 500 },
     });
   }
 };
@@ -214,21 +225,21 @@ const editProduct = async (req, res) => {
 const deleteSingleImage = async (req, res) => {
   try {
     const { imageNameToServer, productIdToServer } = req.body;
-    const product = await Product.findByIdAndUpdate(productIdToServer, {
+    await Product.findByIdAndUpdate(productIdToServer, {
       $pull: { productImage: imageNameToServer },
     });
-    const imagePath = path.join("public", "uploads", "re-image", imageNameToServer);
+    const imagePath = path.join("public", "Uploads", "re-image", imageNameToServer);
     if (fs.existsSync(imagePath)) {
       fs.unlinkSync(imagePath);
       console.log(`Image ${imageNameToServer} deleted successfully`);
     } else {
-      console.log(`Image ${imageNameToServer} not found `);
+      console.log(`Image ${imageNameToServer} not found`);
     }
     res.send({ status: true });
   } catch (error) {
-    res.status(500).render('admin/error', { 
-      message: 'An error occurred',
-      error: {status: 500}
+    res.status(500).render("admin/error", {
+      message: "An error occurred",
+      error: { status: 500 },
     });
   }
 };
@@ -251,12 +262,12 @@ const addProductOffer = async (req, res, next) => {
 
     await Product.updateOne(
       { _id: productId },
-      { 
-        $set: { 
-          productOffer: percentage, 
+      {
+        $set: {
+          productOffer: percentage,
           offerEndDate: new Date(endDate),
-          salesPrice: newSalePrice
-        } 
+          salesPrice: newSalePrice,
+        },
       }
     );
 
@@ -278,12 +289,12 @@ const removeProductOffer = async (req, res, next) => {
 
     await Product.updateOne(
       { _id: productId },
-      { 
-        $set: { 
-          productOffer: 0, 
+      {
+        $set: {
+          productOffer: 0,
           offerEndDate: null,
-          salesPrice: product.regularPrice 
-        } 
+          salesPrice: product.regularPrice,
+        },
       }
     );
 
@@ -300,8 +311,8 @@ const getSearchConditions = async (search) => {
   const searchNum = parseFloat(search);
 
   searchConditions.push({ productName: { $regex: searchRegex } });
-  searchConditions.push({ 'brand': { $in: await Brand.find({ brandName: { $regex: searchRegex } }).distinct('_id') } });
-  searchConditions.push({ 'category': { $in: await Category.find({ name: { $regex: searchRegex } }).distinct('_id') } });
+  searchConditions.push({ brand: { $in: await Brand.find({ brandName: { $regex: searchRegex } }).distinct("_id") } });
+  searchConditions.push({ category: { $in: await Category.find({ name: { $regex: searchRegex } }).distinct("_id") } });
 
   if (!isNaN(searchNum)) {
     searchConditions.push({ regularPrice: searchNum });
@@ -316,15 +327,15 @@ const getSearchConditions = async (search) => {
 // Helper Function to Handle Image Updates
 const handleImageUpdates = async (req, currentImages) => {
   let updatedImages = [...currentImages];
-  
+
   if (req.files && req.files.length > 0) {
     const replacePositions = req.body.replace_position || [];
-    
+
     req.files.forEach((file, index) => {
       const position = parseInt(replacePositions[index]);
       if (!isNaN(position) && position < updatedImages.length) {
         const oldImage = updatedImages[position];
-        const oldImagePath = path.join("public", "uploads", "re-image", oldImage);
+        const oldImagePath = path.join("public", "Uploads", "re-image", oldImage);
         if (fs.existsSync(oldImagePath)) {
           fs.unlinkSync(oldImagePath);
         }
@@ -354,5 +365,5 @@ module.exports = {
   editProduct,
   deleteSingleImage,
   addProductOffer,
-  removeProductOffer
+  removeProductOffer,
 };

@@ -152,34 +152,36 @@
             </nav>
         </div>
 
-        <!-- Modal remains the same -->
-        <div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header" style="background-color: #007bff; color: white;">
-                        <h5 class="modal-title" id="addOfferModalLabel">Add Offer</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <!-- Add Offer Modal -->
+<div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addOfferModalLabel">Add Category Offer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addOfferForm">
+                    <input type="hidden" id="offerCategoryId" name="categoryId">
+                    <div class="mb-3">
+                        <label for="offerPercentage" class="form-label">Offer Percentage:</label>
+                        <input type="number" class="form-control" id="offerPercentage" name="percentage" min="0" max="100" novalidate>
+                        <div id="offerPercentageError" class="text-danger"></div>
                     </div>
-                    <div class="modal-body">
-                        <form id="addOfferForm">
-                            <input type="hidden" id="offerCategoryId" name="categoryId">
-                            <div class="mb-3">
-                                <label for="offerPercentage" class="form-label">Offer Percentage:</label>
-                                <input type="number" class="form-control" id="offerPercentage" name="percentage" min="0" max="100" novalidate>
-                                <div id="offerPercentageError" class="text-danger"></div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="offerEndDate" class="form-label">End Date:</label>
-                                <input type="date" class="form-control" id="offerEndDate" name="endDate" novalidate>
-                                <div id="offerEndDateError" class="text-danger"></div>
-                            </div>
-                            <button type="submit" class="btn btn-primary" id="saveOfferBtn">Save Offer</button>
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        </form>
+                    <div class="mb-3">
+                        <label for="offerEndDate" class="form-label">End Date:</label>
+                        <input type="date" class="form-control" id="offerEndDate" name="endDate" novalidate>
+                        <div id="offerEndDateError" class="text-danger"></div>
                     </div>
-                </div>
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" id="saveOfferBtn">Save Offer</button>
+                    </div>
+                </form>
             </div>
         </div>
+    </div>
+</div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
