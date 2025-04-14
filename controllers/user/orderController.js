@@ -155,6 +155,7 @@ const loadMyOrders = async (req, res, next) => {
         totalQuantity: orderItems.reduce((sum, item) => sum + (item.quantity || 0), 0),
         totalAmount: order.finalAmount || 0,
         placedOn: order.createdOn ? order.createdOn.toLocaleString() : 'N/A',
+        deliveredOn: order.deliveredOn ? order.deliveredOn.toISOString() : null, // Add deliveredOn
         status: orderStatus,
         paymentStatus: order.paymentStatus || 'N/A',
         paymentMethod: order.paymentMethod || 'N/A',
@@ -174,7 +175,6 @@ const loadMyOrders = async (req, res, next) => {
     next(err);
   }
 };
-
 // Return Order
 const returnOrder = async (req, res, next) => {
   try {
@@ -201,6 +201,20 @@ const returnOrder = async (req, res, next) => {
     }
     if (order.returnReason) {
       const err = new Error("Return already requested");
+      err.status = 400;
+      throw err;
+    }
+    if (order.deliveredOn) {
+      const currentDate = new Date();
+      const deliveredDate = new Date(order.deliveredOn);
+      const diffDays = Math.floor((currentDate - deliveredDate) / (1000 * 60 * 60 * 24));
+      if (diffDays > 7) {
+        const err = new Error("Return period of 7 days has expired");
+        err.status = 400;
+        throw err;
+      }
+    } else {
+      const err = new Error("Delivery date not available");
       err.status = 400;
       throw err;
     }

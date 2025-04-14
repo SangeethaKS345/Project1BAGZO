@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -16,7 +18,6 @@
   <title>My Orders | BAGZO</title>
 
   <%- include('../../views/partials/user/header') %>
-
 </head>
 
 <body>
@@ -66,9 +67,21 @@
             <i class="fas fa-redo"></i> Pay
           </button>
           <% } else if (order.status === 4 && !order.return_reason) { %>
-          <button class="btn btn-warning return-order-btn" data-order-id="<%= order.orderId %>">
-            <i class="fas fa-undo"></i> Return Order
-          </button>
+            <% 
+              const deliveredDate = order.deliveredOn ? new Date(order.deliveredOn) : null;
+              const currentDate = new Date();
+              const diffDays = deliveredDate ? Math.floor((currentDate - deliveredDate) / (1000 * 60 * 60 * 24)) : Infinity;
+              const withinReturnPeriod = deliveredDate && diffDays <= 7;
+            %>
+            <% if (withinReturnPeriod) { %>
+              <button class="btn btn-warning return-order-btn" data-order-id="<%= order.orderId %>">
+                <i class="fas fa-undo"></i> Return Order
+              </button>
+            <% } else { %>
+              <button class="btn btn-secondary return-order-btn" data-order-id="<%= order.orderId %>" disabled>
+                <i class="fas fa-ban"></i> Return Period Exceeded
+              </button>
+            <% } %>
           <% } else if (order.status === 5) { %>
           <button class="btn btn-secondary return-order-btn" data-order-id="<%= order.orderId %>" disabled>
             <i class="fas fa-clock"></i> Return request in process
@@ -87,7 +100,7 @@
       <div class="order-details">
         <% order.products.forEach((product, index) => { %>
         <div class="product-item" style="<%= index > 0 ? 'margin-top: 1rem;' : '' %>">
-          <img src="/uploads/re-image/<%= product.productImage && product.productImage[0] ? product.productImage[0] : 'default.jpg' %>" alt="<%= product.productName || 'N/A' %>" class="product-image product-clickable" data-product-id="<%= product._id %>">
+          <img src="/Uploads/re-image/<%= product.productImage && product.productImage[0] ? product.productImage[0] : 'default.jpg' %>" alt="<%= product.productName || 'N/A' %>" class="product-image product-clickable" data-product-id="<%= product._id %>">
           <div class="product-info">
             <h4>
               <span class="product-name product-clickable" data-product-id="<%= product._id %>">
@@ -219,7 +232,7 @@
         <p><strong>State:</strong> <span id="modal-shipping-state"></span></p>
         <p><strong>Pincode:</strong> <span id="modal-shipping-pincode"></span></p>
         <p><strong>Phone:</strong> <span id="modal-shipping-phone"></span></p>
-        <p><strong>Alternate Phone:</strong> <span id="modal-shipping-alt-phone"></span></p> <!-- New field -->
+        <p><strong>Alternate Phone:</strong> <span id="modal-shipping-alt-phone"></span></p>
       </div>
       <div class="order-items-section">
         <h4>Order Items</h4>
@@ -262,7 +275,6 @@
 </script>
 
 <!-- Main script with all handlers -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
   // Modal overlay
   const modalOverlay = document.getElementById('modalOverlay');
@@ -412,7 +424,6 @@
     });
   });
 
-
   // Download Invoice Handler
   document.querySelectorAll('.download-invoice-btn').forEach(button => {
     button.addEventListener('click', async (e) => {
@@ -475,7 +486,6 @@
         if (data.success) {
           const order = data.order;
 
-          // Populate modal fields (unchanged)
           document.getElementById('modal-order-id').textContent = order.orderId || 'N/A';
           document.getElementById('modal-order-date').textContent = order.orderDate ? new Date(order.orderDate).toLocaleString() : 'N/A';
           document.getElementById('modal-payment-method').textContent = order.paymentMethod || 'N/A';
@@ -515,7 +525,6 @@
             itemsTable.appendChild(row);
           }
 
-          // Handle repayment button
           if (order.paymentStatus === 'failed' && order.paymentMethod === 'razorpay') {
             repayButton.style.display = 'inline-block';
             repayButton.onclick = async () => {
@@ -615,19 +624,16 @@
     });
   });
 
-
-
   // Razorpay Payment Function
   function initiateRazorpayPayment(orderId, amount, razorpayOrderId, key) {
     const options = {
-      key: key, // Razorpay Key ID from the server(this will fetch from backend)
-      amount: amount, // Amount in paise 
+      key: key,
+      amount: amount,
       currency: "INR",
       name: "Your Company Name",
       description: "Order Payment",
-      order_id: razorpayOrderId, // Razorpay order ID from the server
+      order_id: razorpayOrderId,
       handler: async function(response) {
-        // Payment success callback
         try {
           const paymentData = {
             razorpay_payment_id: response.razorpay_payment_id,
@@ -644,7 +650,7 @@
           });
           const result = await verifyResponse.json();
           if (result.success) {
-            window.location.href = result.redirect; // Redirect to order confirmation page
+            window.location.href = result.redirect;
           } else {
             Swal.fire('Error', 'Payment verification failed', 'error');
           }
@@ -654,9 +660,9 @@
         }
       },
       prefill: {
-        name: "Customer Name", 
-        email: "customer@example.com", 
-        contact: "9999999999" 
+        name: "Customer Name",
+        email: "customer@example.com",
+        contact: "9999999999"
       },
       notes: {
         orderId: orderId
@@ -666,7 +672,6 @@
       },
       modal: {
         ondismiss: async function() {
-          // Handle modal dismissal (e.g., user closes the payment window)
           try {
             await fetch('/payment-failed', {
               method: 'POST',
@@ -678,14 +683,13 @@
               })
             });
             console.log(`Payment modal dismissed for order ${orderId}, status updated to failed`);
-            window.location.reload(); // Refresh to reflect updated status
+            window.location.reload();
           } catch (error) {
             console.error('Error updating payment failure on modal dismiss:', error);
           }
         }
       },
       "payment.failed": async function(response) {
-        // Handle explicit payment failure (e.g., card declined)
         try {
           await fetch('/payment-failed', {
             method: 'POST',
@@ -697,7 +701,7 @@
             })
           });
           console.log(`Payment failed for order ${orderId}, status updated to failed`);
-          window.location.reload(); // Refresh to reflect updated status
+          window.location.reload();
         } catch (error) {
           console.error('Error updating payment failure:', error);
         }
@@ -811,3 +815,4 @@
     });
   });
 </script>
+</html>
