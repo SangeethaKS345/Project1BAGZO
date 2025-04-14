@@ -13,10 +13,15 @@ const categoryInfo = async (req, res, next) => {
 
         // Add search conditions
         if (search) {
+            const searchNumber = parseFloat(search); // Try to parse search as a number for categoryOffer
             query.$or = [
                 { name: { $regex: search, $options: "i" } },
                 { description: { $regex: search, $options: "i" } }
             ];
+            // If search term is a number, include categoryOffer in the search
+            if (!isNaN(searchNumber)) {
+                query.$or.push({ categoryOffer: searchNumber });
+            }
         }
 
         // Filter by status
