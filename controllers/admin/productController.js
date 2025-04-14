@@ -67,77 +67,93 @@ const addProducts = async (req, res, next) => {
 // Get All Products
 const getAllProducts = async (req, res, next) => {
   try {
-      const perPage = parseInt(req.query.limit, 10) || 10;
-      const page = parseInt(req.query.page, 10) || 1;
-      const search = req.query.search || "";
-      const action = req.query.action || "all"; // Ensure action is defined
+    const perPage = parseInt(req.query.limit, 10) || 10;
+    const page = parseInt(req.query.page, 10) || 1;
+    const search = req.query.search || "";
+    const action = req.query.action || "all";
 
-      const query = {};
+    const query = {};
 
-      // Add search conditions
-      if (search) {
-          query.$or = [
-              { productName: { $regex: search, $options: "i" } },
-              { "brand.brandName": { $regex: search, $options: "i" } },
-              { "category.name": { $regex: search, $options: "i" } },
-          ];
-      }
+    if (search) {
+      query.$or = [
+        { productName: { $regex: search, $options: "i" } },
+        { "brand.brandName": { $regex: search, $options: "i" } },
+        { "category.name": { $regex: search, $options: "i" } },
+      ];
+    }
 
-      // Filter by action
-      if (action === "block") {
-          query.isBlocked = true;
-      } else if (action === "unblock") {
-          query.isBlocked = false;
-      }
+    if (action === "block") {
+      query.isBlocked = true;
+    } else if (action === "unblock") {
+      query.isBlocked = false;
+    }
 
-      // Fetch products and total count
-      const [products, totalProducts] = await Promise.all([
-          Product.find(query)
-              .populate('brand')
-              .populate('category')
-              .sort({ createdAt: -1 })
-              .skip((page - 1) * perPage)
-              .limit(perPage),
-          Product.countDocuments(query),
-      ]);
+    const [products, totalProducts] = await Promise.all([
+      Product.find(query)
+        .populate("brand")
+        .populate("category")
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * perPage)
+        .limit(perPage),
+      Product.countDocuments(query),
+    ]);
 
-      const totalPages = Math.ceil(totalProducts / perPage);
+    const totalPages = Math.ceil(totalProducts / perPage);
 
-      // Render the products page
-      res.render("products", {
-          data: products,
-          currentPage: page,
-          totalPages,
-          perPage,
-          search,
-          action, // Pass action to the template
-          queryParams: `search=${search}&action=${action}`,
-      });
+    res.render("products", {
+      data: products,
+      currentPage: page,
+      totalPages,
+      perPage,
+      search,
+      action,
+      queryParams: `search=${search}&action=${action}`,
+    });
   } catch (error) {
-      console.error("Error rendering products page:", error);
-      next(error);
+    console.error("Error rendering products page:", error);
+    next(error);
   }
 };
 
 // Block Product
 const blockProduct = async (req, res, next) => {
   try {
-    const id = req.query.id;
+    const { id } = req.body;
+    if (!id) {
+      return res.status(400).json({ success: false, message: "Product ID is required" });
+    }
+
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
     await Product.updateOne({ _id: id }, { $set: { isBlocked: true } });
-    res.redirect("/admin/products");
+    return res.status(200).json({ success: true, message: "Product blocked successfully" });
   } catch (error) {
-    next(error);
+    console.error("Error blocking product:", error);
+    return res.status(500).json({ success: false, message: "Failed to block product" });
   }
 };
 
 // Unblock Product
 const unblockProduct = async (req, res, next) => {
   try {
-    const id = req.query.id;
+    const { id } = req.body;
+    if (!id) {
+      return res.status(400).json({ success: false, message: "Product ID is required" });
+    }
+
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
     await Product.updateOne({ _id: id }, { $set: { isBlocked: false } });
-    res.redirect("/admin/products");
+    return res.status(200).json({ success: true, message: "Product unblocked successfully" });
   } catch (error) {
-    next(error);
+    console.error("Error unblocking product:", error);
+    return res.status(500).json({ success: false, message: "Failed to unblock product" });
   }
 };
 
@@ -300,6 +316,7 @@ const removeProductOffer = async (req, res, next) => {
 
     res.json({ success: true, message: "Offer removed successfully" });
   } catch (error) {
+    console.error("Error removing product offer:", error);
     next(error);
   }
 };

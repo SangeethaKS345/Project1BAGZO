@@ -1,3 +1,4 @@
+/* Combined CSS for Brands Management Page */
 
 /* Root Variables */
 :root {
@@ -10,7 +11,7 @@
   --text-muted: #777777;
   --bg-light: #f8f9fa;
   --badge-success-bg: rgba(40, 167, 69, 0.1);
-  --badge-success-color: #015b15;
+  --badge-success-color: #28a745;
   --badge-danger-bg: rgba(220, 53, 69, 0.1);
   --badge-danger-color: #dc3545;
 }
@@ -30,7 +31,6 @@ body {
   padding: 25px 0 15px;
   margin-bottom: 40px;
   margin-top: 20px;
-  margin-right: 20px;
 }
 
 .content-title {
@@ -41,7 +41,7 @@ body {
   letter-spacing: -0.5px;
 }
 
-/* Search and Filter Container */
+/* Search and Filter Containers */
 .card-header {
   background-color: white;
   border-radius: 10px;
@@ -52,7 +52,11 @@ body {
 
 .search-container {
   width: 100%;
-  max-width: 700px;
+  position: relative;
+}
+
+.filter-container {
+  width: 100%;
   position: relative;
 }
 
@@ -64,36 +68,18 @@ body {
 }
 
 .input-group.border {
-  border: 1px solid var(--gradient-end);
+  border: 1px solid var(--border-color);
   border-radius: 30px;
   overflow: hidden;
   background-color: white;
-  max-width: 600px;
-  margin-right: auto;
 }
 
 .input-group.border input.form-control {
   border: none;
   box-shadow: none;
-  padding: 12px 15px;
+  padding: 12px 20px;
   border-radius: 30px 0 0 30px;
   flex: 1;
-}
-
-.input-group.border select.form-select {
-  border: none;
-  box-shadow: none;
-  padding: 8px 15px;
-  border-radius: 0;
-  width: 120px;
-  background-color: #fff;
-  font-size: 14px;
-  color: #444;
-}
-
-.input-group.border select.form-select:focus {
-  outline: none;
-  box-shadow: none;
 }
 
 .input-group.border .btn {
@@ -105,9 +91,8 @@ body {
 
 .input-group.border .btn-secondary {
   background-color: #f0f0f0;
-  border-color: #f0f0f0;
   color: var(--text-dark);
-  border-radius: 0 30px 30px 0;
+  border: none;
 }
 
 .input-group.border .btn-secondary:hover {
@@ -134,12 +119,15 @@ body {
 
 .form-select {
   height: 50px;
-  min-width: 120px;
+  width: 100%;
+  max-width: 200px;
   color: var(--text-dark);
   font-weight: 500;
   background-color: white;
   transition: all 0.2s;
   font-size: 15px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
 }
 
 .form-select:focus {
@@ -152,8 +140,7 @@ body {
   position: absolute;
   top: 100%;
   left: 0;
-  width: 600px;
-  max-width: 100%;
+  right: 0;
   background: white;
   border: 1px solid var(--border-color);
   border-radius: 0 0 8px 8px;
@@ -164,26 +151,16 @@ body {
   display: none;
 }
 
-.search-suggestions.active {
-  display: block;
-}
-
 .search-suggestions div {
   padding: 12px 15px;
   border-bottom: 1px solid #f0f0f0;
   cursor: pointer;
   transition: all 0.2s;
-  font-size: 14px;
-  color: var(--text-dark);
 }
 
 .search-suggestions div:hover {
   background-color: var(--light-red);
   color: var(--primary-red);
-}
-
-.search-suggestions div:last-child {
-  border-bottom: none;
 }
 
 /* Card and Form Container */
@@ -198,24 +175,6 @@ body {
 
 .card-body {
   padding: 25px;
-}
-
-.form-container {
-  background-color: white;
-  border-radius: 10px;
-  padding: 25px;
-  border: 1px solid var(--border-color);
-  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.form-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--text-dark);
-  margin-bottom: 20px;
 }
 
 .form-label {
@@ -241,65 +200,13 @@ body {
   margin-top: 5px;
 }
 
-/* Table Styling */
-.table-responsive {
-  background-color: white;
-  border-radius: 10px;
-  padding: 15px;
-  border: 1px solid var(--border-color);
-  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+.mb-4 {
+  margin-bottom: 1.5rem !important;
 }
 
-.table {
-  width: 100%;
-  margin-bottom: 0;
-  background-color: transparent;
-  border-collapse: collapse;
-}
-
-.table-striped tbody tr:nth-of-type(odd) {
-  background-color: rgba(0, 0, 0, 0.02);
-}
-
-.table thead {
-  background-color: var(--bg-light);
-}
-
-.table thead th {
-  padding: 18px 20px;
-  color: var(--text-dark);
-  font-weight: 600;
-  font-size: 15px;
-  border-bottom: 2px solid var(--border-color);
-  vertical-align: middle;
-  white-space: nowrap;
-}
-
-.table tbody td {
-  padding: 16px 20px;
-  vertical-align: middle;
-  border-bottom: 1px solid var(--border-color);
-  color: var(--text-dark);
-  font-size: 15px;
-}
-
-.img-fluid.rounded-circle {
-  width: 40px;
-  height: 40px;
-  object-fit: cover;
-}
-
-/* Buttons and Status Badges */
-.btn {
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 500;
-  transition: all 0.3s;
-  padding: 0 20px;
-  font-size: 13px;
-  border-radius: 6px;
+.d-grid {
+  display: grid;
+  gap: 0.5rem;
 }
 
 .btn-primary {
@@ -314,6 +221,52 @@ body {
   box-shadow: 0 4px 8px rgba(219, 68, 55, 0.2);
 }
 
+/* Table Container */
+.right {
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+  padding: 0;
+  overflow: hidden;
+  margin-top: 20px !important;
+}
+
+.table {
+  margin-bottom: 0;
+}
+
+.table thead {
+  background-color: var(--bg-light);
+}
+
+.table thead th {
+  padding: 18px 20px;
+  color: var(--text-dark);
+  font-weight: 600;
+  font-size: 15px;
+  border-bottom: 2px solid var(--border-color);
+  vertical-align: middle;
+}
+
+.table tbody td {
+  padding: 16px 20px;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-dark);
+  font-size: 15px;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.img-fluid.rounded-circle {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+}
+
+/* Action Buttons */
 .btn-action {
   border: none;
   font-weight: 500;
@@ -322,6 +275,7 @@ body {
   border-radius: 6px;
   font-size: 14px;
   transition: all 0.3s;
+  margin-right: 5px;
 }
 
 .btn-danger {
@@ -348,19 +302,7 @@ body {
   box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2);
 }
 
-.btn-info {
-  background: linear-gradient(to right, #17a2b8, #20c9c6);
-  border: none;
-  color: white;
-  width: 100px;
-}
-
-.btn-info:hover {
-  background: #17a2b8;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(23, 162, 184, 0.2);
-}
-
+/* Status Badges */
 .badge {
   font-weight: 500;
   font-size: 13px;
@@ -374,21 +316,13 @@ body {
 .alert-success {
   background-color: var(--badge-success-bg);
   color: var(--badge-success-color);
-  border: 1px solid rgba(13, 47, 10, 0.4); /* Darker green border */
+  border: 1px solid rgba(40, 167, 69, 0.2);
 }
 
 .alert-danger {
   background-color: var(--badge-danger-bg);
   color: var(--badge-danger-color);
-  border: 1px solid rgba(122, 0, 0, 0.4); /* Darker red border */
-}
-
-/* Error Messages */
-.error-message {
-  color: #dc3545;
-  font-size: 13px;
-  margin-top: 5px;
-  display: none;
+  border: 1px solid rgba(220, 53, 69, 0.2);
 }
 
 /* Pagination */
@@ -405,8 +339,6 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 0;
-  list-style: none;
 }
 
 .page-item .page-link {
@@ -448,93 +380,60 @@ body {
   pointer-events: none;
 }
 
-/* Modal Styling */
-.modal-header {
-  background: linear-gradient(to right, var(--secondary-red), var(--gradient-end));
-  color: white;
-  border-bottom: none;
-  padding: 15px 20px;
-}
-
-.modal-title {
-  font-weight: 600;
-  font-size: 18px;
-}
-
-.modal-body {
-  padding: 20px;
-}
-
-.modal-content {
-  border: none;
+/* SweetAlert */
+.swal2-popup {
+  font-size: 14px;
   border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
-/* Alignment for Form and Table */
-.card-body .row {
-  align-items: stretch;
+.swal2-title {
+  font-size: 20px;
+  font-weight: 600;
 }
 
-.col-md-4,
-.col-md-8 {
-  display: flex;
-  flex-direction: column;
+.swal2-confirm {
+  background-color: var(--gradient-end);
 }
 
 /* Responsive Adjustments */
-@media (max-width: 768px) {
-  .col-md-4,
-  .col-md-8 {
-    margin-bottom: 20px;
+@media (max-width: 767.98px) {
+  .search-container,
+  .filter-container {
+      max-width: 100%;
   }
 
-  .form-container,
-  .table-responsive {
-    height: auto;
+  .form-select {
+      max-width: 100%;
   }
 
   .content-header {
-    padding: 15px 0;
+      padding: 15px 0;
+      margin-bottom: 20px;
   }
 
   .content-title {
-    font-size: 24px;
-  }
-
-  .btn {
-    height: 45px;
-    font-size: 12px;
+      font-size: 24px;
   }
 
   .table thead th,
   .table tbody td {
-    font-size: 14px;
-    padding: 12px 10px;
+      font-size: 14px;
+      padding: 12px 10px;
   }
 
-  .search-container {
-    max-width: 100%;
-  }
-
-  .search-suggestions {
-    width: 100%;
-    left: 0;
+  .btn-action {
+      width: 80px;
+      font-size: 12px;
   }
 }
 
 @media (max-width: 576px) {
+  .btn {
+      height: 45px;
+      font-size: 12px;
+  }
+
   .input-group.border {
-    max-width: 100%;
-  }
-
-  .btn-action,
-  .btn-info {
-    width: 80px;
-    font-size: 12px;
-  }
-
-  .form-select {
-    min-width: 100px;
+      max-width: 100%;
   }
 }

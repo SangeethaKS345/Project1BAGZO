@@ -24,9 +24,9 @@ body {
 
 .content-header {
   padding: 25px 0 15px;
-  margin-bottom: 40px; /* Space below for separation from search bar */
-  margin-top: 20px; /* Space above */
-  margin-right: 20px; /* Space on right */
+  margin-bottom: 40px;
+  margin-top: 20px;
+  margin-right: 20px;
 }
 
 .content-title {
@@ -37,7 +37,7 @@ body {
   letter-spacing: -0.5px;
 }
 
-/* Search and Filter Container */
+/* Search and Filter Containers */
 .card-header {
   background-color: white;
   border-radius: 10px;
@@ -48,17 +48,12 @@ body {
 
 .search-container {
   width: 100%;
-  max-width: 700px;
   position: relative;
 }
 
-.search-filter-container {
-  text-align: left;
+.filter-container {
   width: 100%;
   position: relative;
-  margin-top: 20px; /* Space above */
-  margin-right: 20px; /* Space on right */
-  margin-bottom: 30px; /* Space below */
 }
 
 .input-group {
@@ -69,36 +64,18 @@ body {
 }
 
 .input-group.border {
-  border: 1px solid #FF416C;
+  border: 1px solid var(--border-color);
   border-radius: 30px;
   overflow: hidden;
   background-color: white;
-  max-width: 600px;
-  margin-right: auto;
 }
 
 .input-group.border input.form-control {
   border: none;
   box-shadow: none;
-  padding: 12px 15px;
+  padding: 12px 20px;
   border-radius: 30px 0 0 30px;
   flex: 1;
-}
-
-.input-group.border select.form-select {
-  border: none;
-  box-shadow: none;
-  padding: 8px 15px;
-  border-radius: 0;
-  width: 120px;
-  background-color: #fff;
-  font-size: 14px;
-  color: #444;
-}
-
-.input-group.border select.form-select:focus {
-  outline: none;
-  box-shadow: none;
 }
 
 .input-group.border .btn {
@@ -108,21 +85,15 @@ body {
   border-radius: 0 30px 30px 0;
 }
 
-.input-group.border .btn-primary {
-  background-color: #FF416C;
-  border-color: #FF416C;
-  color: white;
-}
-
 .input-group.border .btn-secondary {
-  background-color: #6c757d;
-  border-color: #6c757d;
-  color: white;
-  border-radius: 0;
+  background-color: #f0f0f0;
+  color: var(--text-dark);
+  border: none;
 }
 
-.input-group.border .btn:hover {
-  opacity: 0.9;
+.input-group.border .btn-secondary:hover {
+  background-color: #e0e0e0;
+  color: var(--primary-red);
 }
 
 .form-control {
@@ -144,39 +115,20 @@ body {
 
 .form-select {
   height: 50px;
-  min-width: 120px; /* Reduced from 140px as requested */
+  width: 100%;
+  max-width: 200px;
   color: var(--text-dark);
   font-weight: 500;
   background-color: white;
   transition: all 0.2s;
   font-size: 15px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
 }
 
 .form-select:focus {
   box-shadow: none;
   border-color: var(--primary-red);
-}
-
-.btn {
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 500;
-  transition: all 0.3s;
-  padding: 0 20px;
-  font-size: 13px;
-  border-radius: 6px;
-}
-
-.btn-secondary {
-  background-color: #f0f0f0;
-  color: var(--text-dark);
-}
-
-.btn-secondary:hover {
-  background-color: #e0e0e0;
-  color: var(--primary-red);
 }
 
 /* Search Suggestions */
@@ -193,7 +145,6 @@ body {
   overflow-y: auto;
   z-index: 1000;
   display: none;
-  max-width: 600px;
 }
 
 .search-suggestions div {
@@ -321,7 +272,7 @@ body {
   margin-bottom: 25px;
   display: flex;
   align-items: center;
-  gap: 8px; /* Spacing between buttons */
+  gap: 8px;
   padding: 10px 0;
   list-style: none;
 }
@@ -394,5 +345,21 @@ body {
 }
 
 .swal2-confirm {
-  background-color: #FF416C;
+  background-color: var(--gradient-end);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 767.98px) {
+  .search-container,
+  .filter-container {
+    max-width: 100%;
+  }
+
+  .form-select {
+    max-width: 100%;
+  }
+
+  .content-header {
+    margin-bottom: 20px;
+  }
 }

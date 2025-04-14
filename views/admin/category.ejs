@@ -14,25 +14,34 @@
         </div>
         
         <header class="card-header mb-20">
-            <div class="search-container">
-                <form action="/admin/category/" method="get" class="d-inline" id="searchForm">
-                    <div class="input-group border border-1 rounded-pill overflow-hidden" style="width: 100%;">
-                        <input type="text" class="form-control border-0 rounded-pill" 
-                               placeholder="Search categories, descriptions, or offers" 
-                               name="search" 
-                               id="searchInput" 
-                               value="<%= typeof search !== 'undefined' ? search : '' %>" 
-                               autocomplete="off">
-                        <select class="form-select border-0" name="status" id="statusFilter">
+            <div class="row align-items-center">
+                <!-- Search Container -->
+                <div class="col-md-8 col-sm-12 mb-3 mb-md-0">
+                    <div class="search-container">
+                        <form action="/admin/category/" method="get" class="d-inline" id="searchForm">
+                            <div class="input-group border border-1 rounded-pill overflow-hidden">
+                                <input type="text" class="form-control border-0 rounded-pill" 
+                                       placeholder="Search categories, descriptions, or offers" 
+                                       name="search" 
+                                       id="searchInput" 
+                                       value="<%= typeof search !== 'undefined' ? search : '' %>" 
+                                       autocomplete="off">
+                                <button class="btn btn-secondary border-0 rounded-pill" type="button" onclick="clearSearch()">Clear</button>
+                            </div>
+                        </form>
+                        <div class="search-suggestions" id="searchSuggestions"></div>
+                    </div>
+                </div>
+                <!-- Filter Container -->
+                <div class="col-md-4 col-sm-12">
+                    <div class="filter-container">
+                        <select class="form-select" name="status" id="statusFilter">
                             <option value="all" <%= status === 'all' ? 'selected' : '' %>>All Status</option>
                             <option value="listed" <%= status === 'listed' ? 'selected' : '' %>>Listed</option>
                             <option value="unlisted" <%= status === 'unlisted' ? 'selected' : '' %>>Unlisted</option>
                         </select>
-                        <button class="btn border-0" type="submit" style="display: none;">Search</button>
-                        <button class="btn btn-secondary border-0 rounded-pill" type="button" onclick="clearSearch()">Clear</button>
                     </div>
-                </form>
-                <div class="search-suggestions" id="searchSuggestions"></div>
+                </div>
             </div>
         </header>
 

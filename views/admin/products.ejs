@@ -12,23 +12,27 @@
         </div>
 
         <header class="card-header mb-20">
-            <div class="search-container">
-                <form action="/admin/products" method="get" class="d-inline" id="searchForm">
-                    <div class="input-group border border-1 rounded-pill overflow-hidden">
-                        <input type="text" class="form-control border-0 rounded-pill" 
-                               placeholder="Search products, brands, categories, prices..." 
-                               name="search" id="searchInput" 
-                               value="<%= typeof search !== 'undefined' ? search : '' %>" 
-                               autocomplete="off">
-                        <select class="form-select border-0" name="action" id="actionFilter">
-                            <option value="all" <%= action === 'all' ? 'selected' : '' %>>All Actions</option>
-                            <option value="unblock" <%= action === 'unblock' ? 'selected' : '' %>>Active</option>
-                            <option value="block" <%= action === 'block' ? 'selected' : '' %>>Blocked</option>
-                        </select>
-                        <button class="btn btn-secondary border-0 rounded-pill" type="button" onclick="clearSearch()">Clear</button>
-                    </div>
-                </form>
-                <div class="search-suggestions" id="searchSuggestions"></div>
+            <div class="search-filter-row d-flex align-items-center gap-3">
+                <div class="search-container flex-grow-1">
+                    <form action="/admin/products" method="get" class="d-inline" id="searchForm">
+                        <div class="input-group border border-1 rounded-pill overflow-hidden">
+                            <input type="text" class="form-control border-0 rounded-pill" 
+                                   placeholder="Search products, brands, categories, prices..." 
+                                   name="search" id="searchInput" 
+                                   value="<%= typeof search !== 'undefined' ? search : '' %>" 
+                                   autocomplete="off">
+                            <button class="btn btn-secondary border-0 rounded-pill" type="button" onclick="clearSearch()">Clear</button>
+                        </div>
+                    </form>
+                    <div class="search-suggestions" id="searchSuggestions"></div>
+                </div>
+                <div class="filter-container">
+                    <select class="form-select" name="action" id="actionFilter">
+                        <option value="all" <%= action === 'all' ? 'selected' : '' %>>All Actions</option>
+                        <option value="unblock" <%= action === 'unblock' ? 'selected' : '' %>>Active</option>
+                        <option value="block" <%= action === 'block' ? 'selected' : '' %>>Blocked</option>
+                    </select>
+                </div>
             </div>
         </header>
 
@@ -76,12 +80,12 @@
                         <td><%= data[i].quantity %></td> 
                         <td>
                             <% if(data[i].isBlocked===false) { %>
-                            <button class="btn-action btn-danger" style="width: 100px;">
-                                <a href="/admin/blockProduct?id=<%=data[i]._id%>" class="text-white" style="text-decoration: none;">Block</a>
+                            <button class="btn-action btn-danger" style="width: 100px;" onclick="confirmBlock('<%= data[i]._id %>')">
+                                Block
                             </button>
                             <% } else { %>
-                            <button class="btn-action btn-success" style="width: 100px;">
-                                <a href="/admin/unblockProduct?id=<%=data[i]._id%>" class="text-white" style="text-decoration: none;">Unblock</a>
+                            <button class="btn-action btn-success" style="width: 100px;" onclick="confirmUnblock('<%= data[i]._id %>')">
+                                Unblock
                             </button>
                             <% } %>
                         </td>
@@ -95,37 +99,36 @@
                 </tbody>
             </table>
 
-            
-           <!-- Add Offer Modal -->
-<div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addOfferModalLabel">Add Product Offer</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <!-- Add Offer Modal -->
+            <div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="addOfferModalLabel">Add Product Offer</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="addOfferForm" novalidate>
+                                <input type="hidden" id="offerProductId" name="productId">
+                                <div class="mb-3">
+                                    <label for="offerPercentage" class="form-label">Offer Percentage:</label>
+                                    <input type="number" class="form-control" id="offerPercentage" name="percentage" min="0" max="100" required>
+                                    <div id="offerPercentageError" class="text-danger"></div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="offerEndDate" class="form-label">End Date:</label>
+                                    <input type="date" class="form-control" id="offerEndDate" name="endDate" required>
+                                    <div id="offerEndDateError" class="text-danger"></div>
+                                </div>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-primary" id="saveOfferBtn">Save Offer</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="modal-body">
-                <form id="addOfferForm" novalidate>
-                    <input type="hidden" id="offerProductId" name="productId">
-                    <div class="mb-3">
-                        <label for="offerPercentage" class="form-label">Offer Percentage:</label>
-                        <input type="number" class="form-control" id="offerPercentage" name="percentage" min="0" max="100" required>
-                        <div id="offerPercentageError" class="text-danger"></div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="offerEndDate" class="form-label">End Date:</label>
-                        <input type="date" class="form-control" id="offerEndDate" name="endDate" required>
-                        <div id="offerEndDateError" class="text-danger"></div>
-                    </div>
-                    <div class="d-flex justify-content-end gap-2">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary" id="saveOfferBtn">Save Offer</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
         </div>
 
         <!-- Pagination Section -->
@@ -252,7 +255,9 @@
                 try {
                     const response = await fetch(`/admin/removeProductOffer/${productId}`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' }
+                        headers: { 
+                            'Content-Type': 'application/json'
+                        }
                     });
                     const data = await response.json();
                     
@@ -263,7 +268,88 @@
                         Swal.fire('Error!', data.message, 'error');
                     }
                 } catch (error) {
-                    Swal.fire('Error!', 'Something went wrong', 'error');
+                    console.error('Remove offer error:', error);
+                    Swal.fire('Error!', 'Failed to remove offer', 'error');
+                }
+            }
+        }
+
+        async function confirmBlock(productId) {
+            const result = await Swal.fire({
+                title: 'Are you sure?',
+                text: 'Do you want to block this product?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#FF416C',
+                cancelButtonColor: '#777777',
+                confirmButtonText: 'Yes, block it!'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch('/admin/blockProduct', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ id: productId })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        Swal.fire('Success!', data.message || 'Product blocked successfully', 'success');
+                        window.location.reload();
+                    } else {
+                        Swal.fire('Error!', data.message || 'Failed to block product', 'error');
+                    }
+                } catch (error) {
+                    console.error('Block error:', error);
+                    Swal.fire('Error!', `Failed to block product: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        async function confirmUnblock(productId) {
+            const result = await Swal.fire({
+                title: 'Are you sure?',
+                text: 'Do you want to unblock this product?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#777777',
+                confirmButtonText: 'Yes, unblock it!'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch('/admin/unblockProduct', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ id: productId })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        Swal.fire('Success!', data.message || 'Product unblocked successfully', 'success');
+                        window.location.reload();
+                    } else {
+                        Swal.fire('Error!', data.message || 'Failed to unblock product', 'error');
+                    }
+                } catch (error) {
+                    console.error('Unblock error:', error);
+                    Swal.fire('Error!', `Failed to unblock product: ${error.message}`, 'error');
                 }
             }
         }
@@ -301,7 +387,9 @@
                 try {
                     const response = await fetch('/admin/addProductOffer', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 
+                            'Content-Type': 'application/json'
+                        },
                         body: JSON.stringify({ productId, percentage: parseInt(percentage), endDate })
                     });
                     const data = await response.json();
@@ -314,7 +402,8 @@
                         Swal.fire('Error!', data.message, 'error');
                     }
                 } catch (error) {
-                    Swal.fire('Error!', 'Something went wrong', 'error');
+                    console.error('Add offer error:', error);
+                    Swal.fire('Error!', 'Failed to add offer', 'error');
                 }
             }
         });
