@@ -2,66 +2,78 @@ const Coupons = require("../../models/couponSchema");
 
 const getCouponPage = async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = 10;
-    const skip = (page - 1) * limit;
-    const search = req.query.search || "";
+    const perPage = parseInt(req.query.limit, 10) || 10; // Default to 10 items per page
+    const page = parseInt(req.query.page, 10) || 1; // Default to page 1
+    const search = req.query.search || ""; // Search term
+    const status = req.query.status || "all"; // Status filter (all, listed, unlisted)
+    const validity = req.query.validity || "all"; // Validity filter (all, active, expired)
 
-    const searchConditions = [];
-    const searchRegex = new RegExp(search, "i");
-    const searchNum = parseFloat(search);
+    const query = { isDeleted: false }; // Base query
 
-    searchConditions.push({ code: { $regex: searchRegex } });
-    if (!isNaN(searchNum)) {
-      searchConditions.push(
-        { offerPrice: searchNum },
-        { minimumPrice: searchNum },
-        { maxUses: searchNum },
-        { maxUsesPerUser: searchNum },
-        { usesCount: searchNum }
-      );
+    // Add search conditions
+    if (search) {
+      const searchRegex = new RegExp(search, "i");
+      const searchNum = parseFloat(search);
+      const searchConditions = [{ code: { $regex: searchRegex } }];
+
+      if (!isNaN(searchNum)) {
+        searchConditions.push(
+          { offerPrice: searchNum },
+          { minimumPrice: searchNum },
+          { maxUses: searchNum },
+          { maxUsesPerUser: searchNum },
+          { usesCount: searchNum }
+        );
+      }
+      if (search.length >= 4) {
+        searchConditions.push(
+          { startOn: { $regex: searchRegex } },
+          { expireOn: { $regex: searchRegex } }
+        );
+      }
+      query.$or = searchConditions;
     }
-    if (search.length >= 4) {
-      searchConditions.push(
-        { startOn: { $regex: searchRegex } },
-        { expireOn: { $regex: searchRegex } }
-      );
-    }
-    if (search.toLowerCase().includes("active")) {
-      searchConditions.push({ isListed: true });
-    } else if (search.toLowerCase().includes("inactive")) {
-      searchConditions.push({ isListed: false });
+
+    // Filter by status
+    if (status === "listed") {
+      query.isListed = true;
+    } else if (status === "unlisted") {
+      query.isListed = false;
     }
 
-    const query = {
-      isDeleted: false,
-      $or: searchConditions,
-    };
+    // Filter by validity
+    const today = new Date();
+    if (validity === "active") {
+      query.expireOn = { $gte: today };
+      query.isListed = true; // Active coupons must be listed
+    } else if (validity === "expired") {
+      query.expireOn = { $lt: today };
+    }
 
-    const [totalCoupons, coupons] = await Promise.all([
-      Coupons.countDocuments(query),
+    // Fetch coupons and total count
+    const [coupons, totalCoupons] = await Promise.all([
       Coupons.find(query)
-        .sort({ createdOn: -1 }) 
-        .skip(skip)
-        .limit(limit),
+        .sort({ createdOn: -1 }) // Sort by creation date
+        .skip((page - 1) * perPage)
+        .limit(perPage),
+      Coupons.countDocuments(query),
     ]);
 
-    console.log("Coupons sorted by createdOn:", coupons.map(c => ({
-      code: c.code,
-      createdOn: c.createdOn
-    })));
+    const totalPages = Math.ceil(totalCoupons / perPage);
 
-    const totalPages = Math.ceil(totalCoupons / limit);
-
+    // Render the coupon page
     res.render("coupon", {
       coupons,
       currentPage: page,
       totalPages,
-      hasNextPage: page < totalPages,
-      hasPrevPage: page > 1,
+      perPage,
       search,
+      status,
+      validity,
+      queryParams: `search=${encodeURIComponent(search)}&status=${status}&validity=${validity}`, // For pagination links
     });
   } catch (error) {
+    console.error("Error rendering coupon page:", error);
     next(error);
   }
 };

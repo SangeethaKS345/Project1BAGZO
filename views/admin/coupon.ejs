@@ -1,350 +1,711 @@
-<head>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css" />
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-      .errorMessage { font-size: 0.875rem; margin-top: 0.25rem; color: #DB4437; }
-      .contentTitle h4 { color: #DB4437; }
-      .gradientButton { background: linear-gradient(to right, #FF4B2B, #FF416C); border: none; color: white; }
-      .gradientButton:hover { background: #DB4437; color: white; }
-      .textOrange { color: #FF4B2B; }
-      .search-container {
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css" />
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+    :root {
+        --primary-red: #DB4437;
+        --secondary-red: #FF4B2B;
+        --gradient-end: #FF416C;
+        --light-red: rgba(219, 68, 55, 0.1);
+        --border-color: #e0e0e0;
+        --text-dark: #333333;
+        --text-muted: #777777;
+        --bg-light: #f8f9fa;
+        --badge-success-bg: rgba(40, 167, 69, 0.1);
+        --badge-success-color: #28a745;
+        --badge-danger-bg: rgba(220, 53, 69, 0.1);
+        --badge-danger-color: #dc3545;
+        --badge-warning-bg: rgba(255, 193, 7, 0.1);
+        --badge-warning-color: #ffc107;
+    }
+
+    body {
+        background-color: #fafafa;
+        font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    /* Header Styling */
+    .content-header {
+        padding: 25px 0 15px;
+        margin-bottom: 40px;
+        margin-top: 20px;
+    }
+
+    .content-title {
+        color: var(--primary-red);
+        font-size: 28px;
+        font-weight: 600;
+        margin: 0;
+        letter-spacing: -0.5px;
+    }
+
+    /* Search Container */
+    .card-header {
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+        padding: 25px;
+        margin-bottom: 25px !important;
+    }
+
+    .search-container {
+        width: 100%;
+        max-width: 700px;
         position: relative;
+    }
+
+    .search-filter-container {
+        text-align: left;
+        width: 100%;
+        position: relative;
+        margin-top: 20px;
+        margin-bottom: 30px;
+    }
+
+    .input-group {
+        position: relative;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .input-group.border {
+        border: 1px solid var(--border-color);
+        border-radius: 30px;
+        overflow: hidden;
+        background-color: white;
+    }
+
+    .form-control {
+        height: 50px;
+        font-size: 15px;
+        color: var(--text-dark);
+        padding-left: 20px;
+        transition: all 0.2s;
+        border: none;
+    }
+
+    .form-control:focus {
+        box-shadow: none;
+        border-color: var(--primary-red);
+    }
+
+    .form-control::placeholder {
+        color: var(--text-muted);
+    }
+
+    .form-select {
+        height: 50px;
+        min-width: 120px;
+        color: var(--text-dark);
+        font-weight: 500;
+        background-color: white;
+        transition: all 0.2s;
+        font-size: 15px;
+        border: none;
+    }
+    
+    .form-select:focus {
+        box-shadow: none;
+        border-color: var(--primary-red);
+    }
+
+    .btn {
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 500;
+        transition: all 0.3s;
+        padding: 0 20px;
+        font-size: 13px;
+    }
+
+    .btn-secondary {
+        background-color: #f0f0f0;
+        color: var(--text-dark);
+    }
+
+    .btn-secondary:hover {
+        background-color: #e0e0e0;
+        color: var(--primary-red);
+    }
+
+    /* Table Container */
+    .right {
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+        padding: 0;
+        overflow: hidden;
+        margin-top: 20px !important;
+    }
+
+    .table {
+        width: 100%;
+        margin-bottom: 0;
+        background-color: transparent;
+        border-collapse: collapse;
+    }
+
+    .table thead {
+        background-color: var(--bg-light);
+    }
+
+    .table thead th {
+        padding: 18px 20px;
+        color: var(--primary-red);
+        font-weight: 600;
+        font-size: 15px;
+        border-bottom: 2px solid var(--border-color);
+        vertical-align: middle;
+    }
+
+    .table tbody td {
+        padding: 16px 20px;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-dark);
+        font-size: 15px;
+    }
+
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    /* Action Buttons */
+    .btn-action {
+        border: none;
+        font-weight: 500;
+        padding: 8px 0;
+        width: 100px;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: all 0.3s;
+    }
+
+    .btn-danger {
+        background: linear-gradient(to right, var(--secondary-red), var(--gradient-end));
+        border: none;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: var(--primary-red);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(219, 68, 55, 0.2);
+    }
+
+    .btn-success {
+        background: linear-gradient(to right, #28a745, #20c997);
+        border: none;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: #28a745;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2);
+    }
+
+    .gradientButton {
+        background: linear-gradient(to right, #FF4B2B, #FF416C);
+        border: none;
+        color: white;
+        border-radius: 30px;
+    }
+
+    .gradientButton:hover {
+        background: #DB4437;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(219, 68, 55, 0.2);
+    }
+
+    /* Status Badges */
+    .badge {
+        font-weight: 500;
+        font-size: 13px;
+        padding: 7px 12px;
         display: inline-block;
-      }
-      .search-suggestions {
+        text-align: center;
+        min-width: 80px;
+        border-radius: 20px;
+    }
+
+    .alert-success {
+        background-color: var(--badge-success-bg);
+        color: var(--badge-success-color);
+        border: 1px solid rgba(40, 167, 69, 0.2);
+    }
+
+    .alert-danger {
+        background-color: var(--badge-danger-bg);
+        color: var(--badge-danger-color);
+        border: 1px solid rgba(220, 53, 69, 0.2);
+    }
+
+    .alert-warning {
+        background-color: var(--badge-warning-bg);
+        color: var(--badge-warning-color);
+        border: 1px solid rgba(255, 193, 7, 0.2);
+    }
+
+    /* Search Suggestions */
+    .search-suggestions {
         position: absolute;
         top: 100%;
         left: 0;
         right: 0;
         background: white;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        max-height: 200px;
+        border: 1px solid var(--border-color);
+        border-radius: 0 0 8px 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        max-height: 240px;
         overflow-y: auto;
         z-index: 1000;
         display: none;
-      }
-      .search-suggestions div {
-        padding: 8px;
+        max-width: 700px;
+    }
+
+    .search-suggestions div {
+        padding: 12px 15px;
+        border-bottom: 1px solid #f0f0f0;
         cursor: pointer;
-      }
-      .search-suggestions div:hover {
-        background-color: #f0f0f0;
-      }
-    </style>
-  </head>
-  <%- include("../../views/partials/admin/header") %>
-  
-  <div class="contentMain">
-    <div class="contentHeader d-flex align-items-center justify-content-between">
-      <div class="contentTitle">
-        <h4>Coupon Management</h4>
-      </div>
-      <div class="search-container">
-        <form action="/admin/coupon" method="get" class="d-inline" id="searchForm">
-          <div class="input-group input-group-sm rounded-pill">
-            <input
-              type="text"
-              class="form-control rounded-pill"
-              placeholder="Search coupons by code, amount, dates, or status..."
-              name="search"
-              id="searchInput"
-              value="<%= typeof search !== 'undefined' ? search : '' %>"
-              autocomplete="off"
-            />
-            <button class="btn" type="submit" style="display: none;">Search</button>
-            <button class="btn btn-secondary" type="button" onclick="clearSearch()">Clear</button>
-          </div>
-        </form>
-        <div class="search-suggestions" id="searchSuggestions"></div>
-      </div>
-      <button type="button" class="btn gradientButton ms-3" data-bs-toggle="modal" data-bs-target="#addCouponModal">
-        Create Coupon
-      </button>
-    </div>
-  
-    <!-- Add Coupon Modal -->
-    <div class="modal fade" id="addCouponModal" tabindex="-1" aria-labelledby="addCouponModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header" style="border-bottom: 2px solid #DB4437;">
-            <h5 class="modal-title textOrange" id="addCouponModalLabel">Create New Coupon</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <form id="addCouponForm">
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label for="couponCode" class="form-label textOrange">Coupon Code</label>
-                  <input type="text" class="form-control" id="couponCode" name="code" novalidate>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label for="offerAmount" class="form-label textOrange">Offer Amount</label>
-                  <input type="number" class="form-control" id="offerAmount" name="offerPrice" novalidate>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label for="minimumPurchase" class="form-label textOrange">Minimum Purchase Amount</label>
-                  <input type="number" class="form-control" id="minimumPurchase" name="minimumPrice" novalidate>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label for="startDate" class="form-label textOrange">Start Date</label>
-                  <input type="date" class="form-control" id="startDate" name="startOn" novalidate>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label for="totalUsageLimit" class="form-label textOrange">Total Usage Limit</label>
-                  <input type="number" class="form-control" id="totalUsageLimit" name="maxUses" novalidate min="1">
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label for="usageLimitPerUser" class="form-label textOrange">Usage Limit Per User</label>
-                  <input type="number" class="form-control" id="usageLimitPerUser" name="maxUsesPerUser" novalidate min="1">
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label for="expirationDate" class="form-label textOrange">Expiration Date</label>
-                  <input type="date" class="form-control" id="expirationDate" name="expireOn" novalidate>
-                </div>
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-secondary" onclick="clearForm()">Clear</button>
-            <button type="submit" form="addCouponForm" class="btn gradientButton">Create Coupon</button>
-          </div>
+        transition: all 0.2s;
+    }
+
+    .search-suggestions div:hover {
+        background-color: var(--light-red);
+        color: var(--primary-red);
+    }
+
+    /* Error Message */
+    .errorMessage {
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        color: #DB4437;
+    }
+
+    /* Pagination */
+    .container.mt-3 {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    .pagination {
+        margin-top: 25px;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 0;
+        list-style: none;
+    }
+
+    .page-item {
+        display: flex;
+        align-items: center;
+    }
+
+    .page-item .page-link {
+        width: 36px;
+        height: 36px;
+        margin: 0 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        color: var(--text-dark);
+        font-weight: 500;
+        font-size: 14px;
+        border: 1px solid var(--border-color);
+        background-color: white;
+        transition: all 0.3s;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .page-item .page-link:hover {
+        color: var(--primary-red);
+        border-color: var(--primary-red);
+        background-color: var(--light-red);
+    }
+
+    .page-item.active .page-link {
+        background: linear-gradient(to right, var(--secondary-red), var(--gradient-end));
+        border-color: var(--gradient-end);
+        color: white;
+        cursor: default;
+    }
+
+    .page-item.disabled .page-link {
+        background-color: transparent;
+        border-color: var(--border-color);
+        color: var(--text-muted);
+        cursor: default;
+        pointer-events: none;
+    }
+
+    .page-link.pagination-arrow {
+        font-size: 16px;
+        width: 40px;
+        height: 40px;
+        line-height: 1;
+    }
+</style>
+
+<%- include("../../views/partials/admin/header") %>
+
+<div class="container-fluid px-4">
+    <div class="content-header row">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="content-title">Coupon Management</h2>
+            <button type="button" class="btn gradientButton ms-3" data-bs-toggle="modal" data-bs-target="#addCouponModal">
+                Create Coupon
+            </button>
         </div>
-      </div>
     </div>
-  
-    <!-- Edit Coupon Modal -->
-    <div class="modal fade" id="editCouponModal" tabindex="-1" aria-labelledby="editCouponModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header" style="border-bottom: 2px solid #DB4437;">
-            <h5 class="modal-title textOrange" id="editCouponModalLabel">Edit Coupon</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <form id="editCouponForm">
-              <input type="hidden" id="editCouponId" name="couponId">
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label for="editCouponCode" class="form-label textOrange">Coupon Code</label>
-                  <input type="text" class="form-control" id="editCouponCode" name="code" novalidate>
+
+    <header class="card-header mb-4">
+        <div class="search-container">
+            <form action="/admin/coupon" method="get" class="d-inline" id="searchForm">
+                <div class="input-group border rounded-pill overflow-hidden" style="width: 100%;">
+                    <input type="text" class="form-control border-0 rounded-pill" 
+                           placeholder="Search coupons by code, amount, dates..." 
+                           name="search" 
+                           id="searchInput" 
+                           value="<%= typeof search !== 'undefined' ? search : '' %>" 
+                           autocomplete="off">
+                    <select class="form-select border-0" name="status" id="listingFilter">
+                        <option value="all" <%= status === 'all' ? 'selected' : '' %>>All Status</option>
+                        <option value="listed" <%= status === 'listed' ? 'selected' : '' %>>Listed</option>
+                        <option value="unlisted" <%= status === 'unlisted' ? 'selected' : '' %>>Unlisted</option>
+                    </select>
+                    <select class="form-select border-0" name="validity" id="validityFilter">
+                        <option value="all" <%= validity === 'all' ? 'selected' : '' %>>All Validity</option>
+                        <option value="active" <%= validity === 'active' ? 'selected' : '' %>>Active</option>
+                        <option value="expired" <%= validity === 'expired' ? 'selected' : '' %>>Expired</option>
+                    </select>
+                    <button class="btn border-0" type="submit" style="display: none;">Search</button>
+                    <button class="btn btn-secondary border-0 rounded-pill" type="button" onclick="clearSearch()">Clear</button>
                 </div>
-                <div class="col-md-6 mb-3">
-                  <label for="editOfferAmount" class="form-label textOrange">Offer Amount</label>
-                  <input type="number" class="form-control" id="editOfferAmount" name="offerPrice" novalidate>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label for="editMinimumPurchase" class="form-label textOrange">Minimum Purchase Amount</label>
-                  <input type="number" class="form-control" id="editMinimumPurchase" name="minimumPrice" novalidate>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label for="editStartDate" class="form-label textOrange">Start Date</label>
-                  <input type="date" class="form-control" id="editStartDate" name="startOn" novalidate>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label for="editTotalUsageLimit" class="form-label textOrange">Total Usage Limit</label>
-                  <input type="number" class="form-control" id="editTotalUsageLimit" name="maxUses" novalidate min="1">
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label for="editUsageLimitPerUser" class="form-label textOrange">Usage Limit Per User</label>
-                  <input type="number" class="form-control" id="editUsageLimitPerUser" name="maxUsesPerUser" novalidate min="1">
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label for="editExpirationDate" class="form-label textOrange">Expiration Date</label>
-                  <input type="date" class="form-control" id="editExpirationDate" name="expireOn" novalidate>
-                </div>
-              </div>
             </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-danger" onclick="deleteCoupon()">Delete</button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-secondary" onclick="clearEditForm()">Clear</button>
-            <button type="submit" form="editCouponForm" class="btn gradientButton">Save Changes</button>
-          </div>
+            <div class="search-suggestions" id="searchSuggestions"></div>
         </div>
-      </div>
-    </div>
-  
-    <div class="card mb-4">
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-hover">
-            <thead>
+    </header>
+
+    <div class="right">
+      <table class="table table-striped">
+          <thead>
               <tr>
-                <th class="textOrange">Code</th>
-                <th class="textOrange">Offer Amount</th>
-                <th class="textOrange">Minimum Purchase</th>
-                <th class="textOrange">Start Date</th>
-                <th class="textOrange">Total Uses</th>
-                <th class="textOrange">Per User Limit</th>
-                <th class="textOrange">Used Count</th>
-                <th class="textOrange">Expiration Date</th>
-                <th class="textOrange">Status</th>
-                <th class="textOrange">Actions</th>
+                  <th scope="col">Code</th>
+                  <th scope="col">Offer Amount</th>
+                  <th scope="col">Min Purchase</th>
+                  <th scope="col">Start Date</th>
+                  <th scope="col">Expiry Date</th>
+                  <th scope="col">Uses</th>
+                  <th scope="col">Per User Limit</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Actions</th>
               </tr>
-            </thead>
-            <tbody id="couponTableBody">
-              <!-- Coupons are displayed newest first based on createdOn -->
+          </thead>
+          <tbody id="couponTableBody">
               <% coupons.forEach(coupon => { %>
               <tr>
-                <td><%= coupon.code %></td>
-                <td>₹<%= coupon.offerPrice %></td>
-                <td>₹<%= coupon.minimumPrice %></td>
-                <td><%= new Date(coupon.startOn).toISOString().split('T')[0] %></td>
-                <td><%= coupon.maxUses %></td>
-                <td><%= coupon.maxUsesPerUser %></td>
-                <td><%= coupon.usesCount %></td>
-                <td><%= new Date(coupon.expireOn).toISOString().split('T')[0] %></td>
-                <td>
-                  <% 
-                    const today = new Date();
-                    const expireDate = new Date(coupon.expireOn);
-                    if (expireDate < today) { 
-                  %>
-                    Expired
-                  <% 
-                    } else if (!coupon.isListed) { 
-                  %>
-                    Inactive
-                  <% 
-                    } else { 
-                  %>
-                    Active
-                  <% 
-                    } 
-                  %>
-                </td>
-                <td>
-                  <button
-                    class="btn btn-sm gradientButton me-2"
-                    data-coupon="<%= coupon._id %>"
-                    onclick="openEditModal(this.getAttribute('data-coupon'))"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    class="btn btn-sm gradientButton"
-                    onclick="toggleCouponStatus('<%= coupon._id %>', '<%= coupon.isListed %>')"
-                  >
-                    <%= coupon.isListed ? 'Unlist' : 'List' %>
-                  </button>
-                </td>
+                  <td><%= coupon.code %></td>
+                  <td>₹<%= coupon.offerPrice %></td>
+                  <td>₹<%= coupon.minimumPrice %></td>
+                  <td><%= new Date(coupon.startOn).toISOString().split('T')[0] %></td>
+                  <td><%= new Date(coupon.expireOn).toISOString().split('T')[0] %></td>
+                  <td><%= coupon.usesCount %>/<%= coupon.maxUses %></td>
+                  <td><%= coupon.maxUsesPerUser %></td>
+                  <td>
+                      <% 
+                      const today = new Date();
+                      const expireDate = new Date(coupon.expireOn);
+                      if (expireDate < today) { 
+                      %>
+                      <span class="badge alert-danger">Expired</span>
+                      <% } else if (!coupon.isListed) { %>
+                      <span class="badge alert-warning">Unlisted</span>
+                      <% } else { %>
+                      <span class="badge alert-success">Active</span>
+                      <% } %>
+                  </td>
+                  <td>
+                      <button class="btn-action btn-sm gradientButton me-2"
+                              onclick="openEditModal('<%= coupon._id %>')">
+                          Edit
+                      </button>
+                      <button class="btn-action btn-sm <%= coupon.isListed ? 'btn-danger' : 'btn-success' %>"
+                              onclick="toggleCouponStatus('<%= coupon._id %>', '<%= coupon.isListed %>')">
+                          <%= coupon.isListed ? 'Unlist' : 'List' %>
+                      </button>
+                  </td>
               </tr>
               <% }); %>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="card-footer">
-        <nav aria-label="Page navigation" class="d-flex justify-content-center mt-4">
-          <ul class="pagination">
-            <% if (hasPrevPage) { %>
-            <li class="page-item">
-              <a
-                class="page-link"
-                href="?page=<%= currentPage - 1 %>&search=<%= typeof search !== 'undefined' ? search : '' %>"
-                aria-label="Previous"
-              >
-                <span aria-hidden="true">«</span>
-              </a>
-            </li>
-            <% } %>
-            <% for(let i = 1; i <= totalPages; i++) { %>
-            <li class="page-item <%= currentPage === i ? 'active' : '' %>">
-              <a
-                class="page-link"
-                href="?page=<%= i %>&search=<%= typeof search !== 'undefined' ? search : '' %>"
-              >
-                <%= i %>
-              </a>
-            </li>
-            <% } %>
-            <% if (hasNextPage) { %>
-            <li class="page-item">
-              <a
-                class="page-link"
-                href="?page=<%= currentPage + 1 %>&search=<%= typeof search !== 'undefined' ? search : '' %>"
-                aria-label="Next"
-              >
-                <span aria-hidden="true">»</span>
-              </a>
-            </li>
-            <% } %>
-          </ul>
-        </nav>
-      </div>
-    </div>
+          </tbody>
+      </table>
   </div>
-  
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.all.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
 
-    //searching functionality
-    let debounceTimeout;
-  
-    function clearSearch() {
-      const searchInput = document.getElementById("searchInput");
-      searchInput.value = "";
-      searchCoupons("");
-    }
-  
-    function searchCoupons(searchTerm) {
-      clearTimeout(debounceTimeout);
-      debounceTimeout = setTimeout(() => {
-        $.ajax({
-          url: "/admin/coupon",
-          method: "GET",
-          data: { search: searchTerm, page: `<%= currentPage %>` },
-          success: function (response) {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(response, "text/html");
-            const newTableBody = doc.querySelector("#couponTableBody");
-            if (newTableBody) {
-              document.getElementById("couponTableBody").innerHTML = newTableBody.innerHTML;
+    <div class="container mt-3">
+      <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+          <!-- Previous Button -->
+          <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+            <a class="page-link pagination-arrow" href="?page=<%= currentPage - 1 %>&<%= queryParams %>" aria-label="Previous">
+              <span aria-hidden="true">«</span>
+            </a>
+          </li>
+    
+          <!-- Page Numbers with Ellipsis -->
+          <% 
+            const maxPagesToShow = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+            let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+    
+            if (endPage === totalPages) {
+              startPage = Math.max(1, totalPages - maxPagesToShow + 1);
             }
-          },
-          error: function (err) {
-            console.error("Search error:", err);
-          },
-        });
-      }, 300);
+    
+            if (startPage > 1) { %>
+              <li class="page-item">
+                <a class="page-link pagination-number" href="?page=1&<%= queryParams %>">1</a>
+              </li>
+              <% if (startPage > 2) { %>
+                <li class="page-item disabled">
+                  <span class="page-link">...</span>
+                </li>
+              <% } %>
+          <% } %>
+    
+          <!-- Page Numbers -->
+          <% for (let i = startPage; i <= endPage; i++) { %>
+            <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+              <a class="page-link pagination-number" href="?page=<%= i %>&<%= queryParams %>"><%= i %></a>
+            </li>
+          <% } %>
+    
+          <!-- Show last page and ellipsis if needed -->
+          <% if (endPage < totalPages) { %>
+            <% if (endPage < totalPages - 1) { %>
+              <li class="page-item disabled">
+                <span class="page-link">...</span>
+              </li>
+            <% } %>
+            <li class="page-item">
+              <a class="page-link pagination-number" href="?page=<%= totalPages %>&<%= queryParams %>"><%= totalPages %></a>
+            </li>
+          <% } %>
+    
+          <!-- Next Button -->
+          <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+            <a class="page-link pagination-arrow" href="?page=<%= currentPage + 1 %>&<%= queryParams %>" aria-label="Next">
+              <span aria-hidden="true">»</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+</div>
+
+<!-- Add Coupon Modal -->
+<div class="modal fade" id="addCouponModal" tabindex="-1" aria-labelledby="addCouponModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="border-bottom: 2px solid #DB4437;">
+                <h5 class="modal-title" style="color: #DB4437;" id="addCouponModalLabel">Create New Coupon</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addCouponForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="couponCode" class="form-label" style="color: #FF4B2B;">Coupon Code</label>
+                            <input type="text" class="form-control" id="couponCode" name="code" novalidate>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="offerAmount" class="form-label" style="color: #FF4B2B;">Offer Amount</label>
+                            <input type="number" class="form-control" id="offerAmount" name="offerPrice" novalidate>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="minimumPurchase" class="form-label" style="color: #FF4B2B;">Minimum Purchase Amount</label>
+                            <input type="number" class="form-control" id="minimumPurchase" name="minimumPrice" novalidate>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="startDate" class="form-label" style="color: #FF4B2B;">Start Date</label>
+                            <input type="date" class="form-control" id="startDate" name="startOn" novalidate>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="totalUsageLimit" class="form-label" style="color: #FF4B2B;">Total Usage Limit</label>
+                            <input type="number" class="form-control" id="totalUsageLimit" name="maxUses" novalidate min="1">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="usageLimitPerUser" class="form-label" style="color: #FF4B2B;">Usage Limit Per User</label>
+                            <input type="number" class="form-control" id="usageLimitPerUser" name="maxUsesPerUser" novalidate min="1">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="expirationDate" class="form-label" style="color: #FF4B2B;">Expiration Date</label>
+                            <input type="date" class="form-control" id="expirationDate" name="expireOn" novalidate>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" onclick="clearForm()">Clear</button>
+                <button type="submit" form="addCouponForm" class="btn gradientButton">Create Coupon</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Coupon Modal -->
+<div class="modal fade" id="editCouponModal" tabindex="-1" aria-labelledby="editCouponModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="border-bottom: 2px solid #DB4437;">
+                <h5 class="modal-title" style="color: #DB4437;" id="editCouponModalLabel">Edit Coupon</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editCouponForm">
+                    <input type="hidden" id="editCouponId" name="couponId">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editCouponCode" class="form-label" style="color: #FF4B2B;">Coupon Code</label>
+                            <input type="text" class="form-control" id="editCouponCode" name="code" novalidate>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editOfferAmount" class="form-label" style="color: #FF4B2B;">Offer Amount</label>
+                            <input type="number" class="form-control" id="editOfferAmount" name="offerPrice" novalidate>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editMinimumPurchase" class="form-label" style="color: #FF4B2B;">Minimum Purchase Amount</label>
+                            <input type="number" class="form-control" id="editMinimumPurchase" name="minimumPrice" novalidate>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editStartDate" class="form-label" style="color: #FF4B2B;">Start Date</label>
+                            <input type="date" class="form-control" id="editStartDate" name="startOn" novalidate>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editTotalUsageLimit" class="form-label" style="color: #FF4B2B;">Total Usage Limit</label>
+                            <input type="number" class="form-control" id="editTotalUsageLimit" name="maxUses" novalidate min="1">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editUsageLimitPerUser" class="form-label" style="color: #FF4B2B;">Usage Limit Per User</label>
+                            <input type="number" class="form-control" id="editUsageLimitPerUser" name="maxUsesPerUser" novalidate min="1">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editExpirationDate" class="form-label" style="color: #FF4B2B;">Expiration Date</label>
+                            <input type="date" class="form-control" id="editExpirationDate" name="expireOn" novalidate>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" onclick="deleteCoupon()">Delete</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" onclick="clearEditForm()">Clear</button>
+                <button type="submit" form="editCouponForm" class="btn gradientButton">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include("../../views/partials/admin/footer") %>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let debounceTimeout;
+
+    function clearSearch() {
+        const searchInput = document.getElementById('searchInput');
+        const listingFilter = document.getElementById('listingFilter');
+        const validityFilter = document.getElementById('validityFilter');
+        searchInput.value = '';
+        listingFilter.value = 'all';
+        validityFilter.value = 'all';
+        searchCoupons('', 'all', 'all');
     }
-  
-    $("#searchInput").on("input", function () {
-      const searchTerm = $(this).val().trim();
-      searchCoupons(searchTerm);
+
+    function searchCoupons(searchTerm, status, validity) {
+        clearTimeout(debounceTimeout);
+        debounceTimeout = setTimeout(() => {
+            $.ajax({
+                url: `/admin/coupon/?search=${encodeURIComponent(searchTerm)}&page=<%= currentPage %>&status=${status}&validity=${validity}`,
+                method: 'GET',
+                success: function(response) {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(response, 'text/html');
+                    const newTableBody = doc.querySelector('#couponTableBody');
+                    const newPagination = doc.querySelector('.pagination');
+                    if (newTableBody) {
+                        document.getElementById('couponTableBody').innerHTML = newTableBody.innerHTML;
+                    }
+                    if (newPagination) {
+                        document.querySelector('.pagination').innerHTML = newPagination.innerHTML;
+                    }
+                },
+                error: function(err) {
+                    console.error('Search error:', err);
+                }
+            });
+        }, 300);
+    }
+
+    $('#searchInput').on('input', function() {
+        const searchTerm = $(this).val().trim();
+        const status = $('#listingFilter').val();
+        const validity = $('#validityFilter').val();
+        searchCoupons(searchTerm, status, validity);
     });
-  
+
+    $('#listingFilter').on('change', function() {
+        const status = $(this).val();
+        const searchTerm = $('#searchInput').val().trim();
+        const validity = $('#validityFilter').val();
+        searchCoupons(searchTerm, status, validity);
+    });
+
+    $('#validityFilter').on('change', function() {
+        const validity = $(this).val();
+        const searchTerm = $('#searchInput').val().trim();
+        const status = $('#listingFilter').val();
+        searchCoupons(searchTerm, status, validity);
+    });
+
     function displayError(fieldId, message) {
-      const field = document.getElementById(fieldId);
-      const errorDiv = document.createElement("div");
-      errorDiv.className = "errorMessage";
-      errorDiv.textContent = message;
-      field.parentNode.appendChild(errorDiv);
+        const field = document.getElementById(fieldId);
+        const errorDiv = document.createElement("div");
+        errorDiv.className = "errorMessage";
+        errorDiv.textContent = message;
+        field.parentNode.appendChild(errorDiv);
     }
-  
+
     function clearForm() {
-      document.getElementById("addCouponForm").reset();
-      document.querySelectorAll(".errorMessage").forEach((el) => el.remove());
+        document.getElementById("addCouponForm").reset();
+        document.querySelectorAll(".errorMessage").forEach((el) => el.remove());
     }
-  
+
+    
     // In couponController.js
     async function toggleCouponStatus(couponId, currentStatus) {
   try {
