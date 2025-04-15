@@ -87,12 +87,19 @@ const editAddressForm = async (req, res, next) => {
     const userId = req.session.user.id;
     const addressId = req.params.id;
     const address = await Address.findOne({ _id: addressId, userId });
-
+    
     if (!address) {
       return res.redirect("/address");
     }
 
-    res.render("editAddress", { addressData: address, user: req.session.user });
+    // Assuming userData is fetched for profile photo
+    const userData = await User.findById(userId); // Adjust based on your User model
+
+    res.render("editAddress", {
+      addressData: address,
+      user: req.session.user,
+      userData: userData || null // Pass userData for profile photo
+    });
   } catch (error) {
     next(error);
   }
