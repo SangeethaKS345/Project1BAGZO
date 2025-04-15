@@ -150,23 +150,23 @@
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 20px;
+    margin-bottom: 20px;
   }
 
   .pie-chart-card {
     flex: 1;
     min-width: 300px;
-    max-width: 33%;
+    max-width: 48%; /* Ensures two charts per row with some spacing */
+    width: 100%;
   }
 
   /* Animation for pie chart hover */
-
   canvas {
     transition: transform 0.3s ease;
   }
 
   .pie-chart-card:hover canvas {
-    transform: scale(1.1);
-    /* Slight scale-up of the entire chart */
+    transform: scale(1.1); /* Slight scale-up of the entire chart */
   }
 </style>
 <section class="content-main">
@@ -267,8 +267,9 @@
       </div>
     </div>
 
-    <!-- Pie Charts in one horizontal line -->
+    <!-- Pie Charts in two rows -->
     <div class="col-xl-12 col-lg-12">
+      <!-- First Row: Top Products and Top Categories -->
       <div class="pie-charts-container">
         <div class="card mb-4 shadow-sm border-0 pie-chart-card">
           <article class="card-body">
@@ -286,11 +287,22 @@
             </div>
           </article>
         </div>
+      </div>
+      <!-- Second Row: Top Brands and Order Status -->
+      <div class="pie-charts-container">
         <div class="card mb-4 shadow-sm border-0 pie-chart-card">
           <article class="card-body">
             <h5 class="card-title mb-4">Top Brands</h5>
             <div class="chart-container">
               <canvas id="topBrandsChart"></canvas>
+            </div>
+          </article>
+        </div>
+        <div class="card mb-4 shadow-sm border-0 pie-chart-card">
+          <article class="card-body">
+            <h5 class="card-title mb-4">Order Status</h5>
+            <div class="chart-container">
+              <canvas id="orderStatusChart"></canvas>
             </div>
           </article>
         </div>
@@ -410,8 +422,7 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    const timeRangeSelect = document.getElementById('timeRangeSelect');
-    let salesChart, topProductsChart, topCategoriesChart, topBrandsChart;
+    let salesChart, topProductsChart, topCategoriesChart, topBrandsChart, orderStatusChart;
 
     // Initialize all charts
     function initializeCharts() {
@@ -578,6 +589,46 @@
                 backgroundColor: [
                   '#FF416C', '#FF4B2B', '#DB4437', '#FF6384', '#9966FF',
                   '#36A2EB', '#FFCE56', '#4BC0C0', '#E7E9ED', '#FF9F40' // 10 colors
+                ]
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: 'bottom',
+                  labels: {
+                    boxWidth: 10,
+                    font: {
+                      size: 10
+                    }
+                  }
+                }
+              },
+              hoverOffset: 20,
+              animation: {
+                animateScale: true,
+                animateRotate: true
+              },
+              onHover: (event, chartElement) => {
+                event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+              }
+            }
+          }
+        );
+
+        // Order Status Chart (Doughnut)
+        orderStatusChart = new Chart(
+          document.getElementById('orderStatusChart').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+              labels: chartData.orderStatusLabels || [],
+              datasets: [{
+                data: chartData.orderStatusData || [],
+                backgroundColor: [
+                  '#FF416C', '#FF4B2B', '#DB4437', '#FF6384', '#9966FF',
+                  '#36A2EB', '#FFCE56', '#4BC0C0', '#E7E9ED', '#FF9F40'
                 ]
               }]
             },

@@ -18,7 +18,8 @@ const loadDashboard = async (req, res, next) => {
         monthlyData,
         topProductsData,
         topCategoriesData,
-        topBrandsData
+        topBrandsData,
+        orderStatusData
       ] = await Promise.all([
         User.countDocuments({ isAdmin: false }),
         Product.countDocuments(),
@@ -32,7 +33,8 @@ const loadDashboard = async (req, res, next) => {
         getMonthlyData('yearly'),
         getTopProductsData(),
         getTopCategoriesData(),
-        getTopBrandsData()
+        getTopBrandsData(),
+        getOrderStatusData()
       ]);
 
       const totalRevenue = orders.reduce((sum, order) => sum + order.finalAmount, 0);
@@ -63,7 +65,9 @@ const loadDashboard = async (req, res, next) => {
           topCategoryLabels: topCategoriesData.categoryLabels,
           topCategoryData: topCategoriesData.categoryData,
           topBrandLabels: topBrandsData.brandLabels,
-          topBrandData: topBrandsData.brandData
+          topBrandData: topBrandsData.brandData,
+          orderStatusLabels: orderStatusData.statusLabels,
+          orderStatusData: orderStatusData.statusData
         }
       });
     } catch (error) {
@@ -180,7 +184,7 @@ const getTopProductsData = async () => {
   return { productLabels, productData };
 };
 
-// Get Top  Brand Data
+// Get Top Brand Data
 const getTopBrandsData = async () => {
   const topBrands = await Order.aggregate([
     { $unwind: "$OrderItems" },
@@ -258,6 +262,24 @@ const getTopCategoriesData = async () => {
   return { categoryLabels, categoryData };
 };
 
+// Get Order Status Data
+const getOrderStatusData = async () => {
+  const orderStatuses = await Order.aggregate([
+    {
+      $group: {
+        _id: "$status",
+        count: { $sum: 1 }
+      }
+    },
+    { $sort: { count: -1 } }
+  ]);
+
+  const statusLabels = orderStatuses.map(s => s._id || 'Unknown');
+  const statusData = orderStatuses.map(s => s.count);
+
+  return { statusLabels, statusData };
+};
+
 // Download Report
 const downloadReport = async (req, res) => {
   try {
@@ -305,7 +327,7 @@ const downloadReport = async (req, res) => {
   }
 };
 
-//Get Custom Report
+// Get Custom Report
 const getDateRange = (reportType, startDate, endDate) => {
   const endDateTime = new Date();
   let startDateTime = new Date();
@@ -529,5 +551,6 @@ module.exports = {
   downloadReport,
   generateExcelReport,
   generatePDFReport,
-  getChartData
+  getChartData,
+  getOrderStatusData
 };
