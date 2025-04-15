@@ -57,7 +57,7 @@
                 <div class="card profile-card">
                     <div class="address-header">
                         <h4><i class="fas fa-address-book me-2"></i> Saved Addresses</h4>
-                        <a href="/address/new" class="gradient-btn"><i class="fas fa-plus me-1"></i> Add New Address</a>
+                        <a href="/address/new" class="gradient-btn add-address-btn"><i class="fas fa-plus me-1"></i> Add New Address</a>
                     </div>
                     <hr>
                     <% if (typeof error !== 'undefined' && error) { %>
@@ -73,7 +73,7 @@
                                         <div class="address-type"><%= addr.addressType %> Address</div>
                                         <div class="address-details">
                                             <p><i class="fas fa-user me-2"></i> <strong><%= addr.name %></strong></p>
-                                            <p><i class="fas fa-home me-2"></i> <%= addr.houseNo %></p> <!-- Added houseNo -->
+                                            <p><i class="fas fa-home me-2"></i> <%= addr.houseNo %></p>
                                             <p><i class="fas fa-map-pin me-2"></i> <%= addr.city %>, <%= addr.state %> <%= addr.pincode %></p>
                                             <p><i class="fas fa-landmark me-2"></i> <%= addr.landMark %></p>
                                             <p><i class="fas fa-phone me-2"></i> <%= addr.phone %></p>
@@ -106,6 +106,27 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Handle Add New Address button click
+            const addAddressBtn = document.querySelector('.add-address-btn');
+            if (addAddressBtn) {
+                addAddressBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const addressCount = document.querySelectorAll('.address-item').length;
+                    if (addressCount >= 3) {
+                        Swal.fire({
+                            title: 'Address Limit Reached',
+                            text: 'Maximum address limit reached. Remove an address to add a new one.',
+                            icon: 'warning',
+                            confirmButtonColor: '#DB4437',
+                            confirmButtonText: 'OK'
+                        });
+                    } else {
+                        window.location.href = this.getAttribute('href');
+                    }
+                });
+            }
+
+            // Handle Delete Address
             document.querySelectorAll('.delete-address').forEach(button => {
                 button.addEventListener('click', function() {
                     const addressId = this.getAttribute('data-id');
