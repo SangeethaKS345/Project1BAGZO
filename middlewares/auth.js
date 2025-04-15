@@ -2,9 +2,9 @@ const mongoose = require("mongoose");
 const User = require("../models/userSchema");
 
 const userAuth = (req, res, next) => {
-  console.log("Authentication Middleware Started");
-  console.log("Full Session Object:", req.session);
-  console.log("Session User:", req.session.user);
+  // console.log("Authentication Middleware Started");
+  // console.log("Full Session Object:", req.session);
+  // console.log("Session User:", req.session.user);
 
   // Skip authentication for static file paths
   if (req.path.startsWith("/public/") || req.path.startsWith("/assets/")) {
