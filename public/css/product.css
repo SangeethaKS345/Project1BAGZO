@@ -35,7 +35,6 @@ body {
     font-weight: 600;
     margin: 0;
     letter-spacing: -0.5px;
-    color: #DB4437;
 }
 
 /* Search and Filter Containers */
@@ -352,6 +351,29 @@ body {
 
 .swal2-confirm {
     background-color: var(--gradient-end);
+}
+
+/* Modal Styling */
+.modal-header {
+    background: linear-gradient(to right, var(--secondary-red), var(--gradient-end));
+    color: white;
+    border-bottom: none;
+    padding: 15px 20px;
+}
+
+.modal-title {
+    font-weight: 600;
+    font-size: 18px;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-content {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
 /* Responsive Adjustments */
