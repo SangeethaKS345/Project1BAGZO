@@ -4,14 +4,14 @@ const Razorpay = require('razorpay');
 const dotenv = require("dotenv").config();
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
-const passport = require("./config/passport");
-const db = require("./config/db");
-const userRouter = require("./routes/userRouter");
-const adminRouter = require("./routes/adminRouter");
+const passport = require("./config/passport.js");
+const db = require("./config/db.js");
+const userRouter = require("./routes/userRouter.js");
+const adminRouter = require("./routes/adminRouter.js");
 const app = express();
-const multer = require("./helpers/multer");
-const Cart = require("./models/cartSchema");
-const Wishlist = require("./models/wishListSchema");
+const multer = require("./helpers/multer.js");
+const Cart = require("./models/cartSchema.js");
+const Wishlist = require("./models/wishListSchema.js");
 
 
 
