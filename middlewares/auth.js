@@ -98,14 +98,14 @@ const userAuth = (req, res, next) => {
 
 const adminAuth = async (req, res, next) => {
   try {
-    console.log("Admin session ID:", req.session.admin);
+    //console.log("Admin session ID:", req.session.admin);
     if (!req.session.admin || !mongoose.Types.ObjectId.isValid(req.session.admin)) {
       console.log("Invalid session or admin ID, redirecting to login");
       return res.redirect("/admin/login");
     }
 
     const admin = await User.findById(req.session.admin);
-    console.log("Admin details:", admin);
+    //console.log("Admin details:", admin);
 
     if (!admin || !admin.isAdmin) {
       console.log("Invalid admin or not an admin, destroying session and redirecting to login");
