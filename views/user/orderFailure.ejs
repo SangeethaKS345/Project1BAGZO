@@ -15,10 +15,10 @@
         <div class="failure-details">
             <h3>Transaction Details</h3>
             <% if (order) { %>
-              <!-- <div class="detail-row">
+              <div class="detail-row">
                 <span class="detail-label">Order ID:</span>
-                <span class="detail-value"><%= order.orderId %></span>
-              </div> -->
+                <span class="detail-value"><%= order.orderId || 'N/A' %></span>
+              </div>
               <div class="detail-row">
                 <span class="detail-label">Amount:</span>
                 <span class="detail-value price">₹<%= order.totalAmount %></span>

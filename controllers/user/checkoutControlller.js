@@ -427,8 +427,14 @@ const getOrderFailurePage = async (req, res, next) => {
     let order = null;
 
     if (orderId) {
-      const foundOrder = await Order.findOne({ orderId }).lean();
-      order = foundOrder ? { orderId: foundOrder.orderId, totalAmount: totalAmount || foundOrder.finalAmount } : { orderId, totalAmount: totalAmount || 0 };
+      // Query Order using MongoDB _id, then use custom orderId
+      const foundOrder = await Order.findById(orderId).lean();
+      if (foundOrder) {
+        order = { orderId: foundOrder.orderId, totalAmount: totalAmount || foundOrder.finalAmount };
+      } else {
+        // Fallback if order not found
+        order = { orderId: 'N/A', totalAmount: totalAmount || 0 };
+      }
     }
 
     res.render("orderFailure", {
