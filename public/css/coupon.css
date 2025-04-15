@@ -7,12 +7,12 @@
     --text-dark: #333333;
     --text-muted: #777777;
     --bg-light: #f8f9fa;
-    --badge-success-bg: rgba(40, 167, 69, 0.1);
-    --badge-success-color: #28a745;
-    --badge-danger-bg: rgba(220, 53, 69, 0.1);
-    --badge-danger-color: #dc3545;
-    --badge-warning-bg: rgba(255, 193, 7, 0.1);
-    --badge-warning-color: #ffc107;
+    --badge-success-bg: rgba(40, 167, 69, 0.4); /* Slightly more opaque green */
+    --badge-success-color: #1a531b; /* Dark green for contrast */
+    --badge-danger-bg: rgba(220, 53, 69, 0.4); /* Slightly more opaque red */
+    --badge-danger-color: #721c24; /* Dark red for contrast */
+    --badge-warning-bg: rgba(255, 193, 7, 0.4); /* Slightly more opaque yellow */
+    --badge-warning-color: #533802; /* Dark brown for contrast */
 }
 
 body {
@@ -260,7 +260,7 @@ body {
 }
 
 /* Status Badges */
-.badge {
+.table .badge {
     font-weight: 500;
     font-size: 13px;
     padding: 7px 12px;
@@ -270,22 +270,22 @@ body {
     border-radius: 20px;
 }
 
-.alert-success {
+.table .badge.alert-success {
     background-color: var(--badge-success-bg);
     color: var(--badge-success-color);
-    border: 1px solid rgba(40, 167, 69, 0.2);
+    border: 1px solid rgba(40, 167, 69, 0.6);
 }
 
-.alert-danger {
+.table .badge.alert-danger {
     background-color: var(--badge-danger-bg);
     color: var(--badge-danger-color);
-    border: 1px solid rgba(220, 53, 69, 0.2);
+    border: 1px solid rgba(220, 53, 69, 0.6);
 }
 
-.alert-warning {
+.table .badge.alert-warning {
     background-color: var(--badge-warning-bg);
     color: var(--badge-warning-color);
-    border: 1px solid rgba(255, 193, 7, 0.2);
+    border: 1px solid rgba(255, 193, 7, 0.6);
 }
 
 /* Error Message */
@@ -407,5 +407,11 @@ body {
 
     .content-header {
         margin-bottom: 20px;
+    }
+
+    .table .badge {
+        min-width: 60px; /* Smaller for mobile */
+        font-size: 12px;
+        padding: 6px 10px;
     }
 }
