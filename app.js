@@ -101,7 +101,8 @@ app.use("/", userRouter);
 app.use("/admin", adminRouter);
 
 // Error handler
-app.use(errorHandler, adminErrorHandler);
+app.use("/admin", adminErrorHandler);
+app.use(errorHandler);
 
 // Start Server
 const PORT = process.env.PORT || 4488;
