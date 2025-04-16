@@ -77,7 +77,7 @@
           <td>
             <% order.products.forEach(product => { %>
             <div class="product-item mb-2">
-              <img src="/uploads/re-image/<%= item.productDetails.productImage[0]%>" alt="<%= product.name %>" class="img-xs">
+              <img src="/uploads/re-image/<%= product.image %>" alt="<%= product.name %>" class="img-xs">
               <div class="product-info">
                 <span><%= product.name %></span><br>
                 <small>Color: <%= product.color %> | Qty: <%= product.quantity %></small>
