@@ -75,9 +75,9 @@
           <td><%= new Date(order.date).toLocaleDateString() %></td>
           <td><%= order.customer %></td>
           <td>
-            <% order.products.forEach(product => { %>
+            <% order.products.forEach(product => { %>g
             <div class="product-item mb-2">
-              <img src="<%= product.image && product.image.length > 0 ? '/uploads/re-image/' + product.image[0] : '/images/placeholder.jpg' %>" alt="<%= product.name %>" class="img-xs">
+              <img src="/uploads/re-image/<%= product.image %>" alt="<%= product.name %>" class="img-xs">
               <div class="product-info">
                 <span><%= product.name %></span><br>
                 <small>Color: <%= product.color %> | Qty: <%= product.quantity %></small>
