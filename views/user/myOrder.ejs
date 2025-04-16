@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -36,38 +37,38 @@
     <h2 class="section__title">My Orders</h2>
 
     <% if (orders.length === 0) { %>
-      <div class="empty-orders">
-        <i class="fas fa-shopping-cart fa-4x" style="color: var(--text-light); margin-bottom: 1rem;"></i>
-        <h3>No Orders Found</h3>
-        <p>You haven't placed any orders yet</p>
-        <a href="/shop" class="btn btn-primary">Start Shopping</a>
-      </div>
+    <div class="empty-orders">
+      <i class="fas fa-shopping-cart fa-4x" style="color: var(--text-light); margin-bottom: 1rem;"></i>
+      <h3>No Orders Found</h3>
+      <p>You haven't placed any orders yet</p>
+      <a href="/shop" class="btn btn-primary">Start Shopping</a>
+    </div>
     <% } else { %>
-      <% orders.forEach(order => { %>
-        <div class="order-card">
-          <div class="order-header">
-            <div>
-              <h3>Order #<%= order.orderId %></h3>
-              <p><i class="fas fa-calendar-alt"></i> Placed on: <%= order.placedOn %></p>
-              <p><i class="fas fa-box"></i> Total Quantity: <%= order.totalQuantity %></p>
-              <p class="total-amount"><i class="fas fa-rupee-sign"></i> ₹<%= order.totalAmount %></p>
-            </div>
+    <% orders.forEach(order => { %>
+    <div class="order-card">
+      <div class="order-header">
+        <div>
+          <h3>Order #<%= order.orderId %></h3>
+          <p><i class="fas fa-calendar-alt"></i> Placed on: <%= order.placedOn %></p>
+          <p><i class="fas fa-box"></i> Total Quantity: <%= order.totalQuantity %></p>
+          <p class="total-amount"><i class="fas fa-rupee-sign"></i> ₹<%= order.totalAmount %></p>
+        </div>
 
-            <div>
-              <% if (order.status === 0) { %>
-                <button class="btn btn-secondary cancel-order-btn" data-order-id="<%= order.orderId %>" disabled>
-                  <i class="fas fa-ban"></i> Cancelled
-                </button>
-              <% } else if (order.cancellation_reason) { %>
-                <button class="btn btn-secondary cancel-order-btn" data-order-id="<%= order.orderId %>" disabled>
-                  <i class="fas fa-ban"></i> Cancelled
-                </button>
-              <% } else if (order.paymentStatus === 'failed' || (order.paymentMethod === 'razorpay' && order.status === 1 && order.paymentStatus === 'pending')) { %>
-                <button class="btn btn-warning pay-now-btn" data-order-id="<%= order.orderId %>">
-                  <i class="fas fa-redo"></i> Pay
-                </button>
-              <% } else if (order.status === 4 && !order.return_reason) { %>
-                <% 
+        <div>
+          <% if (order.status === 0) { %>
+          <button class="btn btn-secondary cancel-order-btn" data-order-id="<%= order.orderId %>" disabled>
+            <i class="fas fa-ban"></i> Cancelled
+          </button>
+          <% } else if (order.cancellation_reason) { %>
+          <button class="btn btn-secondary cancel-order-btn" data-order-id="<%= order.orderId %>" disabled>
+            <i class="fas fa-ban"></i> Cancelled
+          </button>
+          <% } else if (order.paymentStatus === 'failed' || (order.paymentMethod === 'razorpay' && order.status === 1 && order.paymentStatus === 'pending')) { %>
+          <button class="btn btn-warning pay-now-btn" data-order-id="<%= order.orderId %>">
+            <i class="fas fa-redo"></i> Pay
+          </button>
+          <% } else if (order.status === 4 && !order.return_reason) { %>
+          <% 
                   const deliveredDate = order.deliveredOn ? new Date(order.deliveredOn) : null;
                   const currentDate = new Date();
                   // Normalize to UTC date (midnight) to avoid timezone issues
@@ -76,110 +77,136 @@
                   const diffDays = deliveredUTC ? Math.floor((currentUTC - deliveredUTC) / (1000 * 60 * 60 * 24)) : Infinity;
                   const withinReturnPeriod = deliveredUTC && diffDays <= 7 && !isNaN(diffDays);
                 %>
-                <script>
-                  console.log('Order <%= order.orderId %>: deliveredOn=', <%= JSON.stringify(order.deliveredOn) %>, 'deliveredUTC=', <%= JSON.stringify(deliveredUTC) %>, 'diffDays=', <%= diffDays %>, 'withinReturnPeriod=', <%= withinReturnPeriod %>);
-                </script>
-                <% if (withinReturnPeriod) { %>
-                  <button class="btn btn-warning return-order-btn" data-order-id="<%= order.orderId %>">
-                    <i class="fas fa-undo"></i> Return Order
-                  </button>
-                <% } else { %>
-                  <button class="btn btn-secondary return-order-btn" data-order-id="<%= order.orderId %>" disabled>
-                    <i class="fas fa-ban"></i> Return Period Exceeded
-                  </button>
-                <% } %>
-              <% } else if (order.status === 5) { %>
-                <button class="btn btn-secondary return-order-btn" data-order-id="<%= order.orderId %>" disabled>
-                  <i class="fas fa-clock"></i> Return request in process
-                </button>
-              <% } else if (order.status === 6) { %>
-                <button class="btn btn-success return-order-btn" data-order-id="<%= order.orderId %>" disabled>
-                  <i class="fas fa-check-circle"></i> Returned
-                </button>
-              <% } else if (order.status < 4) { %>
-                <button class="btn btn-danger cancel-order-btn" data-order-id="<%= order.orderId %>">
-                  <i class="fas fa-times-circle"></i> Cancel Order
-                </button>
-              <% } %>
-            </div>
-          </div>
-          <div class="order-details">
-            <% order.products.forEach((product, index) => { %>
-              <div class="product-item" style="<%= index > 0 ? 'margin-top: 1rem;' : '' %>">
-                <img src="/uploads/re-image/<%= product.productImage && product.productImage[0] ? product.productImage[0] : 'default.jpg' %>" alt="<%= product.productName || 'N/A' %>" class="product-image product-clickable" data-product-id="<%= product._id %>">
-                <div class="product-info">
-                  <h4>
-                    <span class="product-name product-clickable" data-product-id="<%= product._id %>">
-                      <%= product.productName || 'N/A' %>
-                    </span>
-                  </h4>
-                  <p>Quantity: <%= product.quantity %></p>
-                  <p>Price: ₹<%= product.price %></p>
-                </div>
-              </div>
-            <% }) %>
-            <div class="status-tracker">
-              <div class="status-line <%= order.status >= 2 ? 'active' : '' %>"></div>
-              <% if (order.paymentStatus === 'failed' || (order.paymentMethod === 'razorpay' && order.status === 1 && order.paymentStatus === 'pending')) { %>
-                <div class="status-step active">
-                  <div class="status-dot active"></div>
-                  <span>Failed</span>
-                </div>
-              <% } else { %>
-                <div class="status-step <%= order.status >= 1 ? 'active' : '' %>">
-                  <div class="status-dot <%= order.status >= 1 ? 'active' : '' %>"></div>
-                  <span>Order Placed</span>
-                </div>
-                <div class="status-step <%= order.status >= 2 ? 'active' : '' %>">
-                  <div class="status-dot <%= order.status >= 2 ? 'active' : '' %>"></div>
-                  <span>Processing</span>
-                </div>
-                <div class="status-step <%= order.status >= 3 ? 'active' : '' %>">
-                  <div class="status-dot <%= order.status >= 3 ? 'active' : '' %>"></div>
-                  <span>Shipped</span>
-                </div>
-                <div class="status-step <%= order.status >= 4 ? 'active' : '' %>">
-                  <div class="status-dot <%= order.status >= 4 ? 'active' : '' %>"></div>
-                  <span>Delivered</span>
-                </div>
-              <% } %>
-            </div>
-          </div>
-
-          <div class="action-buttons">
-            <% order.products.forEach(product => { %>
-              <!-- <button class="btn btn-primary buy-again-btn" data-product-id="<%= product._id %>">
-                <i class="fas fa-shopping-cart"></i> Buy <%= product.productName %> Again
-              </button> -->
-            <% }) %>
-            <button class="btn btn-primary download-invoice-btn" data-order-id="<%= order.orderId %>" <% if (order.paymentStatus === 'failed' || (order.paymentMethod === 'razorpay' && order.paymentStatus === 'pending') || order.status === 0 || order.status === 6) { %>disabled<% } %>>
-              <i class="fas fa-file-download"></i> Download Invoice
-            </button>
-            <button class="btn btn-info view-details-btn" data-order-id="<%= order.orderId %>">
-              <i class="fas fa-eye"></i> View Details
-            </button>
+          <script>
+            console.log('Order <%= order.orderId %>: deliveredOn=', <%= JSON.stringify(order.deliveredOn) %>, 'deliveredUTC=', <%= JSON.stringify(deliveredUTC) %>, 'diffDays=', <%= diffDays %>, 'withinReturnPeriod=', <%= withinReturnPeriod %>);
+          </script>
+          <% if (withinReturnPeriod) { %>
+          <button class="btn btn-warning return-order-btn" data-order-id="<%= order.orderId %>">
+            <i class="fas fa-undo"></i> Return Order
+          </button>
+          <% } else { %>
+          <button class="btn btn-secondary return-order-btn" data-order-id="<%= order.orderId %>" disabled>
+            <i class="fas fa-ban"></i> Return Period Exceeded
+          </button>
+          <% } %>
+          <% } else if (order.status === 5) { %>
+          <button class="btn btn-secondary return-order-btn" data-order-id="<%= order.orderId %>" disabled>
+            <i class="fas fa-clock"></i> Return request in process
+          </button>
+          <% } else if (order.status === 6) { %>
+          <button class="btn btn-success return-order-btn" data-order-id="<%= order.orderId %>" disabled>
+            <i class="fas fa-check-circle"></i> Returned
+          </button>
+          <% } else if (order.status < 4) { %>
+          <button class="btn btn-danger cancel-order-btn" data-order-id="<%= order.orderId %>">
+            <i class="fas fa-times-circle"></i> Cancel Order
+          </button>
+          <% } %>
+        </div>
+      </div>
+      <div class="order-details">
+        <% order.products.forEach((product, index) => { %>
+        <div class="product-item" style="<%= index > 0 ? 'margin-top: 1rem;' : '' %>">
+          <img src="/uploads/re-image/<%= product.productImage && product.productImage[0] ? product.productImage[0] : 'default.jpg' %>" alt="<%= product.productName || 'N/A' %>" class="product-image product-clickable" data-product-id="<%= product._id %>">
+          <div class="product-info">
+            <h4>
+              <span class="product-name product-clickable" data-product-id="<%= product._id %>">
+                <%= product.productName || 'N/A' %>
+              </span>
+            </h4>
+            <p>Quantity: <%= product.quantity %></p>
+            <p>Price: ₹<%= product.price %></p>
           </div>
         </div>
-      <% }) %>
-
-      <!-- Pagination -->
-      <div class="pagination">
-        <% if (currentPage > 1) { %>
-          <a href="/my-orders?page=<%= currentPage - 1 %>" class="pagination-btn">
-            <i class="fas fa-chevron-left"></i> Previous
-          </a>
-        <% } %>
-
-        <% for(let i = 1; i <= totalPages; i++) { %>
-          <a href="/my-orders?page=<%= i %>" class="pagination-btn <%= currentPage === i ? 'active' : '' %>"><%= i %></a>
-        <% } %>
-
-        <% if (currentPage < totalPages) { %>
-          <a href="/my-orders?page=<%= currentPage + 1 %>" class="pagination-btn">
-            Next <i class="fas fa-chevron-right"></i>
-          </a>
-        <% } %>
+        <% }) %>
+        <div class="status-tracker">
+          <div class="status-line <%= order.status >= 2 ? 'active' : '' %>"></div>
+          <% if (order.paymentStatus === 'failed' || (order.paymentMethod === 'razorpay' && order.status === 1 && order.paymentStatus === 'pending')) { %>
+          <div class="status-step active">
+            <div class="status-dot active"></div>
+            <span>Failed</span>
+          </div>
+          <% } else { %>
+          <div class="status-step <%= order.status >= 1 ? 'active' : '' %>">
+            <div class="status-dot <%= order.status >= 1 ? 'active' : '' %>"></div>
+            <span>Order Placed</span>
+          </div>
+          <div class="status-step <%= order.status >= 2 ? 'active' : '' %>">
+            <div class="status-dot <%= order.status >= 2 ? 'active' : '' %>"></div>
+            <span>Processing</span>
+          </div>
+          <div class="status-step <%= order.status >= 3 ? 'active' : '' %>">
+            <div class="status-dot <%= order.status >= 3 ? 'active' : '' %>"></div>
+            <span>Shipped</span>
+          </div>
+          <div class="status-step <%= order.status >= 4 ? 'active' : '' %>">
+            <div class="status-dot <%= order.status >= 4 ? 'active' : '' %>"></div>
+            <span>Delivered</span>
+          </div>
+          <% } %>
+        </div>
       </div>
+
+      <div class="action-buttons">
+        <button class="btn btn-primary download-invoice-btn" data-order-id="<%= order.orderId %>" <% if (order.paymentStatus === 'failed' || (order.paymentMethod === 'razorpay' && order.paymentStatus === 'pending') || order.status === 0 || order.status === 6) { %>disabled<% } %>>
+          <i class="fas fa-file-download"></i> Download Invoice
+        </button>
+        <button class="btn btn-info view-details-btn" data-order-id="<%= order.orderId %>">
+          <i class="fas fa-eye"></i> View Details
+        </button>
+      </div>
+    </div>
+    <% }) %>
+
+    <!-- Pagination -->
+    <div class="pagination container mt-3">
+      <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+          <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+            <a class="page-link pagination-arrow" href="/my-orders?page=<%= currentPage - 1 %>" aria-label="Previous">
+              <span aria-hidden="true">«</span>
+            </a>
+          </li>
+          <% 
+        const maxPagesToShow = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+        let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+        if (endPage === totalPages) {
+          startPage = Math.max(1, totalPages - maxPagesToShow + 1);
+        }
+        if (startPage > 1) { %>
+          <li class="page-item">
+            <a class="page-link pagination-number" href="/my-orders?page=1">1</a>
+          </li>
+          <% if (startPage > 2) { %>
+          <li class="page-item disabled">
+            <span class="page-link">...</span>
+          </li>
+          <% } %>
+          <% } %>
+          <% for (let i = startPage; i <= endPage; i++) { %>
+          <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+            <a class="page-link pagination-number" href="/my-orders?page=<%= i %>"><%= i %></a>
+          </li>
+          <% } %>
+          <% if (endPage < totalPages) { %>
+          <% if (endPage < totalPages - 1) { %>
+          <li class="page-item disabled">
+            <span class="page-link">...</span>
+          </li>
+          <% } %>
+          <li class="page-item">
+            <a class="page-link pagination-number" href="/my-orders?page=<%= totalPages %>"><%= totalPages %></a>
+          </li>
+          <% } %>
+          <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+            <a class="page-link pagination-arrow" href="/my-orders?page=<%= currentPage + 1 %>" aria-label="Next">
+              <span aria-hidden="true">»</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
     <% } %>
   </div>
 
@@ -848,4 +875,5 @@
       });
     });
   </script>
+
 </html>
