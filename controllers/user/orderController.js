@@ -151,20 +151,19 @@ const loadMyOrders = async (req, res, next) => {
 
       return {
         orderId: order.orderId,
-        products, // Array of all products in the order
+        products,
         totalQuantity: orderItems.reduce((sum, item) => sum + (item.quantity || 0), 0),
         totalAmount: order.finalAmount || 0,
         placedOn: order.createdOn ? order.createdOn.toLocaleString() : 'N/A',
-        deliveredOn: order.deliveredOn ? order.deliveredOn.toISOString() : null, // Add deliveredOn
+        deliveredOn: order.deliveredOn ? new Date(order.deliveredOn).toISOString() : null,
         status: orderStatus,
         paymentStatus: order.paymentStatus || 'N/A',
         paymentMethod: order.paymentMethod || 'N/A',
         cancellation_reason: order.cancellation_reason,
-        return_reason: order.return_reason
+        return_reason: order.returnReason
       };
     });
 
-    console.log('User data passed to template:', user);
     res.render("myOrder", { 
       orders: formattedOrders,
       currentPage: page,
@@ -194,27 +193,32 @@ const returnOrder = async (req, res, next) => {
       err.status = 404;
       throw err;
     }
+
     if (order.status !== 'Delivered') {
       const err = new Error("Only delivered orders can be returned");
       err.status = 400;
       throw err;
     }
+
     if (order.returnReason) {
       const err = new Error("Return already requested");
       err.status = 400;
       throw err;
     }
-    if (order.deliveredOn) {
-      const currentDate = new Date();
-      const deliveredDate = new Date(order.deliveredOn);
-      const diffDays = Math.floor((currentDate - deliveredDate) / (1000 * 60 * 60 * 24));
-      if (diffDays > 7) {
-        const err = new Error("Return period of 7 days has expired");
-        err.status = 400;
-        throw err;
-      }
-    } else {
-      const err = new Error("Delivery date not available");
+
+    if (!order.deliveredOn) {
+      const err = new Error("Delivery date not recorded");
+      err.status = 400;
+      throw err;
+    }
+
+    const currentDate = new Date();
+    const deliveredDate = new Date(order.deliveredOn);
+    const diffTime = currentDate - deliveredDate;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays > 7) {
+      const err = new Error("Return period of 7 days has expired");
       err.status = 400;
       throw err;
     }

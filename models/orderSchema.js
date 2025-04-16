@@ -65,6 +65,10 @@ const orderSchema = new Schema({
     required: true,
     enum: ['Pending', 'Failed', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled', 'Return Request', 'Returned']
   },
+  deliveredOn: {
+    type: Date,
+    default: null
+  },
   createdOn: {
     type: Date,
     default: Date.now
