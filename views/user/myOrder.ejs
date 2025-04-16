@@ -100,7 +100,7 @@
       <div class="order-details">
         <% order.products.forEach((product, index) => { %>
         <div class="product-item" style="<%= index > 0 ? 'margin-top: 1rem;' : '' %>">
-          <img src="/Uploads/re-image/<%= product.productImage && product.productImage[0] ? product.productImage[0] : 'default.jpg' %>" alt="<%= product.productName || 'N/A' %>" class="product-image product-clickable" data-product-id="<%= product._id %>">
+          <img src="/iploads/re-image/<%= product.productImage && product.productImage[0] ? product.productImage[0] : 'default.jpg' %>" alt="<%= product.productName || 'N/A' %>" class="product-image product-clickable" data-product-id="<%= product._id %>">
           <div class="product-info">
             <h4>
               <span class="product-name product-clickable" data-product-id="<%= product._id %>">
