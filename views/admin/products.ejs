@@ -55,7 +55,7 @@
           <% for(let i=data.length-1; i>=0; i--) { %>
           <tr>
             <td>
-              <img src="<%= data[i].productImage && data[i].productImage.length > 0 ? '/Uploads/re-image/' + data[i].productImage[0] : '/images/placeholder.jpg' %>" alt="<%= data[i].productName %>" class="product-img">
+              <img src="<%= data[i].productImage && data[i].productImage.length > 0 ? '/uploads/re-image/' + data[i].productImage[0] : '/images/placeholder.jpg' %>" alt="<%= data[i].productName %>" class="product-img">
             </td>
             <td><%= data[i].productName %></td>
             <td><%= data[i].brand.brandName %></td>
