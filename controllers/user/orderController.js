@@ -165,7 +165,7 @@ const loadMyOrders = async (req, res, next) => {
       };
     });
 
-    res.render("myOrders", { 
+    res.render("myOrder", { 
       orders: formattedOrders,
       currentPage: page,
       totalPages: Math.ceil(totalOrders / ORDERS_PER_PAGE),

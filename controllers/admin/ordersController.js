@@ -111,6 +111,8 @@ const getAllOrders = async (req, res) => {
       ]);
     }
 
+    // console.log('Orders:', orders);
+
     // Format orders
     const formattedOrders = orders.map(order => ({
       _id: order.orderId,
