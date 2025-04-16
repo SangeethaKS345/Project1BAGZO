@@ -70,9 +70,15 @@
                 <% 
                   const deliveredDate = order.deliveredOn ? new Date(order.deliveredOn) : null;
                   const currentDate = new Date();
-                  const diffDays = deliveredDate ? Math.floor((currentDate - deliveredDate) / (1000 * 60 * 60 * 24)) : Infinity;
-                  const withinReturnPeriod = deliveredDate && diffDays <= 7 && !isNaN(diffDays);
+                  // Normalize to UTC date (midnight) to avoid timezone issues
+                  const deliveredUTC = deliveredDate ? new Date(Date.UTC(deliveredDate.getUTCFullYear(), deliveredDate.getUTCMonth(), deliveredDate.getUTCDate())) : null;
+                  const currentUTC = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate()));
+                  const diffDays = deliveredUTC ? Math.floor((currentUTC - deliveredUTC) / (1000 * 60 * 60 * 24)) : Infinity;
+                  const withinReturnPeriod = deliveredUTC && diffDays <= 7 && !isNaN(diffDays);
                 %>
+                <script>
+                  console.log('Order <%= order.orderId %>: deliveredOn=', <%= JSON.stringify(order.deliveredOn) %>, 'deliveredUTC=', <%= JSON.stringify(deliveredUTC) %>, 'diffDays=', <%= diffDays %>, 'withinReturnPeriod=', <%= withinReturnPeriod %>);
+                </script>
                 <% if (withinReturnPeriod) { %>
                   <button class="btn btn-warning return-order-btn" data-order-id="<%= order.orderId %>">
                     <i class="fas fa-undo"></i> Return Order
@@ -100,7 +106,7 @@
           <div class="order-details">
             <% order.products.forEach((product, index) => { %>
               <div class="product-item" style="<%= index > 0 ? 'margin-top: 1rem;' : '' %>">
-                <img src="/iploads/re-image/<%= product.productImage && product.productImage[0] ? product.productImage[0] : 'default.jpg' %>" alt="<%= product.productName || 'N/A' %>" class="product-image product-clickable" data-product-id="<%= product._id %>">
+                <img src="/uploads/re-image/<%= product.productImage && product.productImage[0] ? product.productImage[0] : 'default.jpg' %>" alt="<%= product.productName || 'N/A' %>" class="product-image product-clickable" data-product-id="<%= product._id %>">
                 <div class="product-info">
                   <h4>
                     <span class="product-name product-clickable" data-product-id="<%= product._id %>">
@@ -357,7 +363,11 @@
           if (data.success && data.order.deliveredOn) {
             const deliveredDate = new Date(data.order.deliveredOn);
             const currentDate = new Date();
-            const diffDays = Math.floor((currentDate - deliveredDate) / (1000 * 60 * 60 * 24));
+            // Normalize to UTC date (midnight) to avoid timezone issues
+            const deliveredUTC = new Date(Date.UTC(deliveredDate.getUTCFullYear(), deliveredDate.getUTCMonth(), deliveredDate.getUTCDate()));
+            const currentUTC = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate()));
+            const diffDays = Math.floor((currentUTC - deliveredUTC) / (1000 * 60 * 60 * 24));
+            console.log(`Order ${orderId}: deliveredDate=${deliveredDate}, deliveredUTC=${deliveredUTC}, diffDays=${diffDays}`);
             if (diffDays > 7 || isNaN(diffDays)) {
               Swal.fire('Error', 'Return period of 7 days has expired', 'error');
               return;

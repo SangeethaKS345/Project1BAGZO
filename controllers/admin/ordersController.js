@@ -248,6 +248,43 @@ const updateOrderStatus = async (req, res) => {
       });
     }
 
+    // Define stock-reducing statuses
+    const stockReductionStatuses = ['Shipped', 'Out for Delivery', 'Delivered'];
+    const nonStockReductionStatuses = ['Pending', 'Processing'];
+
+    // Handle stock updates
+    if (stockReductionStatuses.includes(status) && !stockReductionStatuses.includes(order.status)) {
+      for (const item of order.OrderItems) {
+        const product = item.product;
+        if (product.quantity < item.quantity) {
+          return res.status(400).json({ error: `Insufficient quantity for ${product.productName}` });
+        }
+        product.quantity -= item.quantity;
+        if (product.quantity === 0) {
+          product.status = 'out of stock';
+        }
+        await product.save();
+      }
+    } else if (
+      !stockReductionStatuses.includes(status) &&
+      stockReductionStatuses.includes(order.status) &&
+      nonStockReductionStatuses.includes(status)
+    ) {
+      for (const item of order.OrderItems) {
+        const product = item.product;
+        product.quantity += item.quantity;
+        if (product.quantity > 0 && product.status === 'out of stock') {
+          product.status = 'Available';
+        }
+        await product.save();
+      }
+    }
+
+    // Set deliveredOn for Delivered status
+    if (status === 'Delivered' && order.status !== 'Delivered') {
+      order.deliveredOn = new Date(); // Set to current UTC time
+    }
+
     order.status = status;
     await order.save();
 
@@ -257,7 +294,6 @@ const updateOrderStatus = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
-
 // Get return requests for admin
 const getReturnRequests = async (req, res) => {
   try {

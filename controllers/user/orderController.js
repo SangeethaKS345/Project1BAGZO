@@ -1,3 +1,4 @@
+// Order Controller for User
 const Order = require('../../models/orderSchema');
 const Product = require('../../models/productSchema');
 const User = require('../../models/userSchema');
@@ -134,7 +135,7 @@ const loadMyOrders = async (req, res, next) => {
     ]);
 
     const formattedOrders = orders.map(order => {
-      console.log(`Order ${order.orderId}: status=${order.status}, paymentStatus=${order.paymentStatus}`);
+      console.log(`Order ${order.orderId}: status=${order.status}, paymentStatus=${order.paymentStatus}, deliveredOn=${order.deliveredOn}`);
       let orderStatus = getOrderStatus(order.status);
       if (order.paymentStatus === 'failed') {
         orderStatus = STATUS_MAP['Failed'];
@@ -164,7 +165,7 @@ const loadMyOrders = async (req, res, next) => {
       };
     });
 
-    res.render("myOrder", { 
+    res.render("myOrders", { 
       orders: formattedOrders,
       currentPage: page,
       totalPages: Math.ceil(totalOrders / ORDERS_PER_PAGE),
@@ -174,6 +175,7 @@ const loadMyOrders = async (req, res, next) => {
     next(err);
   }
 };
+
 // Return Order
 const returnOrder = async (req, res, next) => {
   try {
@@ -214,7 +216,10 @@ const returnOrder = async (req, res, next) => {
 
     const currentDate = new Date();
     const deliveredDate = new Date(order.deliveredOn);
-    const diffTime = currentDate - deliveredDate;
+    // Normalize to UTC date (midnight) for consistency with myOrders.ejs
+    const currentUTC = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate()));
+    const deliveredUTC = new Date(Date.UTC(deliveredDate.getUTCFullYear(), deliveredDate.getUTCMonth(), deliveredDate.getUTCDate()));
+    const diffTime = currentUTC - deliveredUTC;
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays > 7) {
@@ -368,9 +373,11 @@ const getOrderDetails = async (req, res, next) => {
         orderedItems: order.OrderItems.map(item => ({
           product: { productName: item.product.productName },
           price: item.price,
-          quantity: item.quantity
+          quantity: item.quantity,
+          total: item.price * item.quantity
         })),
-        status: order.status
+        status: order.status,
+        deliveredOn: order.deliveredOn ? new Date(order.deliveredOn).toISOString() : null
       }
     });
   } catch (err) {
