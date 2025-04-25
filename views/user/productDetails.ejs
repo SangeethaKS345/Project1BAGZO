@@ -119,31 +119,30 @@
       <% relatedProducts.forEach((related) => { %>
       <div class="related-product">
         <a href="/productDetails?id=<%= related._id %>">
-          <img src="/uploads/re-image/<%= related.productImage[0] %>" alt="<%= related.productName %>">
+          <img src="/Uploads/re-image/<%= related.productImage[0] %>" alt="<%= related.productName %>">
           <h4><%= related.productName %></h4>
           <div class="price-container">
-            <% if (product.regularPrice > product.salesPrice) { %>
-            <p class="regular-price" style="color: black">₹<%= product.regularPrice.toFixed(2) %></p>
-            <% if (maxOffer > 0) { %>
-            <p class="price">₹<%= finalPrice.toFixed(2) %>
-              <% if (discountPercentage > 0) { %>
+            <% if (related.regularPrice > related.salesPrice) { %>
+            <p class="regular-price" style="color: black">₹<%= related.regularPrice.toFixed(2) %></p>
+            <% if (related.maxOffer > 0) { %>
+            <p class="price">₹<%= related.finalPrice.toFixed(2) %>
+              <% if (related.discountPercentage > 0) { %>
               <span class="discount">
-                (<%= discountPercentage.toFixed(1) %>% OFF)
+                (<%= related.discountPercentage.toFixed(1) %>% OFF)
               </span>
               <% } %>
             </p>
-
             <% } else { %>
-            <p class="price">Sale Price: ₹<%= product.salesPrice.toFixed(2) %>
-              <% if (discountPercentage > 0) { %>
+            <p class="price">Sale Price: ₹<%= related.salesPrice.toFixed(2) %>
+              <% if (related.discountPercentage > 0) { %>
               <span class="discount">
-                (<%= discountPercentage.toFixed(1) %>% OFF)
+                (<%= related.discountPercentage.toFixed(1) %>% OFF)
               </span>
               <% } %>
             </p>
             <% } %>
             <% } else { %>
-            <p class="price">Price: ₹<%= product.salesPrice.toFixed(2) %></p>
+            <p class="price">Price: ₹<%= related.salesPrice.toFixed(2) %></p>
             <% } %>
           </div>
         </a>
